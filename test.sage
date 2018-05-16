@@ -1,5 +1,5 @@
 import unittest
-from arithmetic_matroid import ArithmeticMatroid
+from arithmetic_matroid import *
 
 
 class TestArithmeticMatroid(unittest.TestCase):
@@ -16,9 +16,15 @@ class TestArithmeticMatroid(unittest.TestCase):
         M = ArithmeticMatroid(E, rk, m)
         self.assertTrue(M.is_valid())
         self.assertEqual(M.r, 9)
-    
+        self.assertTrue(M.is_realizable())
+        
     
     def test_valid(self):
+        # matroid with realization
+        # [ 1, a, 1 ]
+        # [ 0, b, 5 ]
+        # with a|b and (b,5)=1
+        
         E = [1,2,3]
 
         def rk(X):
@@ -42,6 +48,8 @@ class TestArithmeticMatroid(unittest.TestCase):
         
         M = ArithmeticMatroid(E, rk, m)
         self.assertTrue(M.is_valid())
+        self.assertTrue(M.is_realizable())
+        # print M.realization()
 
 
     def test_not_valid(self):
@@ -71,6 +79,7 @@ class TestArithmeticMatroid(unittest.TestCase):
     
     
     def test_valid2(self):
+        # valid, not realizable
         E = [1,2,3,4,5]
 
         def rk(X):
@@ -84,7 +93,35 @@ class TestArithmeticMatroid(unittest.TestCase):
 
         M = ArithmeticMatroid(E, rk, m)
         self.assertTrue(M.is_valid())
+        self.assertFalse(M.is_realizable())
+        self.assertEqual(M.realization(), None)
+    
+    
+    def test_realization_to_matroid(self):
+        a = 77
+        b = 1
+        A = matrix(ZZ, [[1, a], [0, b]])
+        M = realization_to_matroid(A)
+        
+        self.assertTrue(M.is_valid())
+        self.assertTrue(M.is_realizable())
 
+
+    def test_pseudo(self):
+        E = [1,2,3]
+        
+        def rk(X):
+            return min(2, len(X))
+        
+        def m(X):
+            if len(X) == 2:
+                return 3
+            else:
+                return 1
+        
+        M = ArithmeticMatroid(E, rk, m)
+        self.assertTrue(M.is_valid())
+        self.assertFalse(M.is_realizable())
 
 if __name__ == '__main__':
     unittest.main()

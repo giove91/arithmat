@@ -2,6 +2,7 @@ import sage.matroids.matroid
 import itertools
 import networkx as nx
 import operator
+import sys
 
 """
 TODO
@@ -92,13 +93,15 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
         return True
     
     
-    def qualcosa(self):
+    def realization(self):
+        # FIXME only works for m(E)=1
+        
         E = self.E
         r = self.r
         n = len(E)
         
         B = list(sorted(self.basis()))
-        print "Basis:", B
+        # print "Basis:", B
         
         # C = matrix(r, n-r, lambda i,j: self._rank(B[:i]+B[i+1:]+[J[j]]) == r)
         # print C
@@ -170,22 +173,40 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
         res = Q.inverse()[:r,:]
         res = matrix(ZZ, res)
         
-        print "Candidate realization:"
-        print res
+        print >> sys.stderr, "Candidate realization:"
+        print >> sys.stderr, res
         
         # check if this is indeed a realization
         for S in powerset(range(n)):
             T = [E[i] for i in S]   # corresponding subset of E
             if res[:,S].rank() != self._rank(T):
-                print "Not realizable, rank of %r is incorrect" % T
+                print >> sys.stderr, "Not realizable, rank of %r is incorrect" % T
                 return None
 
             if reduce(operator.mul, [d for d in res[:,S].elementary_divisors() if d != 0], 1) != self._multiplicity(T):
-                print "Not realizable, multiplicity of %r is incorrect" % T
+                print >> sys.stderr, "Not realizable, multiplicity of %r is incorrect" % T
                 return None
         
         return res
 
+    
+    def is_realizable(self):
+        return self.realization() is not None
+
+
+def realization_to_matroid(A):
+    """
+    Given an integer matrix A, return the associated ArithmeticMatroid.
+    """
+    E = range(A.ncols())
+    
+    def rk(X):
+        return A[:,list(X)].rank()
+    
+    def m(X):
+        return reduce(operator.mul, [d for d in A[:,list(X)].elementary_divisors() if d != 0], 1)
+    
+    return ArithmeticMatroid(E, rk, m)
 
 
 
@@ -208,7 +229,8 @@ if __name__ == '__main__':
     print M
     print "Valid:", M.is_valid()
 
-    print M.qualcosa()
-
+    print M.realization()
+    
+    print realization_to_matroid(matrix(ZZ, 2, [1,2,3, 4,5,6]))
 
     
