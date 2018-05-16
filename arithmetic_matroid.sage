@@ -1,6 +1,7 @@
 import sage.matroids.matroid
 import itertools
 import networkx as nx
+import operator
 
 """
 TODO
@@ -114,8 +115,8 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
                 spanning_forest.add_edge(x,y)
                 uf.union(x,y)
         
-        print "Graph:", edges
-        print "Spanning forest:", spanning_forest.edges()
+        # print "Graph:", edges
+        # print "Spanning forest:", spanning_forest.edges()
         
         # compute entries of matrix A
         def entry(i,j):
@@ -132,19 +133,62 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
                 return 0
         
         A = matrix(ZZ, r, n, entry)
-        print A
+        # print A
+        
+        B_to_index = {B[i]: i for i in xrange(r)}
+        E_to_index = {E[j]: j for j in xrange(n)}
         
         
-        # find all paths in the spanning forest
-        paths = nx.all_pairs_dijkstra_path(spanning_forest)
-        for (x,y) in sorted(edges, key = lambda (x,y): len(paths[x][y])):
-            if len(paths[x][y]) == 1:
-                # (x,y) is in the spanning forest
-                continue
+        graph = spanning_forest
+        while graph.number_of_edges() < len(edges):
+            # find all paths in the graph
+            paths = nx.all_pairs_dijkstra_path(graph)
+            for (x,y) in sorted(edges, key = lambda (x,y): len(paths[x][y])):
+                if len(paths[x][y]) == 2:
+                    # (x,y) is in the graph
+                    assert (x,y) in graph.edges()
+                    continue
             
-            # TODO
+            i = B_to_index[x]
+            j = E_to_index[y]
+            
+            rows = [B_to_index[z] for z in paths[x][y][::2]]
+            columns = [E_to_index[z] for z in paths[x][y][1::2]]
+            
+            expected_mult = self._multiplicity([z for z in B + paths[x][y] if z not in B or z not in paths[x][y]])
+            if abs(A[rows,columns].determinant()) != expected_mult:
+                # change sign
+                # print "change sign!"
+                A[i,j] = -A[i,j]
+                
+                if abs(A[rows,columns].determinant()) != expected_mult:
+                    return None
+            
+            graph.add_edge(x,y)
         
+        D, P, Q = A.smith_form()
+        res = Q.inverse()[:r,:]
+        res = matrix(ZZ, res)
         
+        print "Candidate realization:"
+        print res
+        
+        # check if this is indeed a realization
+        for S in powerset(range(n)):
+            T = [E[i] for i in S]   # corresponding subset of E
+            if res[:,S].rank() != self._rank(T):
+                print "Not realizable, rank of %r is incorrect" % T
+                return None
+
+            if reduce(operator.mul, [d for d in res[:,S].elementary_divisors() if d != 0], 1) != self._multiplicity(T):
+                print "Not realizable, multiplicity of %r is incorrect" % T
+                return None
+        
+        return res
+
+
+
+
 if __name__ == '__main__':
     E = [1,2,3,4,5]
 
@@ -164,7 +208,7 @@ if __name__ == '__main__':
     print M
     print "Valid:", M.is_valid()
 
-    M.qualcosa()
+    print M.qualcosa()
 
 
     
