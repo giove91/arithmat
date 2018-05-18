@@ -98,6 +98,7 @@ class TestArithmeticMatroid(unittest.TestCase):
     
     
     def test_realization_to_matroid(self):
+        # realizable with a 2x2 matrix
         for a in xrange(6):
             for b in xrange(1, 6):
                 A = matrix(ZZ, [[1, a], [0, b]])
@@ -105,6 +106,16 @@ class TestArithmeticMatroid(unittest.TestCase):
                 
                 self.assertTrue(M.is_valid())
                 self.assertTrue(M.is_realizable())
+    
+    def test_realization_to_matroid2(self):
+        # A = random_matrix(ZZ,2,4)
+        A = matrix(ZZ, [[-1, -29, -1, 1], [1, -1, 0, 1]])
+        M = realization_to_matroid(A)
+        
+        # print M.realization_surjective()
+        
+        self.assertTrue(M.is_valid())
+        self.assertTrue(M.is_realizable())
     
 
     def test_pseudo(self):

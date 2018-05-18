@@ -129,10 +129,7 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
         
         B = list(sorted(self.basis()))
         # print "Basis:", B
-        
-        # C = matrix(r, n-r, lambda i,j: self._rank(B[:i]+B[i+1:]+[J[j]]) == r)
-        # print C
-        
+                
         # find bipartite graph
         edges = [(x,y) for x in B for y in E if y not in B and self._rank([z for z in B if z != x]+[y]) == r]
         
@@ -185,13 +182,15 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
             rows = [B_to_index[z] for z in paths[x][y][::2]]
             columns = [E_to_index[z] for z in paths[x][y][1::2]]
             
-            expected_mult = self._multiplicity([z for z in B + paths[x][y] if z not in B or z not in paths[x][y]])
+            expected_mult = self._multiplicity([z for z in B + paths[x][y] if z not in B or z not in paths[x][y]]) * self._multiplicity(B)**(r-1)
             if abs(A[rows,columns].determinant()) != expected_mult:
                 # change sign
                 # print "change sign!"
                 A[i,j] = -A[i,j]
                 
                 if abs(A[rows,columns].determinant()) != expected_mult:
+                    print A
+                    print A[rows,columns].determinant(), expected_mult
                     return None
             
             graph.add_edge(x,y)
