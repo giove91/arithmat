@@ -3,6 +3,7 @@ import itertools
 import networkx as nx
 import operator
 import sys
+from fractions import gcd
 
 """
 TODO
@@ -93,12 +94,38 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
         return True
     
     
-    def realization(self):
-        # FIXME only works for m(E)=1
-        
+    def check_realization(self, A):
+        """
+        Check if the given matrix is a realization for the matroid.
+        """
         E = self.E
         r = self.r
         n = len(E)
+        
+        if A.ncols() != n:
+            return False
+        
+        for S in powerset(range(n)):
+            T = [E[i] for i in S]   # corresponding subset of E
+            if A[:,S].rank() != self._rank(T):
+                # print >> sys.stderr, "Not realizable, rank of %r is incorrect" % T
+                return False
+
+            if reduce(operator.mul, [d for d in A[:,S].elementary_divisors() if d != 0], 1) != self._multiplicity(T):
+                # print >> sys.stderr, "Not realizable, multiplicity of %r is incorrect" % T
+                return False
+        
+        return True
+        
+    
+    def realization_surjective(self):
+        """
+        Find a realization (if it exists) for a surjective matroid (m(E)=1).
+        """
+        E = self.E
+        r = self.r
+        n = len(E)
+        assert self._multiplicity(E) == 1
         
         B = list(sorted(self.basis()))
         # print "Basis:", B
@@ -173,25 +200,88 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
         res = Q.inverse()[:r,:]
         res = matrix(ZZ, res)
         
-        print >> sys.stderr, "Candidate realization:"
-        print >> sys.stderr, res
+        # print >> sys.stderr, "Candidate realization:"
+        # print >> sys.stderr, res
         
         # check if this is indeed a realization
-        for S in powerset(range(n)):
-            T = [E[i] for i in S]   # corresponding subset of E
-            if res[:,S].rank() != self._rank(T):
-                print >> sys.stderr, "Not realizable, rank of %r is incorrect" % T
-                return None
-
-            if reduce(operator.mul, [d for d in res[:,S].elementary_divisors() if d != 0], 1) != self._multiplicity(T):
-                print >> sys.stderr, "Not realizable, multiplicity of %r is incorrect" % T
-                return None
+        if not self.check_realization(res):
+            return None
         
         return res
+
+
+    def all_realizations(self):
+        """
+        Generator of all non-equivalent essential realizations.
+        """
+        E = self.E
+        r = self.r
+        n = len(E)
+        if self._multiplicity(E) == 1:
+            res = self.realization_surjective()
+            if res is not None:
+                yield res
+            return
+        
+        # construct "reduced" matroid
+        denominator = reduce(gcd, [self._multiplicity(B) for B in self.bases()], 0)
+        
+        def m_bar(X):
+            return reduce(gcd, [self._multiplicity(B) for B in self.bases() if self._rank(X) == self._rank([x for x in X if x in B])], 0) // denominator
+        
+        M = ArithmeticMatroid(E, self._rank, m_bar)
+        
+        if not M.is_valid():
+            return
+        
+        # get realization of "reduced" matroid
+        A = M.realization_surjective()
+        
+        if A is None:
+            return
+        
+        # try all left Hermite normal forms
+        for H in hermite_normal_forms(r, self._multiplicity(E)):
+            if self.check_realization(H*A):
+                yield H*A
+
+    
+    def realization(self):
+        """
+        Compute any essential realization.
+        Returns None if the matroid is not realizable.
+        """
+        for A in self.all_realizations():
+            return A
+        return None
 
     
     def is_realizable(self):
         return self.realization() is not None
+
+
+
+def hermite_normal_forms(r, det):
+    """
+    Generate all r x r integer matrices in (left) Hermite normal form
+    with the given determinant.
+    """
+    if r == 0:
+        if det == 1:
+            yield matrix(ZZ, 0, [])
+    
+    else:
+        for d in divisors(det):
+            for A in hermite_normal_forms(r-1, det//d):
+                for column in itertools.product(range(d), repeat=r-1):
+                    yield matrix(ZZ, r, r, lambda i, j:
+                        A[i,j] if i < r-1 and j < r-1
+                        else d if i == r-1 and j == r-1
+                        else column[i] if j == r-1
+                        else 0
+                    )
+    
+    
 
 
 def realization_to_matroid(A):
@@ -231,6 +321,4 @@ if __name__ == '__main__':
 
     print M.realization()
     
-    print realization_to_matroid(matrix(ZZ, 2, [1,2,3, 4,5,6]))
-
     

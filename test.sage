@@ -98,14 +98,14 @@ class TestArithmeticMatroid(unittest.TestCase):
     
     
     def test_realization_to_matroid(self):
-        a = 77
-        b = 1
-        A = matrix(ZZ, [[1, a], [0, b]])
-        M = realization_to_matroid(A)
-        
-        self.assertTrue(M.is_valid())
-        self.assertTrue(M.is_realizable())
-
+        for a in xrange(6):
+            for b in xrange(1, 6):
+                A = matrix(ZZ, [[1, a], [0, b]])
+                M = realization_to_matroid(A)
+                
+                self.assertTrue(M.is_valid())
+                self.assertTrue(M.is_realizable())
+    
 
     def test_pseudo(self):
         E = [1,2,3]
