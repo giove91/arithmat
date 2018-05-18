@@ -176,24 +176,32 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
                     assert (x,y) in graph.edges()
                     continue
             
-            i = B_to_index[x]
-            j = E_to_index[y]
-            
-            rows = [B_to_index[z] for z in paths[x][y][::2]]
-            columns = [E_to_index[z] for z in paths[x][y][1::2]]
-            
-            expected_mult = self._multiplicity([z for z in B + paths[x][y] if z not in B or z not in paths[x][y]]) * self._multiplicity(B)**(r-1)
-            if abs(A[rows,columns].determinant()) != expected_mult:
-                # change sign
-                # print "change sign!"
-                A[i,j] = -A[i,j]
+                i = B_to_index[x]
+                j = E_to_index[y]
                 
+                rows = [B_to_index[z] for z in paths[x][y][::2]]
+                columns = [E_to_index[z] for z in paths[x][y][1::2]]
+                
+                # print x, y
+                # print "rows:", rows
+                # print "columns:", columns
+                
+                new_tuple = [z for z in B + paths[x][y] if z not in B or z not in paths[x][y]]
+                # print "new_tuple:", new_tuple
+                expected_mult = self._multiplicity(new_tuple) * self._multiplicity(B)**(len(rows)-1) if self._rank(new_tuple) == r else 0
                 if abs(A[rows,columns].determinant()) != expected_mult:
-                    print A
-                    print A[rows,columns].determinant(), expected_mult
-                    return None
-            
-            graph.add_edge(x,y)
+                    # change sign
+                    # print "change sign!"
+                    # print A[rows,columns].determinant()
+                    A[i,j] = -A[i,j]
+                    
+                    if abs(A[rows,columns].determinant()) != expected_mult:
+                        # print A
+                        # print A[rows,columns].determinant(), expected_mult
+                        return None
+                
+                graph.add_edge(x,y)
+                break
         
         D, P, Q = A.smith_form()
         res = Q.inverse()[:r,:]
