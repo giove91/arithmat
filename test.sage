@@ -108,23 +108,16 @@ class TestArithmeticMatroid(unittest.TestCase):
                 self.assertTrue(M.is_realizable())
     
     def test_realization_to_matroid2(self):
-        # A = random_matrix(ZZ,2,4)
         A = matrix(ZZ, [[-1, -29, -1, 1], [1, -1, 0, 1]])
         M = realization_to_matroid(A)
-        
-        # print M.realization_surjective()
         
         self.assertTrue(M.is_valid())
         self.assertTrue(M.is_realizable())
 
 
     def test_realization_to_matroid3(self):
-        # A = random_matrix(ZZ,2,5)
         A = matrix(ZZ, [[-1,  1,  0,  0, -1], [ 6,  1,  1, -1, -1]])
         M = realization_to_matroid(A)
-        
-        # print A
-        # print M.realization_surjective()
         
         self.assertTrue(M.is_valid())
         self.assertTrue(M.is_realizable())
@@ -132,16 +125,14 @@ class TestArithmeticMatroid(unittest.TestCase):
     
     def test_realization_to_matroid4(self):
         A = matrix(ZZ, [[ 2,  2,  1,  0,  0], [ 1,  5, -1,  1, -2], [-2,  1,  0, -1, -1]])
-
         M = realization_to_matroid(A)
         
         self.assertTrue(M.is_valid())
         self.assertTrue(M.is_realizable())
 
 
-    def test_realization_to_matroid5(self):
-        A = random_matrix(ZZ,4,7)
-
+    def test_realization_to_matroid_random(self):
+        A = random_matrix(ZZ,4,6)
         M = realization_to_matroid(A)
         
         self.assertTrue(M.is_valid())
