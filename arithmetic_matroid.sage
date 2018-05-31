@@ -1,4 +1,5 @@
 import sage.matroids.matroid
+import sage.matroids.rank_matroid
 import itertools
 import networkx as nx
 import operator
@@ -26,16 +27,18 @@ Copying, loading, saving:
 """
 
 
-class ArithmeticMatroid(sage.matroids.matroid.Matroid):
-    def __init__(self, E, rk, m):
-        self.E = E
-        self.rk = rk
-        self.m = m
-        self.r = self._rank(self.E)
+# class ArithmeticMatroid(sage.matroids.matroid.Matroid):
+class ArithmeticMatroidMixin(object):
+    def __init__(self, *args, **kwargs):
+        # get multiplicity function
+        multiplicity = kwargs.pop('multiplicity_function')
+        super(ArithmeticMatroidMixin, self).__init__(*args, **kwargs)
+        self._multiplicity = multiplicity
 
     def __repr__(self):
-        return "Arithmetic matroid of rank %d on %d elements" % (self.r, len(self.E))
+        return "Arithmetic matroid of rank %d on %d elements" % (self.full_rank(), len(self.groundset()))
     
+    """
     def groundset(self):
         return self.E
 
@@ -44,7 +47,7 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
     
     def _multiplicity(self, X):
         return self.m(X)
-    
+    """
     
     
     
@@ -56,7 +59,7 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
     
     
     def is_valid(self):
-        if not super(ArithmeticMatroid, self).is_valid():
+        if not super(ArithmeticMatroidMixin, self).is_valid():
             return False
         
         E = self.groundset()
@@ -107,8 +110,9 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
         Check if the given matrix is a realization for the matroid.
         If check_orientability==True, check that the multiplicity is correct only on the bases.
         """
-        E = self.groundset()
-        r = self.r
+        # TODO ask for an ordered groundset, to return a realization with columns in the correct order
+        E = list(self.groundset())
+        r = self.full_rank()
         n = len(E)
         
         if A.ncols() != n:
@@ -137,8 +141,9 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
         If check_orientability==True, find a realization of a matroid (E,rk,m')
         such that m'(B)=m(B) for every basis B.
         """
-        E = self.groundset()
-        r = self.r
+        # TODO ask for an ordered groundset, to return a realization with columns in the correct order
+        E = list(self.groundset())
+        r = self.full_rank()
         n = len(E)
         assert self._multiplicity(E) == 1
         
@@ -237,7 +242,7 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
         Generator of all non-equivalent essential realizations.
         """
         E = self.groundset()
-        r = self.r
+        r = self.full_rank()
         n = len(E)
         if self._multiplicity(E) == 1:
             res = self.realization_surjective()
@@ -251,7 +256,7 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
         def m_bar(X):
             return reduce(gcd, [self._multiplicity(B) for B in self.bases() if self._rank(X) == self._rank([x for x in X if x in B])], 0) // denominator
         
-        M = ArithmeticMatroid(E, self._rank, m_bar)
+        M = ArithmeticMatroid(E, self._rank, multiplicity_function=m_bar)
         
         if not M.is_valid():
             return
@@ -295,7 +300,7 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
         def m_bar(X):
             return reduce(gcd, [self._multiplicity(B) for B in self.bases() if self._rank(X) == self._rank([x for x in X if x in B])], 0) // denominator
         
-        M = ArithmeticMatroid(self.groundset(), self._rank, m_bar) # note: this matroid might be non-valid
+        M = ArithmeticMatroid(self.groundset(), self._rank, multiplicity_function=m_bar) # note: this matroid might be non-valid
         
         return M.realization_surjective(check_orientability=True) is not None
     
@@ -305,7 +310,7 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
         Return the arithmetic Tutte polynomial of the matroid.
         """
         E = self.groundset()
-        r = self.r
+        r = self.full_rank()
         
         a = x
         b = y
@@ -317,6 +322,10 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
         if a is not None and b is not None:
             T = T(a, b)
         return T
+
+
+class ArithmeticMatroid(ArithmeticMatroidMixin, sage.matroids.rank_matroid.RankMatroid):
+    pass
 
 
 
@@ -373,7 +382,7 @@ if __name__ == '__main__':
             return 1
 
 
-    M = ArithmeticMatroid(E, rk, m)
+    M = ArithmeticMatroid(E, rk, multiplicity_function=m)
 
     print M
     print "Valid:", M.is_valid()
