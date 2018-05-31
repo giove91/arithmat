@@ -79,7 +79,7 @@ class TestArithmeticMatroid(unittest.TestCase):
     
     
     def test_valid2(self):
-        # valid, not realizable
+        # valid, not realizable, not orientable
         E = [1,2,3,4,5]
 
         def rk(X):
@@ -94,6 +94,7 @@ class TestArithmeticMatroid(unittest.TestCase):
         M = ArithmeticMatroid(E, rk, m)
         self.assertTrue(M.is_valid())
         self.assertFalse(M.is_realizable())
+        self.assertFalse(M.is_orientable())
         self.assertEqual(M.realization(), None)
     
     
@@ -106,6 +107,7 @@ class TestArithmeticMatroid(unittest.TestCase):
                 
                 self.assertTrue(M.is_valid())
                 self.assertTrue(M.is_realizable())
+                self.assertTrue(M.is_orientable())
     
     def test_realization_to_matroid2(self):
         A = matrix(ZZ, [[-1, -29, -1, 1], [1, -1, 0, 1]])
@@ -113,6 +115,7 @@ class TestArithmeticMatroid(unittest.TestCase):
         
         self.assertTrue(M.is_valid())
         self.assertTrue(M.is_realizable())
+        self.assertTrue(M.is_orientable())
 
 
     def test_realization_to_matroid3(self):
@@ -121,6 +124,7 @@ class TestArithmeticMatroid(unittest.TestCase):
         
         self.assertTrue(M.is_valid())
         self.assertTrue(M.is_realizable())
+        self.assertTrue(M.is_orientable())
     
     
     def test_realization_to_matroid4(self):
@@ -129,6 +133,7 @@ class TestArithmeticMatroid(unittest.TestCase):
         
         self.assertTrue(M.is_valid())
         self.assertTrue(M.is_realizable())
+        self.assertTrue(M.is_orientable())
 
 
     def test_realization_to_matroid_random(self):
@@ -137,6 +142,7 @@ class TestArithmeticMatroid(unittest.TestCase):
         
         self.assertTrue(M.is_valid())
         self.assertTrue(M.is_realizable())
+        self.assertTrue(M.is_orientable())
 
 
     def test_pseudo(self):
@@ -154,6 +160,60 @@ class TestArithmeticMatroid(unittest.TestCase):
         M = ArithmeticMatroid(E, rk, m)
         self.assertTrue(M.is_valid())
         self.assertFalse(M.is_realizable())
+        self.assertTrue(M.is_orientable())
+    
+    
+    def test_non_realizable(self):
+        A = matrix(ZZ, [[-1,  1,  0, -1], [ 6,  1, -1, -2]])
+        M = realization_to_matroid(A)
+        M2 = ArithmeticMatroid(M.E, M._rank, lambda X: M._multiplicity(X)**2)
+        
+        self.assertTrue(M2.is_valid())
+        self.assertTrue(M.is_realizable())
+        self.assertFalse(M2.is_realizable())
+    
+    def test_non_realizable2(self):
+        A = matrix(ZZ, [[-1,  1,  0, -1, 2, 7], [ 6,  1, -1, -2, 2, 5]])
+        M = realization_to_matroid(A)
+        M2 = ArithmeticMatroid(M.E, M._rank, lambda X: M._multiplicity(X)**2)
+        
+        self.assertTrue(M2.is_valid())
+        self.assertTrue(M.is_realizable())
+        self.assertFalse(M2.is_realizable())
+    
+    
+    def test_not_orientable(self):
+        E = range(1, 7)
+        
+        def rk(A):
+            return min(len(A), 2)
+
+        def m(X):
+            A = tuple(sorted(X))
+            if A == (1,2,3):
+                return 1
+            if len(A) == 0:
+                return 1
+            elif A == (1,) or A == (2,):
+                return 2
+            elif len(A) == 1:
+                return 1
+            elif len(A) == 2 and len([x for x in A if x <= 2]) == 1:
+                return 2
+            elif 1 in A and 2 in A and len(A) == 3:
+                return 2
+            elif A == (1,2):
+                return 4
+            else:
+                return 1
+        
+        M = ArithmeticMatroid(E, rk, m)
+        self.assertTrue(M.is_valid())
+        self.assertFalse(M.is_realizable())
+        self.assertFalse(M.is_orientable())
+
+
 
 if __name__ == '__main__':
     unittest.main()
+

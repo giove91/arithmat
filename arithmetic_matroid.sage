@@ -29,12 +29,11 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
         self.E = E
         self.rk = rk
         self.m = m
-        
         self.r = self._rank(self.E)
 
     def __repr__(self):
         return "Arithmetic matroid of rank %d on %d elements" % (self.r, len(self.E))
-
+    
     def groundset(self):
         return self.E
 
@@ -43,6 +42,9 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
     
     def _multiplicity(self, X):
         return self.m(X)
+    
+    
+    
     
     def is_independent_from(self, v, X):
         return self._rank(X+[v]) != self._rank(X)
@@ -62,11 +64,14 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
                     if self.is_dependent_from(v, X):
                         # check axiom 1
                         if self._multiplicity(X) % self._multiplicity(X+[v]) != 0:
+                            print >> sys.stderr, "Axiom 1 fails on", X, v
                             return False
                     
                     else:
                         # check axiom 2
                         if self._multiplicity(X+[v]) % self._multiplicity(X) != 0:
+                            print >> sys.stderr, "Axiom 2 fails on", X, v
+                            print self._multiplicity(X+[v]), self._multiplicity(X)
                             return False
         
         for Y in powerset(self.E):
@@ -94,9 +99,10 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
         return True
     
     
-    def check_realization(self, A):
+    def check_realization(self, A, check_orientability=False):
         """
         Check if the given matrix is a realization for the matroid.
+        If check_orientability==True, check that the multiplicity is correct only on the bases.
         """
         E = self.E
         r = self.r
@@ -110,6 +116,10 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
             if A[:,S].rank() != self._rank(T):
                 # print >> sys.stderr, "Not realizable, rank of %r is incorrect" % T
                 return False
+            
+            if check_orientability and len(T) != r and self._rank(T) < r:
+                # skip multiplicity check
+                continue
 
             if reduce(operator.mul, [d for d in A[:,S].elementary_divisors() if d != 0], 1) != self._multiplicity(T):
                 # print >> sys.stderr, "Not realizable, multiplicity of %r is incorrect" % T
@@ -118,9 +128,11 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
         return True
         
     
-    def realization_surjective(self):
+    def realization_surjective(self, check_orientability=False):
         """
         Find a realization (if it exists) for a surjective matroid (m(E)=1).
+        If check_orientability==True, find a realization of a matroid (E,rk,m')
+        such that m'(B)=m(B) for every basis B.
         """
         E = self.E
         r = self.r
@@ -211,7 +223,7 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
         # print >> sys.stderr, res
         
         # check if this is indeed a realization
-        if not self.check_realization(res):
+        if not self.check_realization(res, check_orientability=check_orientability):
             return None
         
         return res
@@ -264,7 +276,29 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
 
     
     def is_realizable(self):
+        """
+        Determine if the matroid is a realizable arithmetic matroid.
+        """
         return self.realization() is not None
+    
+    
+    def is_orientable(self):
+        """
+        Determine if the matroid is an orientable arithmetic matroid according to [Pagaria https://arxiv.org/abs/1805.11888].
+        """
+        E = self.E
+        r = self.r
+        n = len(E)
+        
+        # construct "reduced" matroid
+        denominator = reduce(gcd, [self._multiplicity(B) for B in self.bases()], 0)
+        
+        def m_bar(X):
+            return reduce(gcd, [self._multiplicity(B) for B in self.bases() if self._rank(X) == self._rank([x for x in X if x in B])], 0) // denominator
+        
+        M = ArithmeticMatroid(E, self._rank, m_bar) # note: this matroid might be non-valid
+        
+        return M.realization_surjective(check_orientability=True) is not None
 
 
 
