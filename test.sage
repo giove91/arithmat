@@ -108,6 +108,11 @@ class TestArithmeticMatroid(unittest.TestCase):
                 self.assertTrue(M.is_valid())
                 self.assertTrue(M.is_realizable())
                 self.assertTrue(M.is_orientable())
+                
+                R = ZZ['x, y']
+                x, y = R._first_ngens(2)
+                self.assertEqual(M.arithmetic_tutte_polynomial(), x**2 + x*(gcd(a,b)-1) + b-gcd(a,b))
+    
     
     def test_realization_to_matroid2(self):
         A = matrix(ZZ, [[-1, -29, -1, 1], [1, -1, 0, 1]])

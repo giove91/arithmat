@@ -64,14 +64,13 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
                     if self.is_dependent_from(v, X):
                         # check axiom 1
                         if self._multiplicity(X) % self._multiplicity(X+[v]) != 0:
-                            print >> sys.stderr, "Axiom 1 fails on", X, v
+                            # print >> sys.stderr, "Axiom 1 fails on", X, v
                             return False
                     
                     else:
                         # check axiom 2
                         if self._multiplicity(X+[v]) % self._multiplicity(X) != 0:
-                            print >> sys.stderr, "Axiom 2 fails on", X, v
-                            print self._multiplicity(X+[v]), self._multiplicity(X)
+                            # print >> sys.stderr, "Axiom 2 fails on", X, v
                             return False
         
         for Y in powerset(self.E):
@@ -286,19 +285,34 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
         """
         Determine if the matroid is an orientable arithmetic matroid according to [Pagaria https://arxiv.org/abs/1805.11888].
         """
-        E = self.E
-        r = self.r
-        n = len(E)
-        
         # construct "reduced" matroid
         denominator = reduce(gcd, [self._multiplicity(B) for B in self.bases()], 0)
         
         def m_bar(X):
             return reduce(gcd, [self._multiplicity(B) for B in self.bases() if self._rank(X) == self._rank([x for x in X if x in B])], 0) // denominator
         
-        M = ArithmeticMatroid(E, self._rank, m_bar) # note: this matroid might be non-valid
+        M = ArithmeticMatroid(self.E, self._rank, m_bar) # note: this matroid might be non-valid
         
         return M.realization_surjective(check_orientability=True) is not None
+    
+    
+    def arithmetic_tutte_polynomial(self, x=None, y=None):
+        """
+        Return the arithmetic Tutte polynomial of the matroid.
+        """
+        E = self.E
+        r = self.r
+        
+        a = x
+        b = y
+        R = ZZ['x, y']
+        x, y = R._first_ngens(2)
+        T = R(0)
+        for X in powerset(self.E):
+            T += self._multiplicity(X) * (x-1) ** (r - self._rank(X)) * (y-1) ** (len(X) - self._rank(X))
+        if a is not None and b is not None:
+            T = T(a, b)
+        return T
 
 
 
@@ -361,5 +375,6 @@ if __name__ == '__main__':
     print "Valid:", M.is_valid()
 
     print M.realization()
+    print M.arithmetic_tutte_polynomial()
     
     
