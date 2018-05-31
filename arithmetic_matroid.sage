@@ -31,24 +31,19 @@ Copying, loading, saving:
 class ArithmeticMatroidMixin(object):
     def __init__(self, *args, **kwargs):
         # get multiplicity function
-        multiplicity = kwargs.pop('multiplicity_function')
+        try:
+            multiplicity = kwargs.pop('multiplicity_function')
+        except KeyError:
+            # hope that the last positional argument is the multiplicity function
+            # FIXME maybe this is dangerous?
+            multiplicity = args[-1]
+            args = args[:-1]
+        
         super(ArithmeticMatroidMixin, self).__init__(*args, **kwargs)
         self._multiplicity = multiplicity
 
     def __repr__(self):
         return "Arithmetic matroid of rank %d on %d elements" % (self.full_rank(), len(self.groundset()))
-    
-    """
-    def groundset(self):
-        return self.E
-
-    def _rank(self, X):
-        return self.rk(X)
-    
-    def _multiplicity(self, X):
-        return self.m(X)
-    """
-    
     
     
     def is_independent_from(self, v, X):
@@ -351,7 +346,7 @@ def hermite_normal_forms(r, det):
     
     
 
-
+# TODO replace with some ToricArithmeticMatroid class
 def realization_to_matroid(A):
     """
     Given an integer matrix A, return the associated ArithmeticMatroid.

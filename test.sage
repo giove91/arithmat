@@ -15,7 +15,7 @@ class TestArithmeticMatroid(unittest.TestCase):
 
         M = ArithmeticMatroid(E, rk, m)
         self.assertTrue(M.is_valid())
-        self.assertEqual(M.r, 9)
+        self.assertEqual(M.full_rank(), 9)
         self.assertTrue(M.is_realizable())
         
     
@@ -171,7 +171,7 @@ class TestArithmeticMatroid(unittest.TestCase):
     def test_non_realizable(self):
         A = matrix(ZZ, [[-1,  1,  0, -1], [ 6,  1, -1, -2]])
         M = realization_to_matroid(A)
-        M2 = ArithmeticMatroid(M.E, M._rank, lambda X: M._multiplicity(X)**2)
+        M2 = ArithmeticMatroid(M.groundset(), M._rank, lambda X: M._multiplicity(X)**2)
         
         self.assertTrue(M2.is_valid())
         self.assertTrue(M.is_realizable())
@@ -180,7 +180,7 @@ class TestArithmeticMatroid(unittest.TestCase):
     def test_non_realizable2(self):
         A = matrix(ZZ, [[-1,  1,  0, -1, 2, 7], [ 6,  1, -1, -2, 2, 5]])
         M = realization_to_matroid(A)
-        M2 = ArithmeticMatroid(M.E, M._rank, lambda X: M._multiplicity(X)**2)
+        M2 = ArithmeticMatroid(M.groundset(), M._rank, lambda X: M._multiplicity(X)**2)
         
         self.assertTrue(M2.is_valid())
         self.assertTrue(M.is_realizable())
