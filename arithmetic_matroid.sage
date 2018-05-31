@@ -8,13 +8,15 @@ from fractions import gcd
 """
 TODO
 
+* Mixin?
+* minor (contract, delete), dual
+* LinearArithmeticMatroid (that uses a given representation)
+
 Comparison:
 
     def __hash__(self)
     def __eq__(self, other)
     def __ne__(self, other)
-
-In Cythonized classes, use __richcmp__() instead of __eq__(), __ne__().
 
 Copying, loading, saving:
 
@@ -57,9 +59,11 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
         if not super(ArithmeticMatroid, self).is_valid():
             return False
         
+        E = self.groundset()
+        
         # check axioms for arithmetic matroids
-        for X in powerset(self.E):
-            for v in self.E:
+        for X in powerset(E):
+            for v in E:
                 if v not in X:
                     if self.is_dependent_from(v, X):
                         # check axiom 1
@@ -73,7 +77,7 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
                             # print >> sys.stderr, "Axiom 2 fails on", X, v
                             return False
         
-        for Y in powerset(self.E):
+        for Y in powerset(E):
             for X in powerset(Y):
                 T = []
                 F = []
@@ -103,7 +107,7 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
         Check if the given matrix is a realization for the matroid.
         If check_orientability==True, check that the multiplicity is correct only on the bases.
         """
-        E = self.E
+        E = self.groundset()
         r = self.r
         n = len(E)
         
@@ -133,7 +137,7 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
         If check_orientability==True, find a realization of a matroid (E,rk,m')
         such that m'(B)=m(B) for every basis B.
         """
-        E = self.E
+        E = self.groundset()
         r = self.r
         n = len(E)
         assert self._multiplicity(E) == 1
@@ -147,7 +151,7 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
         spanning_forest = nx.Graph()
         
         # find spanning forest
-        uf = DisjointSet(self.E)
+        uf = DisjointSet(E)
         for (x,y) in edges:
             if uf.find(x) != uf.find(y):
                 spanning_forest.add_edge(x,y)
@@ -232,7 +236,7 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
         """
         Generator of all non-equivalent essential realizations.
         """
-        E = self.E
+        E = self.groundset()
         r = self.r
         n = len(E)
         if self._multiplicity(E) == 1:
@@ -291,7 +295,7 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
         def m_bar(X):
             return reduce(gcd, [self._multiplicity(B) for B in self.bases() if self._rank(X) == self._rank([x for x in X if x in B])], 0) // denominator
         
-        M = ArithmeticMatroid(self.E, self._rank, m_bar) # note: this matroid might be non-valid
+        M = ArithmeticMatroid(self.groundset(), self._rank, m_bar) # note: this matroid might be non-valid
         
         return M.realization_surjective(check_orientability=True) is not None
     
@@ -300,7 +304,7 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
         """
         Return the arithmetic Tutte polynomial of the matroid.
         """
-        E = self.E
+        E = self.groundset()
         r = self.r
         
         a = x
@@ -308,7 +312,7 @@ class ArithmeticMatroid(sage.matroids.matroid.Matroid):
         R = ZZ['x, y']
         x, y = R._first_ngens(2)
         T = R(0)
-        for X in powerset(self.E):
+        for X in powerset(self.groundset()):
             T += self._multiplicity(X) * (x-1) ** (r - self._rank(X)) * (y-1) ** (len(X) - self._rank(X))
         if a is not None and b is not None:
             T = T(a, b)
