@@ -1,6 +1,4 @@
 import sage.matroids.matroid
-import sage.matroids.rank_matroid
-import sage.matroids.dual_matroid
 import itertools
 import networkx as nx
 import operator
@@ -8,8 +6,9 @@ import sys
 from fractions import gcd
 
 from sage.matroids.rank_matroid import RankMatroid
-from sage.matroids.dual_matroid import DualMatroid
 from sage.matroids.linear_matroid import LinearMatroid
+from sage.matroids.dual_matroid import DualMatroid
+from sage.matroids.minor_matroid import MinorMatroid
 
 """
 TODO
@@ -117,17 +116,22 @@ class ArithmeticMatroidMixin(object):
     
     
     def _minor(self, contractions=[], deletions=[]):
-        # FIXME
-        # get minor as a matroid
+        # get minor as a (non-arithmetic) matroid
         matroid = super(ArithmeticMatroidMixin, self)._minor(contractions, deletions)
         
-        # add ArithmeticMatroidMixin
-        matroid.__class__ = type('MinorArithmeticMatroid', (ArithmeticMatroidMixin, matroid.__class__),{})
+        if isinstance(matroid, MinorMatroid):
+            # return an instance of MinorArithmeticMatroid
+            return MinorArithmeticMatroid(self, contractions, deletions)
         
-        # add multiplicity function
-        matroid._multiplicity = lambda X : self._multiplicity(self._contractions.union(X))
+        else:
+            # we use the same (arithmetic) class here, and hope for the best
+            matroid.__class__ = type(self)
+            
+            # add multiplicity function
+            matroid._multiplicity = lambda X : self._multiplicity(contractions.union(X))
         
-        return matroid
+            return matroid
+    
     
     def dual(self):
         # get dual as a (non-arithmetic) matroid
@@ -381,6 +385,26 @@ class LinearArithmeticMatroid(ArithmeticMatroidMixin, LinearMatroid):
     pass
 
 
+
+class MinorArithmeticMatroid(ArithmeticMatroidMixin, MinorMatroid):
+    """
+    Minor of an arithmetic matroid.
+    """
+    def __init__(self, *args, **kwargs):
+        super(ArithmeticMatroidMixin, self).__init__(*args, **kwargs)
+    
+    def __repr__(self):
+        super(ArithmeticMatroidMixin, self).__repr__()
+    
+    
+    def _multiplicity(self, X):
+        return self._matroid._multiplicity(self._contractions.union(X))
+    
+    def _minor(self, contractions=[], deletions=[]):
+        return MinorArithmeticMatroid(self._matroid, self._contractions.union(contractions), self._deletions.union(deletions))
+
+
+
 class DualArithmeticMatroid(ArithmeticMatroidMixin, DualMatroid):   
     """
     Dual of an arithmetic matroid.
@@ -392,6 +416,7 @@ class DualArithmeticMatroid(ArithmeticMatroidMixin, DualMatroid):
     
     def __repr__(self):
         return "Dual of '" + repr(self._matroid) + "'"
+    
     
     def _multiplicity(self, X):
         return self._matroid._multiplicity(self.groundset().difference(X))

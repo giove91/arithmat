@@ -227,7 +227,7 @@ class TestArithmeticMatroid(unittest.TestCase):
 
 
 
-class TestDual(unittest.TestCase):
+class TestDualAndMinor(unittest.TestCase):
     
     def test_dual_arithmetic_matroid(self):
         # test of DualArithmeticMatroid
@@ -261,7 +261,49 @@ class TestDual(unittest.TestCase):
         self.assertTrue(M3.is_valid())
     
     
-    def test_linear_matroid(self):
+    def test_minor_arithmetic_matroid(self):
+        # test of MinorArithmeticMatroid
+        
+        E = [1,2,3,4,5]
+
+        def rk(X):
+            return min(2, len(X))
+
+        def m(X):
+            if len(X) == 2 and all(x in [3,4,5] for x in X):
+                return 2
+            else:
+                return 1
+
+        M = ArithmeticMatroid(E, rk, m)
+        self.assertTrue(M.is_valid())
+        
+        M1 = M._minor(contractions=[1], deletions=[2])
+        self.assertIsInstance(M1, MinorArithmeticMatroid)
+        self.assertTrue(M1.is_valid())
+        
+        M2 = M1.dual()
+        self.assertTrue(M2.is_valid())
+        self.assertIsInstance(M2, DualArithmeticMatroid)
+        self.assertNotEqual(M, M2)
+        
+        
+        N1 = M.dual()
+        self.assertIsInstance(N1, DualArithmeticMatroid)
+        self.assertTrue(N1.is_valid())
+        
+        N2 = N1._minor(contractions=[2], deletions=[1])
+        self.assertTrue(N2.is_valid())
+        self.assertIsInstance(N2, DualArithmeticMatroid)
+        self.assertEqual(M2, N2)
+        
+        N3 = N1._minor(contractions=[1], deletions=[2])
+        self.assertTrue(N3.is_valid())
+        self.assertIsInstance(N3, DualArithmeticMatroid)
+        self.assertNotEqual(M2, N3)
+
+    
+    def test_dual_linear_matroid(self):
         A = matrix(QQ, [[-1,  1,  0, -1, 2, 7], [ 6,  1, -1, -2, 2, 5]])
         
         def m(X):
@@ -278,6 +320,45 @@ class TestDual(unittest.TestCase):
         self.assertEqual(M, M2)
         self.assertNotEqual(M, M1)
         self.assertNotEqual(M1, M2)
+    
+    
+    def test_minor_linear_matroid(self):
+        A = matrix(QQ, [[-1,  1,  0, -1, 2, 7], [ 6,  1, -1, -2, 2, 5]])
+        
+        def m(X):
+            return 1
+        
+        M = LinearArithmeticMatroid(A, multiplicity_function=m)
+        self.assertTrue(M.is_valid())
+        
+        M1 = M._minor(contractions=frozenset([1]), deletions=frozenset([2]))
+        self.assertIsInstance(M1, LinearArithmeticMatroid)
+        self.assertTrue(M1.is_valid())
+        
+        M1a = M.contract([1]).delete([2])
+        self.assertEqual(M1, M1a)
+        
+        
+        M2 = M1.dual()
+        self.assertTrue(M2.is_valid())
+        self.assertIsInstance(M2, LinearArithmeticMatroid)
+        self.assertNotEqual(M, M2)
+        
+        
+        N1 = M.dual()
+        self.assertIsInstance(N1, LinearArithmeticMatroid)
+        self.assertTrue(N1.is_valid())
+        
+        N2 = N1._minor(contractions=frozenset([2]), deletions=frozenset([1]))
+        self.assertTrue(N2.is_valid())
+        self.assertIsInstance(N2, LinearArithmeticMatroid)
+        self.assertEqual(M2, N2)
+        
+        N3 = N1._minor(contractions=frozenset([1]), deletions=frozenset([2]))
+        self.assertTrue(N3.is_valid())
+        self.assertIsInstance(N3, LinearArithmeticMatroid)
+        self.assertNotEqual(M2, N3)
+
 
 
 
