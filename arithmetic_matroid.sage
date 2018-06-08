@@ -9,9 +9,10 @@ from fractions import gcd
 """
 TODO
 
-* Mixin?
 * minor (contract, delete), dual
-* LinearArithmeticMatroid (that uses a given representation)
+* ToricArithmeticMatroid (that uses a given representation)
+* check if the stored representations of two ToricArithmeticMatroids are equivalent
+* check if M is decomposable and give the indecomposable addendum
 
 Comparison:
 
@@ -98,6 +99,31 @@ class ArithmeticMatroidMixin(object):
                         return False
         
         return True
+    
+    
+    def _minor(self, contractions=[], deletions=[]):
+        # get minor as a matroid
+        matroid = super(ArithmeticMatroidMixin, self)._minor(contractions, deletions)
+        
+        # add ArithmeticMatroidMixin
+        matroid.__class__ = type('MinorArithmeticMatroid', (ArithmeticMatroidMixin, matroid.__class__),{})
+        
+        # add multiplicity function
+        matroid._multiplicity = lambda X : self._multiplicity(self._contractions.union(X))
+        
+        return matroid
+    
+    def dual(self):
+        # get dual as a matroid
+        matroid = super(ArithmeticMatroidMixin, self).dual()
+        
+        # add ArithmeticMatroidMixin
+        matroid.__class__ = type('DualArithmeticMatroid', (ArithmeticMatroidMixin, matroid.__class__),{})
+        
+        # add multiplicity function
+        matroid._multiplicity = lambda X : self._multiplicity(self.groundset().difference(X))
+        
+        return matroid
     
     
     def check_realization(self, A, check_orientability=False):

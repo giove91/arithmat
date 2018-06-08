@@ -216,6 +216,17 @@ class TestArithmeticMatroid(unittest.TestCase):
         self.assertTrue(M.is_valid())
         self.assertFalse(M.is_realizable())
         self.assertFalse(M.is_orientable())
+    
+    
+    def test_non_essential(self):
+        A = matrix(ZZ, [[-1,  1,  0], [ 6,  1, -1], [2, -3, 0], [1, 2, 3], [-1, 0, 0]])
+        M = realization_to_matroid(A)
+        
+        self.assertTrue(M.is_valid())
+        self.assertTrue(M.is_realizable())
+        
+        print M._minor(deletions=[0])
+        print M.dual().dual()
 
 
 
