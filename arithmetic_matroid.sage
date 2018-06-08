@@ -13,17 +13,9 @@ from sage.matroids.minor_matroid import MinorMatroid
 """
 TODO
 
-* minor (contract, delete), dual
 * ToricArithmeticMatroid (that uses a given representation)
 * check if the stored representations of two ToricArithmeticMatroids are equivalent
 * check if M is decomposable and give the indecomposable addendum
-
-Comparison:
-
-    def __hash__(self)
-    def __eq__(self, other)
-    def __ne__(self, other)
-    def equal(self, other) [real equality of matroids!]
 
 Copying, loading, saving:
 
