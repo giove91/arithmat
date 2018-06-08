@@ -224,10 +224,63 @@ class TestArithmeticMatroid(unittest.TestCase):
         
         self.assertTrue(M.is_valid())
         self.assertTrue(M.is_realizable())
+    
+    
+    def test_hash(self):
+        E = [1,2,3,4,5]
+
+        def rk(X):
+            return min(2, len(X))
+
+        def m(X):
+            if len(X) == 2 and all(x in [3,4,5] for x in X):
+                return 2
+            else:
+                return 1
+
+        M = ArithmeticMatroid(E, rk, m)
+        s = set([M])
+        self.assertEqual(hash(M), hash((frozenset(E), 2, 1, 1)))
+    
+    
+    def test_isomorphism(self):
+        E = [1,2,3,4,5]
+
+        def rk(X):
+            return min(2, len(X))
+
+        def m(X):
+            if len(X) == 2 and all(x in [3,4,5] for x in X):
+                return 2
+            else:
+                return 1
+
+        M = ArithmeticMatroid(E, rk, m)
+        
+        E1 = [4,5,6,7,8]
+        
+        def m1(X):
+            if len(X) == 2 and all(x in [6,7,8] for x in X):
+                return 2
+            else:
+                return 1
+            
+        M1 = ArithmeticMatroid(E1, rk, m)
+        self.assertTrue(M1.is_valid())
+        self.assertFalse(M1.is_realizable())
+        self.assertFalse(M1.is_orientable())
+        
+        self.assertTrue(M.is_isomorphism(M1, {i: i+3 for i in E}))
+        self.assertFalse(M.equals(M1))
+        
+        M2 = ArithmeticMatroid(copy(E), rk, m)
+        self.assertTrue(M.equals(M2))
+        self.assertTrue(M2.equals(M))
 
 
 
 class TestDualAndMinor(unittest.TestCase):
+    # TODO: test delete and contract, test multiplicity
     
     def test_dual_arithmetic_matroid(self):
         # test of DualArithmeticMatroid
@@ -317,7 +370,8 @@ class TestDualAndMinor(unittest.TestCase):
         
         M2 = M1.dual()
         self.assertTrue(M2.is_valid())
-        self.assertEqual(M, M2)
+        self.assertNotEqual(M, M2) # multiplicity functions are not equal in the sense of ==
+        self.assertTrue(M.equals(M2))
         self.assertNotEqual(M, M1)
         self.assertNotEqual(M1, M2)
     
@@ -336,13 +390,14 @@ class TestDualAndMinor(unittest.TestCase):
         self.assertTrue(M1.is_valid())
         
         M1a = M.contract([1]).delete([2])
-        self.assertEqual(M1, M1a)
-        
+        self.assertNotEqual(M1, M1a) # multiplicity functions are not equal in the sense of ==
+        self.assertTrue(M1.equals(M1a))
         
         M2 = M1.dual()
         self.assertTrue(M2.is_valid())
         self.assertIsInstance(M2, LinearArithmeticMatroid)
         self.assertNotEqual(M, M2)
+        self.assertFalse(M.equals(M2))
         
         
         N1 = M.dual()
@@ -352,12 +407,14 @@ class TestDualAndMinor(unittest.TestCase):
         N2 = N1._minor(contractions=frozenset([2]), deletions=frozenset([1]))
         self.assertTrue(N2.is_valid())
         self.assertIsInstance(N2, LinearArithmeticMatroid)
-        self.assertEqual(M2, N2)
+        self.assertNotEqual(M2, N2) # multiplicity functions are not equal in the sense of ==
+        self.assertTrue(M2.equals(N2))
         
         N3 = N1._minor(contractions=frozenset([1]), deletions=frozenset([2]))
         self.assertTrue(N3.is_valid())
         self.assertIsInstance(N3, LinearArithmeticMatroid)
         self.assertNotEqual(M2, N3)
+        self.assertFalse(M2.equals(N3))
 
 
 

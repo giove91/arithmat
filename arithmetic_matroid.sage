@@ -23,6 +23,7 @@ Comparison:
     def __hash__(self)
     def __eq__(self, other)
     def __ne__(self, other)
+    def equal(self, other) [real equality of matroids!]
 
 Copying, loading, saving:
 
@@ -48,10 +49,36 @@ class ArithmeticMatroidMixin(object):
             multiplicity = None # multiplicity function must be set later
         
         super(ArithmeticMatroidMixin, self).__init__(*args, **kwargs)
+        self._multiplicity_function = multiplicity
         self._multiplicity = multiplicity
 
     def __repr__(self):
         return "Arithmetic matroid of rank %d on %d elements" % (self.full_rank(), len(self.groundset()))
+    
+    
+    def __hash__(self):
+        return hash((self.groundset(), self.full_rank(), self._multiplicity(frozenset()), self._multiplicity(self.groundset())))
+        
+    def __eq__(self, other):
+        if not isinstance(other, ArithmeticMatroidMixin):
+            return False
+        
+        return super(ArithmeticMatroidMixin, self).__eq__(other) and (self._multiplicity == other._multiplicity)
+    
+    def __ne__(self, other):
+        return not self == other
+    
+    
+    def _is_isomorphism(self, other, morphism):
+        """
+        Version of is_isomorphism() that does no type checking.
+        (see Matroid.is_isomorphism)
+        """
+        return all(
+            self._rank(X) == other._rank(X) and self._multiplicity(X) == other._multiplicity(X)
+            for X in powerset(self.groundset())
+        )
+            
     
     
     def is_independent_from(self, v, X):
@@ -59,13 +86,6 @@ class ArithmeticMatroidMixin(object):
     
     def is_dependent_from(self, v, X):
         return not self.is_independent_from(v, X)
-    
-    
-    def underlying_matroid(self):
-        """
-        Return self as an instance of the appropriate Matroid subclass.
-        """
-        return super(ArithmeticMatroidMixin, self)
     
     
     def is_valid(self):
@@ -291,6 +311,7 @@ class ArithmeticMatroidMixin(object):
         """
         Generator of all non-equivalent essential realizations.
         """
+        # TODO ask for an ordered groundset, to return a realization with columns in the correct order
         E = self.groundset()
         r = self.full_rank()
         n = len(E)
@@ -328,6 +349,7 @@ class ArithmeticMatroidMixin(object):
         Compute any essential realization.
         Returns None if the matroid is not realizable.
         """
+        # TODO ask for an ordered groundset, to return a realization with columns in the correct order
         for A in self.all_realizations():
             return A
         return None
@@ -396,6 +418,9 @@ class MinorArithmeticMatroid(ArithmeticMatroidMixin, MinorMatroid):
     def __repr__(self):
         super(ArithmeticMatroidMixin, self).__repr__()
     
+    def __eq__(self, other):
+        return (self._contractions == other._contractions) and (self._deletions == other._deletions) and (self._matroid == other._matroid)
+    
     
     def _multiplicity(self, X):
         return self._matroid._multiplicity(self._contractions.union(X))
@@ -416,6 +441,9 @@ class DualArithmeticMatroid(ArithmeticMatroidMixin, DualMatroid):
     
     def __repr__(self):
         return "Dual of '" + repr(self._matroid) + "'"
+    
+    def __eq__(self, other):
+        return self._matroid == other._matroid
     
     
     def _multiplicity(self, X):
