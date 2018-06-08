@@ -1,10 +1,15 @@
 import sage.matroids.matroid
 import sage.matroids.rank_matroid
+import sage.matroids.dual_matroid
 import itertools
 import networkx as nx
 import operator
 import sys
 from fractions import gcd
+
+from sage.matroids.rank_matroid import RankMatroid
+from sage.matroids.dual_matroid import DualMatroid
+from sage.matroids.linear_matroid import LinearMatroid
 
 """
 TODO
@@ -35,10 +40,13 @@ class ArithmeticMatroidMixin(object):
         try:
             multiplicity = kwargs.pop('multiplicity_function')
         except KeyError:
+            """
             # hope that the last positional argument is the multiplicity function
             # FIXME maybe this is dangerous?
             multiplicity = args[-1]
             args = args[:-1]
+            """
+            multiplicity = None # multiplicity function must be set later
         
         super(ArithmeticMatroidMixin, self).__init__(*args, **kwargs)
         self._multiplicity = multiplicity
@@ -52,6 +60,13 @@ class ArithmeticMatroidMixin(object):
     
     def is_dependent_from(self, v, X):
         return not self.is_independent_from(v, X)
+    
+    
+    def underlying_matroid(self):
+        """
+        Return self as an instance of the appropriate Matroid subclass.
+        """
+        return super(ArithmeticMatroidMixin, self)
     
     
     def is_valid(self):
@@ -102,6 +117,7 @@ class ArithmeticMatroidMixin(object):
     
     
     def _minor(self, contractions=[], deletions=[]):
+        # FIXME
         # get minor as a matroid
         matroid = super(ArithmeticMatroidMixin, self)._minor(contractions, deletions)
         
@@ -114,16 +130,25 @@ class ArithmeticMatroidMixin(object):
         return matroid
     
     def dual(self):
-        # get dual as a matroid
+        # get dual as a (non-arithmetic) matroid
         matroid = super(ArithmeticMatroidMixin, self).dual()
         
-        # add ArithmeticMatroidMixin
-        matroid.__class__ = type('DualArithmeticMatroid', (ArithmeticMatroidMixin, matroid.__class__),{})
+        if isinstance(matroid, DualMatroid):
+            # return an instance of DualArithmeticMatroid
+            return DualArithmeticMatroid(self)
         
-        # add multiplicity function
-        matroid._multiplicity = lambda X : self._multiplicity(self.groundset().difference(X))
-        
-        return matroid
+        else:
+            # we use the same (arithmetic) class here, and hope for the best
+            matroid.__class__ = type(self)
+            
+            """
+            # add ArithmeticMatroidMixin
+            matroid.__class__ = type('CustomDualArithmeticMatroid', (ArithmeticMatroidMixin, matroid.__class__),{})
+            """
+            # add multiplicity function
+            matroid._multiplicity = lambda X : self._multiplicity(self.groundset().difference(X))
+            
+            return matroid
     
     
     def check_realization(self, A, check_orientability=False):
@@ -345,9 +370,38 @@ class ArithmeticMatroidMixin(object):
         return T
 
 
-class ArithmeticMatroid(ArithmeticMatroidMixin, sage.matroids.rank_matroid.RankMatroid):
+
+class ArithmeticMatroid(ArithmeticMatroidMixin, RankMatroid):
+    def __init__(self, groundset, rank_function, multiplicity_function):
+        # take multiplicity function as third positional argument
+        return super(ArithmeticMatroid, self).__init__(groundset, rank_function, multiplicity_function=multiplicity_function)
+
+
+class LinearArithmeticMatroid(ArithmeticMatroidMixin, LinearMatroid):
     pass
 
+
+class DualArithmeticMatroid(ArithmeticMatroidMixin, DualMatroid):   
+    """
+    Dual of an arithmetic matroid.
+    """
+    def __init__(self, matroid):
+        if not isinstance(matroid, ArithmeticMatroidMixin):
+            raise TypeError("no arithmetic matroid provided to take dual of.")
+        self._matroid = matroid
+    
+    def __repr__(self):
+        return "Dual of '" + repr(self._matroid) + "'"
+    
+    def _multiplicity(self, X):
+        return self._matroid._multiplicity(self.groundset().difference(X))
+
+    def dual(self):
+        return self._matroid
+    
+    def _minor(self, contractions=[], deletions=[]):
+        # Assumption: if self._matroid cannot make a dual, neither can its minor.
+        return DualArithmeticMatroid(self._matroid._minor(contractions=deletions, deletions=contractions))
 
 
 def hermite_normal_forms(r, det):

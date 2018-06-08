@@ -224,9 +224,60 @@ class TestArithmeticMatroid(unittest.TestCase):
         
         self.assertTrue(M.is_valid())
         self.assertTrue(M.is_realizable())
+
+
+
+class TestDual(unittest.TestCase):
+    
+    def test_dual_arithmetic_matroid(self):
+        # test of DualArithmeticMatroid
         
-        print M._minor(deletions=[0])
-        print M.dual().dual()
+        E = [1,2,3,4,5]
+
+        def rk(X):
+            return min(2, len(X))
+
+        def m(X):
+            if len(X) == 2 and all(x in [3,4,5] for x in X):
+                return 2
+            else:
+                return 1
+
+        M = ArithmeticMatroid(E, rk, m)
+        self.assertTrue(M.is_valid())
+        
+        M1 = M.dual()
+        self.assertIsInstance(M1, DualArithmeticMatroid)
+        self.assertTrue(M1.is_valid())
+        
+        M2 = M1.dual()
+        self.assertIsInstance(M2, ArithmeticMatroid)
+        self.assertNotIsInstance(M2, DualArithmeticMatroid)
+        self.assertEqual(M, M2)
+        
+        M3 = M1._minor()
+        self.assertIsInstance(M3, DualArithmeticMatroid)
+        # self.assertEqual(M1, M3) # this is not an equality for (non-arithmetic) matroids
+        self.assertTrue(M3.is_valid())
+    
+    
+    def test_linear_matroid(self):
+        A = matrix(QQ, [[-1,  1,  0, -1, 2, 7], [ 6,  1, -1, -2, 2, 5]])
+        
+        def m(X):
+            return 1
+        
+        M = LinearArithmeticMatroid(A, multiplicity_function=m)
+        self.assertTrue(M.is_valid())
+        
+        M1 = M.dual()
+        self.assertTrue(M1.is_valid())
+        
+        M2 = M1.dual()
+        self.assertTrue(M2.is_valid())
+        self.assertEqual(M, M2)
+        self.assertNotEqual(M, M1)
+        self.assertNotEqual(M1, M2)
 
 
 
