@@ -17,11 +17,6 @@ TODO
 * check if the stored representations of two ToricArithmeticMatroids are equivalent
 * check if M is decomposable and give the indecomposable addendum
 
-Copying, loading, saving:
-
-    def __copy__(self)
-    def __deepcopy__(self, memo={})
-    def __reduce__(self)
 """
 
 
@@ -41,7 +36,6 @@ class ArithmeticMatroidMixin(object):
             multiplicity = None # multiplicity function must be set later
         
         super(ArithmeticMatroidMixin, self).__init__(*args, **kwargs)
-        self._multiplicity_function = multiplicity
         self._multiplicity = multiplicity
 
     def __repr__(self):
@@ -59,6 +53,22 @@ class ArithmeticMatroidMixin(object):
     
     def __ne__(self, other):
         return not self == other
+    
+    
+    def __copy__(self):
+        N = super(ArithmeticMatroidMixin, self).__copy__()
+        N._multiplicity = self._multiplicity
+        N.__class__ = type(self)
+        return N
+    
+    def __deepcopy__(self, *args, **kwargs):
+        N = super(ArithmeticMatroidMixin, self).__deepcopy__(*args, **kwargs)
+        N._multiplicity = deepcopy(self._multiplicity)
+        N.__class__ = type(self)
+        return N
+    
+    def __reduce__(self):
+        raise TypeError("unfortunately, functions cannot be saved reliably, so this class doesn't have load/save support.")
     
     
     def _is_isomorphism(self, other, morphism):
@@ -413,6 +423,8 @@ class MinorArithmeticMatroid(ArithmeticMatroidMixin, MinorMatroid):
     def __eq__(self, other):
         return (self._contractions == other._contractions) and (self._deletions == other._deletions) and (self._matroid == other._matroid)
     
+    def __reduce__(self):
+        return super(ArithmeticMatroidMixin, self).__reduce__()
     
     def _multiplicity(self, X):
         return self._matroid._multiplicity(self._contractions.union(X))
@@ -436,6 +448,9 @@ class DualArithmeticMatroid(ArithmeticMatroidMixin, DualMatroid):
     
     def __eq__(self, other):
         return self._matroid == other._matroid
+    
+    def __reduce__(self):
+        return super(ArithmeticMatroidMixin, self).__reduce__()
     
     
     def _multiplicity(self, X):
@@ -509,5 +524,8 @@ if __name__ == '__main__':
 
     print M.realization()
     print M.arithmetic_tutte_polynomial()
+    
+    M.__custom_name = "Pippo"
+    print deepcopy(M)
     
     
