@@ -177,10 +177,10 @@ class ArithmeticMatroidMixin(object):
             return matroid
     
     
-    def check_realization(self, A, check_orientability=False):
+    def check_realization(self, A, check_bases=False):
         """
         Check if the given matrix is a realization for the matroid.
-        If check_orientability==True, check that the multiplicity is correct only on the bases.
+        If check_bases==True, check that the multiplicity is correct only on the bases.
         """
         # TODO ask for an ordered groundset, to return a realization with columns in the correct order
         E = list(self.groundset())
@@ -196,7 +196,7 @@ class ArithmeticMatroidMixin(object):
                 # print >> sys.stderr, "Not realizable, rank of %r is incorrect" % T
                 return False
             
-            if check_orientability and len(T) != r and self._rank(T) < r:
+            if check_bases and len(T) != r and self._rank(T) < r:
                 # skip multiplicity check
                 continue
 
@@ -207,10 +207,10 @@ class ArithmeticMatroidMixin(object):
         return True
         
     
-    def realization_surjective(self, check_orientability=False):
+    def realization_surjective(self, check_bases=False):
         """
         Find a realization (if it exists) for a surjective matroid (m(E)=1).
-        If check_orientability==True, find a realization of a matroid (E,rk,m')
+        If check_bases==True, find a realization of a matroid (E,rk,m')
         such that m'(B)=m(B) for every basis B.
         """
         # TODO ask for an ordered groundset, to return a realization with columns in the correct order
@@ -303,7 +303,7 @@ class ArithmeticMatroidMixin(object):
         # print >> sys.stderr, res
         
         # check if this is indeed a realization
-        if not self.check_realization(res, check_orientability=check_orientability):
+        if not self.check_realization(res, check_bases=check_bases):
             return None
         
         return res
@@ -376,7 +376,7 @@ class ArithmeticMatroidMixin(object):
         
         M = ArithmeticMatroid(self.groundset(), self._rank, multiplicity_function=m_bar) # note: this matroid might be non-valid
         
-        return M.realization_surjective(check_orientability=True) is not None
+        return M.realization_surjective(check_bases=True) is not None
     
     
     def arithmetic_tutte_polynomial(self, x=None, y=None):
