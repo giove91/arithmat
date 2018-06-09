@@ -177,15 +177,25 @@ class ArithmeticMatroidMixin(object):
             return matroid
     
     
-    def check_realization(self, A, check_bases=False):
+    def check_realization(self, A, ordered_groundset=None, check_bases=False):
         """
         Check if the given matrix is a realization for the matroid.
         If check_bases==True, check that the multiplicity is correct only on the bases.
         """
         # TODO ask for an ordered groundset, to return a realization with columns in the correct order
-        E = list(self.groundset())
         r = self.full_rank()
-        n = len(E)
+        n = len(self.groundset())
+        
+        if ordered_groundset is not None:
+            # use the groundset in the given order
+            E = ordered_groundset
+            assert frozenset(E) == self.groundset()
+        else:
+            try:
+                # try to sort the groundset
+                E = list(sorted(self.groundset()))
+            except Exception:
+                E = list(self.groundset())
         
         if A.ncols() != n:
             return False
@@ -207,17 +217,28 @@ class ArithmeticMatroidMixin(object):
         return True
         
     
-    def realization_surjective(self, check_bases=False):
+    def realization_surjective(self, ordered_groundset=None, check_bases=False):
         """
         Find a realization (if it exists) for a surjective matroid (m(E)=1).
         If check_bases==True, find a realization of a matroid (E,rk,m')
         such that m'(B)=m(B) for every basis B.
         """
         # TODO ask for an ordered groundset, to return a realization with columns in the correct order
-        E = list(self.groundset())
+        assert self._multiplicity(self.groundset()) == 1
+
         r = self.full_rank()
-        n = len(E)
-        assert self._multiplicity(E) == 1
+        n = len(self.groundset())
+        
+        if ordered_groundset is not None:
+            # use the groundset in the given order
+            E = ordered_groundset
+            assert frozenset(E) == self.groundset()
+        else:
+            try:
+                # try to sort the groundset
+                E = list(sorted(self.groundset()))
+            except Exception:
+                E = list(self.groundset())
         
         B = list(sorted(self.basis()))
         # print "Basis:", B
@@ -303,22 +324,33 @@ class ArithmeticMatroidMixin(object):
         # print >> sys.stderr, res
         
         # check if this is indeed a realization
-        if not self.check_realization(res, check_bases=check_bases):
+        if not self.check_realization(res, ordered_groundset=ordered_groundset, check_bases=check_bases):
             return None
         
         return res
 
 
-    def all_realizations(self):
+    def all_realizations(self, ordered_groundset=None):
         """
         Generator of all non-equivalent essential realizations.
         """
         # TODO ask for an ordered groundset, to return a realization with columns in the correct order
-        E = self.groundset()
         r = self.full_rank()
-        n = len(E)
-        if self._multiplicity(E) == 1:
-            res = self.realization_surjective()
+        n = len(self.groundset())
+        
+        if ordered_groundset is not None:
+            # use the groundset in the given order
+            E = ordered_groundset
+            assert frozenset(E) == self.groundset()
+        else:
+            try:
+                # try to sort the groundset
+                E = list(sorted(self.groundset()))
+            except Exception:
+                E = list(self.groundset())
+        
+        if self._multiplicity(self.groundset()) == 1:
+            res = self.realization_surjective(ordered_groundset=ordered_groundset)
             if res is not None:
                 yield res
             return
