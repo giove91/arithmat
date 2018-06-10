@@ -91,7 +91,11 @@ class ArithmeticMatroidMixin(object):
     
     
     def is_valid(self):
+        """
+        Check if the arithmetic matroid axioms are satisfied.
+        """
         if not super(ArithmeticMatroidMixin, self).is_valid():
+            # check validity of the underlying matroid
             return False
         
         E = self.groundset()
@@ -146,7 +150,7 @@ class ArithmeticMatroidMixin(object):
             return MinorArithmeticMatroid(self, contractions, deletions)
         
         else:
-            # we use the same (arithmetic) class here, and hope for the best
+            # we use the same (arithmetic) class here
             matroid.__class__ = type(self)
             
             # add multiplicity function
@@ -164,13 +168,9 @@ class ArithmeticMatroidMixin(object):
             return DualArithmeticMatroid(self)
         
         else:
-            # we use the same (arithmetic) class here, and hope for the best
+            # we use the same (arithmetic) class here
             matroid.__class__ = type(self)
             
-            """
-            # add ArithmeticMatroidMixin
-            matroid.__class__ = type('CustomDualArithmeticMatroid', (ArithmeticMatroidMixin, matroid.__class__),{})
-            """
             # add multiplicity function
             matroid._multiplicity = lambda X : self._multiplicity(self.groundset().difference(X))
             
