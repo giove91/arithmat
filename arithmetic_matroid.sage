@@ -182,7 +182,6 @@ class ArithmeticMatroidMixin(object):
         Check if the given matrix is a realization for the matroid.
         If check_bases==True, check that the multiplicity is correct only on the bases.
         """
-        # TODO ask for an ordered groundset, to return a realization with columns in the correct order
         r = self.full_rank()
         n = len(self.groundset())
         
@@ -223,7 +222,6 @@ class ArithmeticMatroidMixin(object):
         If check_bases==True, find a realization of a matroid (E,rk,m')
         such that m'(B)=m(B) for every basis B.
         """
-        # TODO ask for an ordered groundset, to return a realization with columns in the correct order
         assert self._multiplicity(self.groundset()) == 1
 
         r = self.full_rank()
@@ -334,7 +332,6 @@ class ArithmeticMatroidMixin(object):
         """
         Generator of all non-equivalent essential realizations.
         """
-        # TODO ask for an ordered groundset, to return a realization with columns in the correct order
         r = self.full_rank()
         n = len(self.groundset())
         
