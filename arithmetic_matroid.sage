@@ -190,11 +190,8 @@ class ArithmeticMatroidMixin(object):
             E = ordered_groundset
             assert frozenset(E) == self.groundset()
         else:
-            try:
-                # try to sort the groundset
-                E = list(sorted(self.groundset()))
-            except Exception:
-                E = list(self.groundset())
+            # to sort the groundset
+            E = list(sorted(self.groundset()))
         
         if A.ncols() != n:
             return False
@@ -232,11 +229,8 @@ class ArithmeticMatroidMixin(object):
             E = ordered_groundset
             assert frozenset(E) == self.groundset()
         else:
-            try:
-                # try to sort the groundset
-                E = list(sorted(self.groundset()))
-            except Exception:
-                E = list(self.groundset())
+            # sort the groundset
+            E = list(sorted(self.groundset()))
         
         B = list(sorted(self.basis()))
         # print "Basis:", B
@@ -335,17 +329,6 @@ class ArithmeticMatroidMixin(object):
         r = self.full_rank()
         n = len(self.groundset())
         
-        if ordered_groundset is not None:
-            # use the groundset in the given order
-            E = ordered_groundset
-            assert frozenset(E) == self.groundset()
-        else:
-            try:
-                # try to sort the groundset
-                E = list(sorted(self.groundset()))
-            except Exception:
-                E = list(self.groundset())
-        
         if self._multiplicity(self.groundset()) == 1:
             res = self.realization_surjective(ordered_groundset=ordered_groundset)
             if res is not None:
@@ -358,30 +341,30 @@ class ArithmeticMatroidMixin(object):
         def m_bar(X):
             return reduce(gcd, [self._multiplicity(B) for B in self.bases() if self._rank(X) == self._rank([x for x in X if x in B])], 0) // denominator
         
-        M = ArithmeticMatroid(E, self._rank, multiplicity_function=m_bar)
+        M = ArithmeticMatroid(self.groundset(), self._rank, multiplicity_function=m_bar)
         
         if not M.is_valid():
             return
         
         # get realization of "reduced" matroid
-        A = M.realization_surjective()
+        A = M.realization_surjective(ordered_groundset=ordered_groundset)
         
         if A is None:
             return
         
         # try all left Hermite normal forms
-        for H in hermite_normal_forms(r, self._multiplicity(E)):
+        for H in hermite_normal_forms(r, self._multiplicity(self.groundset())):
             if self.check_realization(H*A):
                 yield H*A
 
     
-    def realization(self):
+    def realization(self, ordered_groundset=None):
         """
         Compute any essential realization.
         Returns None if the matroid is not realizable.
         """
         # TODO ask for an ordered groundset, to return a realization with columns in the correct order
-        for A in self.all_realizations():
+        for A in self.all_realizations(ordered_groundset=ordered_groundset):
             return A
         return None
 
