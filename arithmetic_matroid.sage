@@ -3,12 +3,15 @@ import itertools
 import networkx as nx
 import operator
 import sys
+import copy
 from fractions import gcd
 
 from sage.matroids.rank_matroid import RankMatroid
+from sage.matroids.basis_exchange_matroid import BasisExchangeMatroid
 from sage.matroids.linear_matroid import LinearMatroid
 from sage.matroids.dual_matroid import DualMatroid
 from sage.matroids.minor_matroid import MinorMatroid
+
 
 """
 TODO
@@ -16,6 +19,7 @@ TODO
 * ToricArithmeticMatroid (that uses a given representation)
 * check if the stored representations of two ToricArithmeticMatroids are equivalent
 * check if M is decomposable and give the indecomposable addendum
+* more tests (minors, dual, copy, deepcopy)
 
 """
 
@@ -63,7 +67,7 @@ class ArithmeticMatroidMixin(object):
     
     def __deepcopy__(self, *args, **kwargs):
         N = super(ArithmeticMatroidMixin, self).__deepcopy__(*args, **kwargs)
-        N._multiplicity = deepcopy(self._multiplicity)
+        N._multiplicity = copy.deepcopy(self._multiplicity)
         N.__class__ = type(self)
         return N
     
@@ -76,11 +80,11 @@ class ArithmeticMatroidMixin(object):
         Version of is_isomorphism() that does no type checking.
         (see Matroid.is_isomorphism)
         """
-        return all(
-            self._rank(X) == other._rank(X) and self._multiplicity(X) == other._multiplicity(X)
-            for X in powerset(self.groundset())
-        )
-            
+        for X in powerset(self.groundset()):
+            Y = frozenset(morphism[e] for e in X)
+            if self._rank(X) != other._rank(Y) or self._multiplicity(X) == other._multiplicity(Y):
+                return False
+        return True
     
     
     def is_independent_from(self, v, X):
@@ -356,14 +360,20 @@ class ArithmeticMatroidMixin(object):
         for H in hermite_normal_forms(r, self._multiplicity(self.groundset())):
             if self.check_realization(H*A):
                 yield H*A
-
+    
+    
+    def num_realizations(self):
+        """
+        Compute the number of non-equivalent essential realizations.
+        """
+        return sum(1 for _ in self.all_realizations())
+    
     
     def realization(self, ordered_groundset=None):
         """
         Compute any essential realization.
-        Returns None if the matroid is not realizable.
+        Return None if the matroid is not realizable.
         """
-        # TODO ask for an ordered groundset, to return a realization with columns in the correct order
         for A in self.all_realizations(ordered_groundset=ordered_groundset):
             return A
         return None
@@ -474,6 +484,114 @@ class DualArithmeticMatroid(ArithmeticMatroidMixin, DualMatroid):
     def _minor(self, contractions=[], deletions=[]):
         # Assumption: if self._matroid cannot make a dual, neither can its minor.
         return DualArithmeticMatroid(self._matroid._minor(contractions=deletions, deletions=contractions))
+
+
+
+class ToricArithmeticMatroid(ArithmeticMatroidMixin, BasisExchangeMatroid):
+    # FIXME derive directly from Matroid instead of BasisExchangeMatroid
+    # (then check that full_rank() is correct)
+    
+    def __init__(self, matrix, torus_matrix=None, ordered_groundset=None):
+        self._A = matrix
+        self._Q = torus_matrix if torus_matrix is not None else Matrix(ZZ, matrix.nrows(), 0)
+        self._normalize()
+        
+        if ordered_groundset is None:
+            ordered_groundset = range(matrix.ncols())
+        
+        self._groundset = frozenset(ordered_groundset) # non-ordered groundset
+        self._E = ordered_groundset                    # ordered groundset
+        self._groundset_to_index = {e: i for (i,e) in enumerate(ordered_groundset)} # dictionary groundset -> columns
+    
+    def _normalize(self):
+        """
+        Put Q in Smith normal form (this also changes A).
+        """
+        D, U, V = self._Q.smith_form()  # D = U*Q*V
+        self._A = U * self._A
+        self._Q = D[:, :D.rank()] # remove zero columns from Q
+    
+    
+    def groundset(self):
+        return self._groundset
+    
+    def _rank(self, X):
+        # TODO concatenate A and Q in a better way
+        T = matrix(ZZ, [row for row in list(self._A[:, [self._groundset_to_index[e] for e in X]].transpose()) + list(self._Q.transpose())])
+        return T.rank() - self._Q.ncols()
+        # return self._A[:, [self._groundset_to_index[e] for e in X]].rank() - self._Q.ncols()
+    
+    def _multiplicity(self, X):
+        # TODO concatenate A and Q in a better way
+        T = matrix(ZZ, [row for row in list(self._A[:, [self._groundset_to_index[e] for e in X]].transpose()) + list(self._Q.transpose())])
+        return reduce(operator.mul, [d for d in T.elementary_divisors() if d != 0], 1)
+        # return reduce(operator.mul, [d for d in self._A[:, [self._groundset_to_index[e] for e in X]].elementary_divisors() if d != 0], 1)
+    
+    
+    def __repr__(self):
+        return "Toric arithmetic matroid of rank %d on %d elements" % (self.full_rank(), len(self.groundset()))
+    
+    
+    def __hash__(self):
+        return hash((self._E, self._A))
+        
+    def __eq__(self, other):
+        if not isinstance(other, ToricArithmeticMatroid):
+            return False
+        
+        return self._E == other._E and self._A == other._A
+    
+    
+    def __copy__(self):
+        return ToricArithmeticMatroid(matrix=self._A, ordered_groundset=self._E)
+    
+    def __deepcopy__(self, *args, **kwargs):
+        return ToricArithmeticMatroid(matrix=copy.deepcopy(self._A), ordered_groundset=copy.deepcopy(self._E))
+    
+    def __reduce__(self):
+        # TODO
+        raise NotImplementedError
+    
+    def is_valid(self):
+        return True
+
+
+    def _minor(self, contractions=[], deletions=[]):
+        # TODO
+        # get minor as a (non-arithmetic) matroid
+        matroid = super(ArithmeticMatroidMixin, self)._minor(contractions, deletions)
+        
+        if isinstance(matroid, MinorMatroid):
+            # return an instance of MinorArithmeticMatroid
+            return MinorArithmeticMatroid(self, contractions, deletions)
+        
+        else:
+            # we use the same (arithmetic) class here
+            matroid.__class__ = type(self)
+            
+            # add multiplicity function
+            matroid._multiplicity = lambda X : self._multiplicity(contractions.union(X))
+        
+            return matroid
+    
+    
+    def dual(self):
+        # TODO
+        # get dual as a (non-arithmetic) matroid
+        matroid = super(ArithmeticMatroidMixin, self).dual()
+        
+        if isinstance(matroid, DualMatroid):
+            # return an instance of DualArithmeticMatroid
+            return DualArithmeticMatroid(self)
+        
+        else:
+            # we use the same (arithmetic) class here
+            matroid.__class__ = type(self)
+            
+            # add multiplicity function
+            matroid._multiplicity = lambda X : self._multiplicity(self.groundset().difference(X))
+            
+            return matroid
 
 
 def hermite_normal_forms(r, det):

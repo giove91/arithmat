@@ -273,9 +273,20 @@ class TestArithmeticMatroid(unittest.TestCase):
         self.assertTrue(M.is_isomorphism(M1, {i: i+3 for i in E}))
         self.assertFalse(M.equals(M1))
         
-        M2 = ArithmeticMatroid(copy(E), rk, m)
+        M2 = ArithmeticMatroid(copy.copy(E), rk, m)
         self.assertTrue(M.equals(M2))
         self.assertTrue(M2.equals(M))
+    
+    
+    def test_num_realizations(self):
+        r = 3
+        
+        for m in xrange(23, 27): # m(E)
+            E = range(r)
+            A = matrix(ZZ, r, r, lambda i, j: 1 if i == j and i < r-1 else 0 if j < r-1 else m if i == r-1 else 1)
+            
+            M = realization_to_matroid(A)
+            self.assertEqual(M.num_realizations(), euler_phi(m)**(r-1))
 
 
 
@@ -417,6 +428,43 @@ class TestDualAndMinor(unittest.TestCase):
         self.assertFalse(M2.equals(N3))
 
 
+class TestToric(unittest.TestCase):
+    
+    def test_without_Q(self):
+        A = matrix(ZZ, [[-1,  1,  0, -1, 2, 7], [ 6,  1, -1, -2, 2, 5]])
+        M = ToricArithmeticMatroid(A)
+        
+        self.assertEqual(M._Q, matrix(ZZ, 2, 0))
+        self.assertEqual(M._rank([0]), 1)
+        self.assertEqual(M._rank([0,1]), 2)
+        self.assertEqual(M._rank([0,1,2]), 2)
+        
+        self.assertEqual(M._multiplicity([1,2]), 1)
+    
+    def test_with_Q(self):
+        A = matrix(ZZ, [[-1,  1,  0, -1, 2, 7], [ 6,  1, -1, -2, 2, 5]])
+        Q = matrix(ZZ, [[5, 9, 1], [-3, -2, -1]])
+        M = ToricArithmeticMatroid(A, torus_matrix=Q)
+        
+        self.assertEqual(M._Q.ncols(), 2)
+        self.assertEqual(M._Q, matrix(ZZ, [[1,0], [0,1]]))
+        self.assertEqual(M._rank([0]), 0)
+        
+        self.assertEqual(M._multiplicity([0]), 1)
+
+    
+    def test_with_Q_2(self):
+        A = matrix(ZZ, [[-1,  1,  0, -1, 2, 7], [0, 1, -1, -2, 2, 5]])
+        Q = matrix(ZZ, [[3, 9, 6], [0, 0, 0]])
+        M = ToricArithmeticMatroid(A, torus_matrix=Q)
+        
+        self.assertEqual(M._Q, matrix(ZZ, [[3], [0]]))
+        self.assertEqual(M._rank([0]), 0)
+        self.assertEqual(M._rank([1,2]), 1)
+        
+        self.assertEqual(M._multiplicity([0]), 1)
+        self.assertEqual(M._multiplicity([1]), 3)
+        self.assertEqual(M._multiplicity([1,2]), 1)
 
 
 if __name__ == '__main__':
