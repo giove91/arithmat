@@ -517,17 +517,13 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, BasisExchangeMatroid):
         return self._groundset
     
     def _rank(self, X):
-        # TODO concatenate A and Q in a better way
-        T = matrix(ZZ, [row for row in list(self._A[:, [self._groundset_to_index[e] for e in X]].transpose()) + list(self._Q.transpose())])
+        T = block_matrix(ZZ, [[self._A[:, [self._groundset_to_index[e] for e in X]], self._Q]])
         return T.rank() - self._Q.ncols()
-        # return self._A[:, [self._groundset_to_index[e] for e in X]].rank() - self._Q.ncols()
     
     def _multiplicity(self, X):
-        # TODO concatenate A and Q in a better way
-        T = matrix(ZZ, [row for row in list(self._A[:, [self._groundset_to_index[e] for e in X]].transpose()) + list(self._Q.transpose())])
+        T = block_matrix(ZZ, [[self._A[:, [self._groundset_to_index[e] for e in X]], self._Q]])
         return reduce(operator.mul, [d for d in T.elementary_divisors() if d != 0], 1)
-        # return reduce(operator.mul, [d for d in self._A[:, [self._groundset_to_index[e] for e in X]].elementary_divisors() if d != 0], 1)
-    
+        
     
     def __repr__(self):
         return "Toric arithmetic matroid of rank %d on %d elements" % (self.full_rank(), len(self.groundset()))
@@ -560,16 +556,17 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, BasisExchangeMatroid):
     def _minor(self, contractions=[], deletions=[]):
         new_groundset = [e for e in self._E if e not in contractions+deletions]
         A2 = copy.copy(self._A[:, [self._groundset_to_index[e] for e in new_groundset]])
-        
-        # TODO concatenate in a better way
-        Q2 = matrix(ZZ, len(contractions)+self._Q.ncols(), self._Q.nrows(), [row for row in list(self._A[:, [self._groundset_to_index[e] for e in contractions]].transpose()) + list(self._Q.transpose())]).transpose()
-        
+        Q2 = block_matrix(ZZ, [[self._A[:, [self._groundset_to_index[e] for e in contractions]], self._Q]])
         return ToricArithmeticMatroid(matrix=A2, torus_matrix=Q2, ordered_groundset=new_groundset)
     
     
     def dual(self):
-        # TODO
-        pass
+        T = block_matrix(ZZ, [[self._A[:, [self._groundset_to_index[e] for e in self._E]], self._Q]]).transpose()
+        I = identity_matrix(ZZ, T.nrows())
+        
+        temp_elements = ["temp_%d" % i for i in xrange(self._Q.ncols())]
+        M = ToricArithmeticMatroid(matrix=I, torus_matrix=T, ordered_groundset=self._E+temp_elements)
+        return M._minor(contractions=temp_elements)
     
     
     def realization(self, ordered_groundset=None):

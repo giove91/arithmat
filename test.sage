@@ -470,6 +470,11 @@ class TestToric(unittest.TestCase):
         self.assertEqual(M2._Q, matrix(ZZ, [[1], [0]]))
         self.assertEqual(M2._multiplicity([0,2]), 1)
         
+        # dual
+        print M._A
+        print M.dual().dual()._A
+        self.assertEqual(M.dual().dual(), M)
+        
         # check realization
         self.assertTrue(M.check_realization(A))
         self.assertTrue(M.is_realizable())
