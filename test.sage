@@ -2,6 +2,22 @@ import unittest
 from arithmetic_matroid import *
 
 
+def realization_to_matroid(A):
+    """
+    Given an integer matrix A, return the associated ArithmeticMatroid.
+    """
+    E = range(A.ncols())
+    
+    def rk(X):
+        return A[:,list(X)].rank()
+    
+    def m(X):
+        return reduce(operator.mul, [d for d in A[:,list(X)].elementary_divisors() if d != 0], 1)
+    
+    return ArithmeticMatroid(E, rk, m)
+
+
+
 class TestArithmeticMatroid(unittest.TestCase):
     
     def test_trivial(self):
@@ -256,6 +272,9 @@ class TestArithmeticMatroid(unittest.TestCase):
                 return 1
 
         M = ArithmeticMatroid(E, rk, m)
+        self.assertTrue(M.is_valid())
+        self.assertFalse(M.is_realizable())
+        self.assertFalse(M.is_orientable())
         
         E1 = [4,5,6,7,8]
         
@@ -265,7 +284,7 @@ class TestArithmeticMatroid(unittest.TestCase):
             else:
                 return 1
             
-        M1 = ArithmeticMatroid(E1, rk, m)
+        M1 = ArithmeticMatroid(E1, rk, m1)
         self.assertTrue(M1.is_valid())
         self.assertFalse(M1.is_realizable())
         self.assertFalse(M1.is_orientable())
@@ -440,6 +459,17 @@ class TestToric(unittest.TestCase):
         self.assertEqual(M._rank([0,1,2]), 2)
         
         self.assertEqual(M._multiplicity([1,2]), 1)
+        
+        # minor
+        M2 = M._minor(contractions=[], deletions=[1])
+        self.assertEqual(M2.groundset(), frozenset([0,2,3,4,5]))
+        self.assertEqual(M2._A, matrix(ZZ, [[-1, 0, -1, 2, 7], [ 6, -1, -2, 2, 5]]))
+        
+        M2 = M._minor(contractions=[1], deletions=[])
+        self.assertEqual(M2.groundset(), frozenset([0,2,3,4,5]))
+        self.assertEqual(M2._Q, matrix(ZZ, [[1], [0]]))
+        self.assertEqual(M2._multiplicity([0,2]), 1)
+    
     
     def test_with_Q(self):
         A = matrix(ZZ, [[-1,  1,  0, -1, 2, 7], [ 6,  1, -1, -2, 2, 5]])

@@ -82,7 +82,7 @@ class ArithmeticMatroidMixin(object):
         """
         for X in powerset(self.groundset()):
             Y = frozenset(morphism[e] for e in X)
-            if self._rank(X) != other._rank(Y) or self._multiplicity(X) == other._multiplicity(Y):
+            if self._rank(X) != other._rank(Y) or self._multiplicity(X) != other._multiplicity(Y):
                 return False
         return True
     
@@ -557,41 +557,18 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, BasisExchangeMatroid):
 
 
     def _minor(self, contractions=[], deletions=[]):
-        # TODO
-        # get minor as a (non-arithmetic) matroid
-        matroid = super(ArithmeticMatroidMixin, self)._minor(contractions, deletions)
+        new_groundset = [e for e in self._E if e not in contractions+deletions]
+        A2 = copy.copy(self._A[:, [self._groundset_to_index[e] for e in new_groundset]])
         
-        if isinstance(matroid, MinorMatroid):
-            # return an instance of MinorArithmeticMatroid
-            return MinorArithmeticMatroid(self, contractions, deletions)
+        # TODO concatenate in a better way
+        Q2 = matrix(ZZ, len(contractions)+self._Q.ncols(), self._Q.nrows(), [row for row in list(self._A[:, [self._groundset_to_index[e] for e in contractions]].transpose()) + list(self._Q.transpose())]).transpose()
         
-        else:
-            # we use the same (arithmetic) class here
-            matroid.__class__ = type(self)
-            
-            # add multiplicity function
-            matroid._multiplicity = lambda X : self._multiplicity(contractions.union(X))
-        
-            return matroid
+        return ToricArithmeticMatroid(matrix=A2, torus_matrix=Q2, ordered_groundset=new_groundset)
     
     
     def dual(self):
         # TODO
-        # get dual as a (non-arithmetic) matroid
-        matroid = super(ArithmeticMatroidMixin, self).dual()
-        
-        if isinstance(matroid, DualMatroid):
-            # return an instance of DualArithmeticMatroid
-            return DualArithmeticMatroid(self)
-        
-        else:
-            # we use the same (arithmetic) class here
-            matroid.__class__ = type(self)
-            
-            # add multiplicity function
-            matroid._multiplicity = lambda X : self._multiplicity(self.groundset().difference(X))
-            
-            return matroid
+        pass
 
 
 def hermite_normal_forms(r, det):
@@ -613,24 +590,6 @@ def hermite_normal_forms(r, det):
                         else column[i] if j == r-1
                         else 0
                     )
-    
-    
-
-# TODO replace with some ToricArithmeticMatroid class
-def realization_to_matroid(A):
-    """
-    Given an integer matrix A, return the associated ArithmeticMatroid.
-    """
-    E = range(A.ncols())
-    
-    def rk(X):
-        return A[:,list(X)].rank()
-    
-    def m(X):
-        return reduce(operator.mul, [d for d in A[:,list(X)].elementary_divisors() if d != 0], 1)
-    
-    return ArithmeticMatroid(E, rk, m)
-
 
 
 if __name__ == '__main__':
