@@ -16,10 +16,10 @@ from sage.matroids.minor_matroid import MinorMatroid
 """
 TODO
 
-* ToricArithmeticMatroid (that uses a given representation)
 * check if the stored representations of two ToricArithmeticMatroids are equivalent
 * check if M is decomposable and give the indecomposable addendum
-* more tests (minors, dual, copy, deepcopy)
+* more tests (minors, dual, copy, deepcopy, ToricArithmeticMatroid)
+* other classes of the form XxxArithmeticMatroid
 
 """
 
@@ -570,7 +570,6 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, BasisExchangeMatroid):
     
     
     def dual(self):
-        # FIXME
         T = block_matrix(ZZ, [[self._A[:, [self._groundset_to_index[e] for e in self._E]], self._Q]]).transpose()
         I = identity_matrix(ZZ, T.nrows())
         
