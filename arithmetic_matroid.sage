@@ -495,10 +495,14 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, BasisExchangeMatroid):
     def __init__(self, matrix, torus_matrix=None, ordered_groundset=None):
         self._A = matrix
         self._Q = torus_matrix if torus_matrix is not None else Matrix(ZZ, matrix.nrows(), 0)
+        
+        assert self._A.nrows() == self._Q.nrows()
         self._normalize()
         
         if ordered_groundset is None:
             ordered_groundset = range(matrix.ncols())
+        else:
+            assert len(ordered_groundset) == matrix.ncols()
         
         self._groundset = frozenset(ordered_groundset) # non-ordered groundset
         self._E = ordered_groundset                    # ordered groundset
@@ -511,6 +515,11 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, BasisExchangeMatroid):
         D, U, V = self._Q.smith_form()  # D = U*Q*V
         self._A = U * self._A
         self._Q = D[:, :D.rank()] # remove zero columns from Q
+        
+        while self._Q.ncols() > 0 and self._Q[0,0] == 1:
+            # delete first row from Q and A
+            self._Q = self._Q[1:,1:]
+            self._A = self._A[1:,:]
     
     
     def groundset(self):
@@ -561,12 +570,13 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, BasisExchangeMatroid):
     
     
     def dual(self):
+        # FIXME
         T = block_matrix(ZZ, [[self._A[:, [self._groundset_to_index[e] for e in self._E]], self._Q]]).transpose()
         I = identity_matrix(ZZ, T.nrows())
         
         temp_elements = ["temp_%d" % i for i in xrange(self._Q.ncols())]
         M = ToricArithmeticMatroid(matrix=I, torus_matrix=T, ordered_groundset=self._E+temp_elements)
-        return M._minor(contractions=temp_elements)
+        return M._minor(deletions=temp_elements)
     
     
     def realization(self, ordered_groundset=None):

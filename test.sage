@@ -467,13 +467,14 @@ class TestToric(unittest.TestCase):
         
         M2 = M._minor(contractions=[1], deletions=[])
         self.assertEqual(M2.groundset(), frozenset([0,2,3,4,5]))
-        self.assertEqual(M2._Q, matrix(ZZ, [[1], [0]]))
+        self.assertEqual(M2._Q, matrix(ZZ, [[]]))
         self.assertEqual(M2._multiplicity([0,2]), 1)
         
         # dual
-        print M._A
-        print M.dual().dual()._A
-        self.assertEqual(M.dual().dual(), M)
+        M1 = M.dual()
+        self.assertEqual(M1._rank(M1.groundset()), 4)
+        M2 = M1.dual()
+        self.assertTrue(M.equals(M2))
         
         # check realization
         self.assertTrue(M.check_realization(A))
