@@ -312,8 +312,8 @@ class ArithmeticMatroidMixin(object):
                 graph.add_edge(x,y)
                 break
         
-        D, P, Q = A.smith_form()
-        res = Q.inverse()[:r,:]
+        D, U, V = A.smith_form()
+        res = V.inverse()[:r,:]
         res = matrix(ZZ, res)
         
         # print >> sys.stderr, "Candidate realization:"
@@ -330,6 +330,7 @@ class ArithmeticMatroidMixin(object):
         """
         Generator of all non-equivalent essential realizations.
         """
+        # TODO implement m(emptyset) > 1?
         r = self.full_rank()
         n = len(self.groundset())
         
@@ -569,6 +570,39 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, BasisExchangeMatroid):
     def dual(self):
         # TODO
         pass
+    
+    
+    def realization(self, ordered_groundset=None):
+        """
+        Compute any essential realization.
+        Return None if the matroid is not realizable.
+        """
+        # first try to return self._A
+        if self._Q.ncols() == 0:
+            if ordered_groundset is not None:
+                # use the groundset in the given order
+                E = ordered_groundset
+                assert frozenset(E) == self.groundset()
+            else:
+                # use self._E (which is ordered)
+                E = self._E
+            
+            # return self._A, with shuffled columns
+            return self._A[:, [self._groundset_to_index[e] for e in E]] # TODO should also return Q, when m(emptyset) > 1?
+        
+        return super(ToricArithmeticMatroid, self).realization(ordered_groundset=ordered_groundset)
+
+    
+    def is_orientable(self):
+        """
+        Determine if the matroid is an orientable arithmetic matroid according to [Pagaria https://arxiv.org/abs/1805.11888].
+        """
+        if self._Q.ncols() == 0:
+            return True
+        
+        else:
+            return super(ToricArithmeticMatroid, self).is_orientable()
+    
 
 
 def hermite_normal_forms(r, det):

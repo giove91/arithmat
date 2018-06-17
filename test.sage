@@ -469,6 +469,15 @@ class TestToric(unittest.TestCase):
         self.assertEqual(M2.groundset(), frozenset([0,2,3,4,5]))
         self.assertEqual(M2._Q, matrix(ZZ, [[1], [0]]))
         self.assertEqual(M2._multiplicity([0,2]), 1)
+        
+        # check realization
+        self.assertTrue(M.check_realization(A))
+        self.assertTrue(M.is_realizable())
+        self.assertEqual(M.realization(), A)
+        self.assertEqual(M.realization(ordered_groundset=[5,4,3,2,1,0]), matrix(ZZ, [[7, 2, -1, 0, 1, -1], [5, 2, -2, -1, 1, 6]]))
+        
+        # orientability
+        self.assertTrue(M.is_orientable())
     
     
     def test_with_Q(self):
