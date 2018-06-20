@@ -496,10 +496,7 @@ class TestToric(unittest.TestCase):
         
         self.assertEqual(M.full_rank(), M._rank(M.groundset()))
         
-        self.assertEqual(M._Q.ncols(), 2)
-        self.assertEqual(M._Q, matrix(ZZ, [[1,0], [0,1]]))
-        self.assertEqual(M._rank([0]), 0)
-        
+        self.assertEqual(M._Q.ncols(), 0)
         self.assertEqual(M._multiplicity([0]), 1)
 
     
