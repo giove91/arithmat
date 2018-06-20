@@ -236,11 +236,11 @@ class ArithmeticMatroidMixin(object):
             # sort the groundset
             E = list(sorted(self.groundset()))
         
-        B = list(sorted(self.basis()))
+        B = self.basis()
         # print "Basis:", B
                 
         # find bipartite graph
-        edges = [(x,y) for x in B for y in E if y not in B and self._rank([z for z in B if z != x]+[y]) == r]
+        edges = [(x,y) for x in B for y in E if y not in B and self.is_basis(B.difference([x]).union([y]))]
         
         spanning_forest = nx.Graph()
         
@@ -253,6 +253,9 @@ class ArithmeticMatroidMixin(object):
         
         # print "Graph:", edges
         # print "Spanning forest:", spanning_forest.edges()
+        
+        # fix an order of B
+        B = list(sorted(B))
         
         # compute entries of matrix A
         def entry(i,j):
@@ -488,9 +491,7 @@ class DualArithmeticMatroid(ArithmeticMatroidMixin, DualMatroid):
 
 
 
-class ToricArithmeticMatroid(ArithmeticMatroidMixin, BasisExchangeMatroid):
-    # FIXME derive directly from Matroid instead of BasisExchangeMatroid
-    # (then check that full_rank() is correct)
+class ToricArithmeticMatroid(ArithmeticMatroidMixin, sage.matroids.matroid.Matroid):
     
     def __init__(self, matrix, torus_matrix=None, ordered_groundset=None):
         self._A = matrix
@@ -609,6 +610,62 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, BasisExchangeMatroid):
         else:
             return super(ToricArithmeticMatroid, self).is_orientable()
     
+    
+    def is_equivalent(self, other, morphism=None):
+        """
+        Check if the realizations are equivalent.
+        If morphism is None, assume that the groundsets coincide
+        """
+        if not isinstance(other, ToricArithmeticMatroid):
+            raise TypeError("can only test for equivalence between toric arithmetic matroids.")
+        
+        if self._Q.ncols() > 0 or other._Q.ncols() > 0:
+            # TODO
+            raise NotImplementedError
+        
+        if morphism is None:
+            morphism = {e: e for e in self.groundset()}
+        
+        E = self._E
+        
+        # take matrices in Hermite normal form, removing zero rows
+        M = self._A.echelon_form(include_zero_rows=False)
+        N = other._A[:, [other._groundset_to_index[morphism[e]] for e in self._E]].echelon_form(include_zero_rows=False)
+        
+        # choose a basis
+        B = self.basis()
+        if not other.is_basis(frozenset(morphism[e] for e in B)):
+            return False
+        
+        # find bipartite graph
+        edges = []
+        for x in B:
+            for y in E:
+                C = B.difference([x]).union([y])
+                if y not in B and self.is_basis(C):
+                    if other.is_basis(frozenset(morphism[e] for e in C)):
+                        return False
+                    
+                    edges.append((x,y))
+        
+        spanning_forest = nx.Graph()
+        
+        # find spanning forest
+        uf = DisjointSet(E)
+        for (x,y) in edges:
+            if uf.find(x) != uf.find(y):
+                spanning_forest.add_edge(x,y)
+                uf.union(x,y)
+        
+        B_indices = list(sorted(self._groundset_to_index[e] for e in B))
+        
+        M1 = M[:, B_indices].inverse() * M
+        N1 = N[:, B_indices].inverse() * N
+        
+        for (x,y) in nx.edge_dfs(spanning_forest):
+            pass
+        
+    
 
 
 def hermite_normal_forms(r, det):
@@ -630,6 +687,7 @@ def hermite_normal_forms(r, det):
                         else column[i] if j == r-1
                         else 0
                     )
+
 
 
 if __name__ == '__main__':
@@ -656,5 +714,7 @@ if __name__ == '__main__':
     
     M.__custom_name = "Pippo"
     print deepcopy(M)
+    
+    
     
     
