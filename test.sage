@@ -1,4 +1,5 @@
 import unittest
+import itertools
 from arithmetic_matroid import *
 
 
@@ -526,7 +527,29 @@ class TestToric(unittest.TestCase):
         N = ToricArithmeticMatroid(B)
         
         self.assertTrue(M.is_equivalent(N))
-        # self.assertTrue(N.is_equivalent(M))
+        self.assertTrue(N.is_equivalent(M))
+        
+        self.assertTrue(M.is_isomorphic(N))
+        
+        C = matrix(ZZ, [[1, 2, 3], [0, 7, 7]])
+        O = ToricArithmeticMatroid(C)
+        self.assertFalse(M.is_equivalent(O))
+        self.assertFalse(N.is_equivalent(O))
+        self.assertFalse(O.is_equivalent(M))
+        self.assertFalse(O.is_equivalent(N))
+        
+        self.assertTrue(M.is_isomorphic(O))
+    
+    
+    def test_non_equivalent_realizations(self):
+        M = ToricArithmeticMatroid(matrix(ZZ, [[6, 3, -2, 2], [ 3, 21, 0, -9], [-1, -4, 3, -2]]))
+        
+        self.assertEqual(M.num_realizations(), 4)
+        matroids = [ToricArithmeticMatroid(A) for A in M.all_realizations()]
+        for N, O in itertools.combinations(matroids, 2):
+            self.assertFalse(N.is_equivalent(O))
+            self.assertTrue(N.is_isomorphic(O))
+        
     
 
 if __name__ == '__main__':

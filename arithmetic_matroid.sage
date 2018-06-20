@@ -18,9 +18,9 @@ TODO
 
 * check if the stored representations of two ToricArithmeticMatroids are equivalent
 * check if M is decomposable and give the indecomposable addendum
-* more tests (minors, dual, copy, deepcopy, ToricArithmeticMatroid)
+* more tests (minors, dual, copy, deepcopy, ToricArithmeticMatroid, groundset != [0,...,n-1])
 * other classes of the form XxxArithmeticMatroid
-
+* _rank -> rank, _multiplicity -> multiplicity
 """
 
 
@@ -629,8 +629,9 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, sage.matroids.matroid.Matro
         E = self._E
         
         # take matrices in Hermite normal form, removing zero rows
-        M = self._A.echelon_form(include_zero_rows=False)
-        N = other._A[:, [other._groundset_to_index[morphism[e]] for e in self._E]].echelon_form(include_zero_rows=False)
+        # (copy is needed to make matrices mutable)
+        M = copy.copy(self._A.echelon_form(include_zero_rows=False))
+        N = copy.copy(other._A[:, [other._groundset_to_index[morphism[e]] for e in self._E]].echelon_form(include_zero_rows=False))
         
         # choose a basis
         B = self.basis()
@@ -643,7 +644,7 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, sage.matroids.matroid.Matro
             for y in E:
                 C = B.difference([x]).union([y])
                 if y not in B and self.is_basis(C):
-                    if other.is_basis(frozenset(morphism[e] for e in C)):
+                    if not other.is_basis(frozenset(morphism[e] for e in C)):
                         return False
                     
                     edges.append((x,y))
@@ -662,8 +663,30 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, sage.matroids.matroid.Matro
         M1 = M[:, B_indices].inverse() * M
         N1 = N[:, B_indices].inverse() * N
         
-        for (x,y) in nx.edge_dfs(spanning_forest):
-            pass
+        def change_signs(A, A1):
+            for (i,j) in nx.edge_dfs(spanning_forest):
+                (x,y) = (i,j) if i in B else (j,i)
+                if A1[x,y] < 0:
+                    if j in B:
+                        # change sign of row j and column j
+                        A1[j,:] *= -1
+                        A1[:,j] *= -1
+                        
+                        A[j,:] *= -1
+                        A[:,j] *= -1
+                        
+                        assert A1 == A[:, B_indices].inverse() * A
+                    
+                    else:
+                        # change sign of column j
+                        A1[:,j] *= -1
+                        
+                        A[:,j] *= -1
+        
+        change_signs(M, M1)
+        change_signs(N, N1)
+        
+        return M.echelon_form() == N.echelon_form()
         
     
 
