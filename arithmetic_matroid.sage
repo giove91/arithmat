@@ -73,6 +73,25 @@ class ArithmeticMatroidMixin(object):
         raise TypeError("unfortunately, functions cannot be saved reliably, so this class doesn't have load/save support.")
     
     
+    
+    def multiplicity(self, X=None):
+        """
+        Return the multiplicity of X.
+        """
+        if X is None:
+            return self.full_multiplicity()
+        if not isinstance(X, frozenset):
+            X = frozenset(X)
+        return self._multiplicity(X)
+    
+    
+    def full_multiplicity(self):
+        """
+        Return the multiplicity of the groundset.
+        """
+        return self._multiplicity(self.groundset())
+    
+    
     def _is_isomorphism(self, other, morphism):
         """
         Version of is_isomorphism() that does no type checking.
@@ -80,13 +99,13 @@ class ArithmeticMatroidMixin(object):
         """
         for X in powerset(self.groundset()):
             Y = frozenset(morphism[e] for e in X)
-            if self._rank(X) != other._rank(Y) or self._multiplicity(X) != other._multiplicity(Y):
+            if self.rank(X) != other.rank(Y) or self.multiplicity(X) != other.multiplicity(Y):
                 return False
         return True
     
     
     def is_independent_from(self, v, X):
-        return self._rank(X+[v]) != self._rank(X)
+        return self.rank(X.union([v])) != self.rank(X)
     
     def is_dependent_from(self, v, X):
         return not self.is_independent_from(v, X)
@@ -104,24 +123,30 @@ class ArithmeticMatroidMixin(object):
         
         # check axioms for arithmetic matroids
         for X in powerset(E):
+            X = frozenset(X)
             for v in E:
                 if v not in X:
                     if self.is_dependent_from(v, X):
                         # check axiom 1
-                        if self._multiplicity(X) % self._multiplicity(X+[v]) != 0:
+                        if self.multiplicity(X) % self.multiplicity(X.union([v])) != 0:
                             # print >> sys.stderr, "Axiom 1 fails on", X, v
                             return False
                     
                     else:
                         # check axiom 2
-                        if self._multiplicity(X+[v]) % self._multiplicity(X) != 0:
+                        if self.multiplicity(X.union([v])) % self.multiplicity(X) != 0:
                             # print >> sys.stderr, "Axiom 2 fails on", X, v
                             return False
         
         for Y in powerset(E):
+            Y = frozenset(Y)
+            
             for X in powerset(Y):
+                X = frozenset(X)
+                
                 T = []
                 F = []
+                
                 for y in Y:
                     if y not in X:
                         if self.is_dependent_from(y, X):
@@ -129,15 +154,18 @@ class ArithmeticMatroidMixin(object):
                         else:
                             F.append(y)
                 
-                if len(F) + self._rank(X) == self._rank(Y):
+                if len(F) + self.rank(X) == self.rank(Y):
                     # (X, Y) is a molecule
                     
+                    T = frozenset(T)
+                    F = frozenset(F)
+                    
                     # check axiom 3
-                    if self._multiplicity(X) * self._multiplicity(Y) != self._multiplicity(X+F) * self._multiplicity(X+T):
+                    if self.multiplicity(X) * self.multiplicity(Y) != self.multiplicity(X.union(F)) * self.multiplicity(X.union(T)):
                         return False
                     
                     # check axiom P
-                    if (-1)**(len(T)) * sum((-1)**(len(Y)-len(Z)-len(X)) * self._multiplicity(X+Z) for Z in powerset([z for z in Y if z not in X])) < 0:
+                    if (-1)**(len(T)) * sum((-1)**(len(Y)-len(Z)-len(X)) * self.multiplicity(X.union(Z)) for Z in powerset(Y.difference(X))) < 0:
                         return False
         
         return True
@@ -199,16 +227,16 @@ class ArithmeticMatroidMixin(object):
             return False
         
         for S in powerset(range(n)):
-            T = [E[i] for i in S]   # corresponding subset of E
-            if A[:,S].rank() != self._rank(T):
+            T = frozenset(E[i] for i in S)   # corresponding subset of E
+            if A[:,S].rank() != self.rank(T):
                 # print >> sys.stderr, "Not realizable, rank of %r is incorrect" % T
                 return False
             
-            if check_bases and len(T) != r and self._rank(T) < r:
+            if check_bases and len(T) != r and self.rank(T) < r:
                 # skip multiplicity check
                 continue
 
-            if reduce(operator.mul, [d for d in A[:,S].elementary_divisors() if d != 0], 1) != self._multiplicity(T):
+            if reduce(operator.mul, [d for d in A[:,S].elementary_divisors() if d != 0], 1) != self.multiplicity(T):
                 # print >> sys.stderr, "Not realizable, multiplicity of %r is incorrect" % T
                 return False
         
@@ -220,8 +248,9 @@ class ArithmeticMatroidMixin(object):
         Find a realization (if it exists) for a surjective matroid (m(E)=1).
         If check_bases==True, find a realization of a matroid (E,rk,m')
         such that m'(B)=m(B) for every basis B.
+        Return None if no realization exists.
         """
-        assert self._multiplicity(self.groundset()) == 1
+        assert self.full_multiplicity() == 1
 
         r = self.full_rank()
         n = len(self.groundset())
@@ -253,18 +282,18 @@ class ArithmeticMatroidMixin(object):
         # print "Spanning forest:", spanning_forest.edges()
         
         # fix an order of B
-        B = list(sorted(B))
+        B_ordered = list(sorted(B))
         
         # compute entries of matrix A
         def entry(i,j):
-            x = B[i]
+            x = B_ordered[i]
             y = E[j]
             
             if y in B:
-                return self._multiplicity(B) if x == y else 0
+                return self.multiplicity(B) if x == y else 0
             
             elif (x,y) in edges:
-                return self._multiplicity([z for z in B if z != x]+[y])
+                return self.multiplicity(B.difference([x]).union([y]))
             
             else:
                 return 0
@@ -272,7 +301,7 @@ class ArithmeticMatroidMixin(object):
         A = matrix(ZZ, r, n, entry)
         # print A
         
-        B_to_index = {B[i]: i for i in xrange(r)}
+        B_to_index = {B_ordered[i]: i for i in xrange(r)}
         E_to_index = {E[j]: j for j in xrange(n)}
         
         
@@ -296,9 +325,9 @@ class ArithmeticMatroidMixin(object):
                 # print "rows:", rows
                 # print "columns:", columns
                 
-                new_tuple = [z for z in B + paths[x][y] if z not in B or z not in paths[x][y]]
+                new_tuple = [z for z in B_ordered + paths[x][y] if z not in B or z not in paths[x][y]]
                 # print "new_tuple:", new_tuple
-                expected_mult = self._multiplicity(new_tuple) * self._multiplicity(B)**(len(rows)-1) if self._rank(new_tuple) == r else 0
+                expected_mult = self.multiplicity(new_tuple) * self.multiplicity(B)**(len(rows)-1) if self.rank(new_tuple) == r else 0
                 if abs(A[rows,columns].determinant()) != expected_mult:
                     # change sign
                     # print "change sign!"
@@ -331,21 +360,21 @@ class ArithmeticMatroidMixin(object):
         """
         Generator of all non-equivalent essential realizations.
         """
-        # TODO implement m(emptyset) > 1?
+        # TODO implement m({}) > 1?
         r = self.full_rank()
         n = len(self.groundset())
         
-        if self._multiplicity(self.groundset()) == 1:
+        if self.full_multiplicity() == 1:
             res = self.realization_surjective(ordered_groundset=ordered_groundset)
             if res is not None:
                 yield res
             return
         
         # construct "reduced" matroid
-        denominator = reduce(gcd, [self._multiplicity(B) for B in self.bases()], 0)
+        denominator = reduce(gcd, [self.multiplicity(B) for B in self.bases()], 0)
         
         def m_bar(X):
-            return reduce(gcd, [self._multiplicity(B) for B in self.bases() if self._rank(X) == self._rank([x for x in X if x in B])], 0) // denominator
+            return reduce(gcd, [self.multiplicity(B) for B in self.bases() if self.rank(X) == self.rank(X.intersection(B))], 0) // denominator
         
         M = ArithmeticMatroid(self.groundset(), self._rank, multiplicity_function=m_bar)
         
@@ -359,7 +388,7 @@ class ArithmeticMatroidMixin(object):
             return
         
         # try all left Hermite normal forms
-        for H in hermite_normal_forms(r, self._multiplicity(self.groundset())):
+        for H in hermite_normal_forms(r, self.multiplicity(self.groundset())):
             if self.check_realization(H*A):
                 yield H*A
     
@@ -393,12 +422,12 @@ class ArithmeticMatroidMixin(object):
         Determine if the matroid is an orientable arithmetic matroid according to [Pagaria https://arxiv.org/abs/1805.11888].
         """
         # construct "reduced" matroid
-        denominator = reduce(gcd, [self._multiplicity(B) for B in self.bases()], 0)
+        denominator = reduce(gcd, [self.multiplicity(B) for B in self.bases()], 0)
         
         def m_bar(X):
-            return reduce(gcd, [self._multiplicity(B) for B in self.bases() if self._rank(X) == self._rank([x for x in X if x in B])], 0) // denominator
+            return reduce(gcd, [self.multiplicity(B) for B in self.bases() if self.rank(X) == self.rank(X.intersection(B))], 0) // denominator
         
-        M = ArithmeticMatroid(self.groundset(), self._rank, multiplicity_function=m_bar) # note: this matroid might be non-valid
+        M = ArithmeticMatroid(self.groundset(), self._rank, multiplicity_function=m_bar) # note: this "matroid" might be non-valid
         
         return M.realization_surjective(check_bases=True) is not None
     
@@ -416,7 +445,7 @@ class ArithmeticMatroidMixin(object):
         x, y = R._first_ngens(2)
         T = R(0)
         for X in powerset(self.groundset()):
-            T += self._multiplicity(X) * (x-1) ** (r - self._rank(X)) * (y-1) ** (len(X) - self._rank(X))
+            T += self.multiplicity(X) * (x-1) ** (r - self.rank(X)) * (y-1) ** (len(X) - self.rank(X))
         if a is not None and b is not None:
             T = T(a, b)
         return T
@@ -490,6 +519,10 @@ class DualArithmeticMatroid(ArithmeticMatroidMixin, DualMatroid):
 
 
 class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
+    """
+    Arithmetic matroid defined by a given realization.
+    The realization is defined up to equivalence.
+    """
     
     def __init__(self, matrix, torus_matrix=None, ordered_groundset=None):
         self._A = matrix
@@ -538,20 +571,20 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
     
     
     def __hash__(self):
-        return hash((self._E, self._A))
+        return hash((self._E, self._A, self._Q))
         
     def __eq__(self, other):
         if not isinstance(other, ToricArithmeticMatroid):
             return False
         
-        return self._E == other._E and self._A == other._A
+        return self._E == other._E and self._A == other._A and self._Q == other._Q
     
     
     def __copy__(self):
-        return ToricArithmeticMatroid(matrix=self._A, ordered_groundset=self._E)
+        return ToricArithmeticMatroid(matrix=self._A, torus_matrix=self._Q, ordered_groundset=self._E)
     
     def __deepcopy__(self, *args, **kwargs):
-        return ToricArithmeticMatroid(matrix=copy.deepcopy(self._A), ordered_groundset=copy.deepcopy(self._E))
+        return ToricArithmeticMatroid(matrix=copy.deepcopy(self._A), torus_matrix=copy.deepcopy(self._Q), ordered_groundset=copy.deepcopy(self._E))
     
     def __reduce__(self):
         # TODO
@@ -562,6 +595,9 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
 
 
     def _minor(self, contractions=[], deletions=[]):
+        contractions = list(contractions)
+        deletions = list(deletions)
+        
         new_groundset = [e for e in self._E if e not in contractions+deletions]
         A2 = copy.copy(self._A[:, [self._groundset_to_index[e] for e in new_groundset]])
         Q2 = block_matrix(ZZ, [[self._A[:, [self._groundset_to_index[e] for e in contractions]], self._Q]])
@@ -572,7 +608,11 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
         T = block_matrix(ZZ, [[self._A[:, [self._groundset_to_index[e] for e in self._E]], self._Q]]).transpose()
         I = identity_matrix(ZZ, T.nrows())
         
-        temp_elements = ["temp_%d" % i for i in xrange(self._Q.ncols())]
+        # create temporary names for new groundset elements
+        temp_elements = [-i for i in xrange(self._Q.ncols())]
+        while len(frozenset(temp_elements).intersection(self.groundset())) > 0:
+            temp_elements = [e-1 for e in temp_elements]
+        
         M = ToricArithmeticMatroid(matrix=I, torus_matrix=T, ordered_groundset=self._E+temp_elements)
         return M._minor(deletions=temp_elements)
     
@@ -593,7 +633,8 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
                 E = self._E
             
             # return self._A, with shuffled columns
-            return self._A[:, [self._groundset_to_index[e] for e in E]] # TODO should also return Q, when m(emptyset) > 1?
+            return self._A[:, [self._groundset_to_index[e] for e in E]]
+            # TODO should also return Q, when m({}) > 1?
         
         return super(ToricArithmeticMatroid, self).realization(ordered_groundset=ordered_groundset)
 
@@ -612,7 +653,7 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
     def is_equivalent(self, other, morphism=None):
         """
         Check if the realizations are equivalent.
-        If morphism is None, assume that the groundsets coincide
+        If morphism is None, assume that the groundsets coincide.
         """
         if not isinstance(other, ToricArithmeticMatroid):
             raise TypeError("can only test for equivalence between toric arithmetic matroids.")
@@ -622,6 +663,7 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
             raise NotImplementedError
         
         if morphism is None:
+            assert self.groundset() == other.groundset()
             morphism = {e: e for e in self.groundset()}
         
         E = self._E
@@ -690,7 +732,7 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
     def decomposition(self):
         """
         Find the decomposition of the matroid as a direct sum of indecomposable matroids.
-        Returns a partition of the groundset.
+        Return a partition of the groundset.
         """
         A = self._A.echelon_form()
         uf = DisjointSet(self.groundset())
@@ -761,10 +803,6 @@ if __name__ == '__main__':
 
     print M.realization()
     print M.arithmetic_tutte_polynomial()
-    
-    M.__custom_name = "Pippo"
-    print deepcopy(M)
-    
     
     
     
