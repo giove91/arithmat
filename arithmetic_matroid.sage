@@ -7,33 +7,22 @@ import copy
 from fractions import gcd
 
 from sage.matroids.matroid import Matroid
-from sage.matroids.rank_matroid import RankMatroid
-from sage.matroids.linear_matroid import LinearMatroid
-from sage.matroids.dual_matroid import DualMatroid
-from sage.matroids.minor_matroid import MinorMatroid
+from sage.matroids.advanced import *
 
 
 """
 TODO
 
-* more tests (minors, dual, copy, deepcopy, ToricArithmeticMatroid, groundset != [0,...,n-1], decomposition, is_equivalent)
-* other classes of the form XxxArithmeticMatroid
+* more tests (minors, dual, copy, deepcopy, ToricArithmeticMatroid, groundset != [0,...,n-1], decomposition, is_equivalent, XxxArithmeticMatroid)
 """
 
 
-# class ArithmeticMatroid(sage.matroids.matroid.Matroid):
 class ArithmeticMatroidMixin(object):
     def __init__(self, *args, **kwargs):
         # get multiplicity function
         try:
             multiplicity = kwargs.pop('multiplicity_function')
         except KeyError:
-            """
-            # hope that the last positional argument is the multiplicity function
-            # FIXME maybe this is dangerous?
-            multiplicity = args[-1]
-            args = args[:-1]
-            """
             multiplicity = None # multiplicity function must be set later
         
         super(ArithmeticMatroidMixin, self).__init__(*args, **kwargs)
@@ -460,6 +449,14 @@ class ArithmeticMatroid(ArithmeticMatroidMixin, RankMatroid):
 class LinearArithmeticMatroid(ArithmeticMatroidMixin, LinearMatroid):
     pass
 
+class BasisArithmeticMatroid(ArithmeticMatroidMixin, BasisMatroid):
+    pass
+
+class CircuitClosuresArithmeticMatroid(ArithmeticMatroidMixin, CircuitClosuresMatroid):
+    pass
+
+class GraphicArithmeticMatroid(ArithmeticMatroidMixin, GraphicMatroid):
+    pass
 
 
 class MinorArithmeticMatroid(ArithmeticMatroidMixin, MinorMatroid):
