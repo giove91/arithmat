@@ -16,8 +16,7 @@ from sage.matroids.minor_matroid import MinorMatroid
 """
 TODO
 
-* check if M is decomposable and give the indecomposable addendum
-* more tests (minors, dual, copy, deepcopy, ToricArithmeticMatroid, groundset != [0,...,n-1])
+* more tests (minors, dual, copy, deepcopy, ToricArithmeticMatroid, groundset != [0,...,n-1], decomposition, is_equivalent)
 * other classes of the form XxxArithmeticMatroid
 * _rank -> rank, _multiplicity -> multiplicity
 """
@@ -702,7 +701,20 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
                     uf.union(self._E[i], self._E[j])
         
         return SetPartition(uf)
-        
+    
+    
+    def is_decomposable(self):
+        """
+        Check if the matroid is decomposable.
+        """
+        return len(self.decomposition()) > 1
+    
+    
+    def is_indecomposable(self):
+        """
+        Check if the matroid is indecomposable.
+        """
+        return not self.is_decomposable()
     
 
 

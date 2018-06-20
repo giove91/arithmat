@@ -551,6 +551,7 @@ class TestToric(unittest.TestCase):
     def test_decomposition(self):
         M = ToricArithmeticMatroid(matrix(ZZ, [[1, 5, -1, 5], [1, 7, 2, 6], [0, -2, -2, -1]]))
         self.assertEqual(M.decomposition(), SetPartition([[2], [0,1,3]]))
+        self.assertTrue(M.is_decomposable())
     
 
 if __name__ == '__main__':
