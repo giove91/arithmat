@@ -18,7 +18,6 @@ TODO
 
 * more tests (minors, dual, copy, deepcopy, ToricArithmeticMatroid, groundset != [0,...,n-1], decomposition, is_equivalent)
 * other classes of the form XxxArithmeticMatroid
-* _rank -> rank, _multiplicity -> multiplicity
 """
 
 
