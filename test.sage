@@ -66,7 +66,7 @@ class TestArithmeticMatroid(unittest.TestCase):
         M = ArithmeticMatroid(E, rk, m)
         self.assertTrue(M.is_valid())
         self.assertTrue(M.is_realizable())
-        # print M.realization()
+        self.assertEqual(M.full_multiplicity(), 1)
 
 
     def test_not_valid(self):
@@ -113,9 +113,10 @@ class TestArithmeticMatroid(unittest.TestCase):
         self.assertFalse(M.is_realizable())
         self.assertFalse(M.is_orientable())
         self.assertEqual(M.realization(), None)
+        self.assertEqual(M.full_multiplicity(), 1)
     
     
-    def test_realization_to_matroid(self):
+    def test_relizable(self):
         # realizable with a 2x2 matrix
         for a in xrange(6):
             for b in xrange(1, 6):
@@ -131,7 +132,7 @@ class TestArithmeticMatroid(unittest.TestCase):
                 self.assertEqual(M.arithmetic_tutte_polynomial(), x**2 + x*(gcd(a,b)-1) + b-gcd(a,b))
     
     
-    def test_realization_to_matroid2(self):
+    def test_realizable2(self):
         A = matrix(ZZ, [[-1, -29, -1, 1], [1, -1, 0, 1]])
         M = realization_to_matroid(A)
         
@@ -140,8 +141,8 @@ class TestArithmeticMatroid(unittest.TestCase):
         self.assertTrue(M.is_orientable())
 
 
-    def test_realization_to_matroid3(self):
-        A = matrix(ZZ, [[-1,  1,  0,  0, -1], [ 6,  1,  1, -1, -1]])
+    def test_realizable3(self):
+        A = matrix(ZZ, [[-1, 1, 0, 0, -1], [6, 1, 1, -1, -1]])
         M = realization_to_matroid(A)
         
         self.assertTrue(M.is_valid())
@@ -149,8 +150,8 @@ class TestArithmeticMatroid(unittest.TestCase):
         self.assertTrue(M.is_orientable())
     
     
-    def test_realization_to_matroid4(self):
-        A = matrix(ZZ, [[ 2,  2,  1,  0,  0], [ 1,  5, -1,  1, -2], [-2,  1,  0, -1, -1]])
+    def test_realizable4(self):
+        A = matrix(ZZ, [[2, 2, 1, 0, 0], [1, 5, -1, 1, -2], [-2, 1, 0, -1, -1]])
         M = realization_to_matroid(A)
         
         self.assertTrue(M.is_valid())
@@ -158,7 +159,7 @@ class TestArithmeticMatroid(unittest.TestCase):
         self.assertTrue(M.is_orientable())
 
 
-    def test_realization_to_matroid_random(self):
+    def test_realizable_random(self):
         A = random_matrix(ZZ,4,6)
         M = realization_to_matroid(A)
         
@@ -186,16 +187,17 @@ class TestArithmeticMatroid(unittest.TestCase):
     
     
     def test_non_realizable(self):
-        A = matrix(ZZ, [[-1,  1,  0, -1], [ 6,  1, -1, -2]])
+        A = matrix(ZZ, [[-1, 1, 0, -1], [6, 1, -1, -2]])
         M = realization_to_matroid(A)
         M2 = ArithmeticMatroid(M.groundset(), M.rank, lambda X: M._multiplicity(X)**2)
         
         self.assertTrue(M2.is_valid())
         self.assertTrue(M.is_realizable())
         self.assertFalse(M2.is_realizable())
+    
     
     def test_non_realizable2(self):
-        A = matrix(ZZ, [[-1,  1,  0, -1, 2, 7], [ 6,  1, -1, -2, 2, 5]])
+        A = matrix(ZZ, [[-1, 1, 0, -1, 2, 7], [6, 1, -1, -2, 2, 5]])
         M = realization_to_matroid(A)
         M2 = ArithmeticMatroid(M.groundset(), M.rank, lambda X: M._multiplicity(X)**2)
         
@@ -204,7 +206,7 @@ class TestArithmeticMatroid(unittest.TestCase):
         self.assertFalse(M2.is_realizable())
     
     
-    def test_not_orientable(self):
+    def test_non_orientable(self):
         E = range(1, 7)
         
         def rk(A):
@@ -258,6 +260,7 @@ class TestArithmeticMatroid(unittest.TestCase):
         M = ArithmeticMatroid(E, rk, m)
         s = set([M])
         self.assertEqual(hash(M), hash((frozenset(E), 2, 1, 1)))
+        self.assertEqual(M.groundset(), frozenset(E))
     
     
     def test_isomorphism(self):
@@ -284,7 +287,7 @@ class TestArithmeticMatroid(unittest.TestCase):
                 return 2
             else:
                 return 1
-            
+        
         M1 = ArithmeticMatroid(E1, rk, m1)
         self.assertTrue(M1.is_valid())
         self.assertFalse(M1.is_realizable())
@@ -301,7 +304,7 @@ class TestArithmeticMatroid(unittest.TestCase):
     def test_num_realizations(self):
         r = 3
         
-        for m in xrange(23, 27): # m(E)
+        for m in xrange(23, 26): # m(E)
             E = range(r)
             A = matrix(ZZ, r, r, lambda i, j: 1 if i == j and i < r-1 else 0 if j < r-1 else m if i == r-1 else 1)
             
@@ -388,7 +391,7 @@ class TestDualAndMinor(unittest.TestCase):
 
     
     def test_dual_linear_matroid(self):
-        A = matrix(QQ, [[-1,  1,  0, -1, 2, 7], [ 6,  1, -1, -2, 2, 5]])
+        A = matrix(QQ, [[-1, 1, 0, -1, 2, 7], [6, 1, -1, -2, 2, 5]])
         
         def m(X):
             return 1
@@ -408,7 +411,7 @@ class TestDualAndMinor(unittest.TestCase):
     
     
     def test_minor_linear_matroid(self):
-        A = matrix(QQ, [[-1,  1,  0, -1, 2, 7], [ 6,  1, -1, -2, 2, 5]])
+        A = matrix(QQ, [[-1, 1, 0, -1, 2, 7], [6, 1, -1, -2, 2, 5]])
         
         def m(X):
             return 1
@@ -448,10 +451,11 @@ class TestDualAndMinor(unittest.TestCase):
         self.assertFalse(M2.equals(N3))
 
 
+
 class TestToric(unittest.TestCase):
     
     def test_without_Q(self):
-        A = matrix(ZZ, [[-1,  1,  0, -1, 2, 7], [ 6,  1, -1, -2, 2, 5]])
+        A = matrix(ZZ, [[-1, 1, 0, -1, 2, 7], [6, 1, -1, -2, 2, 5]])
         M = ToricArithmeticMatroid(A)
         
         self.assertEqual(M.full_rank(), M.rank(M.groundset()))
@@ -466,7 +470,7 @@ class TestToric(unittest.TestCase):
         # minor
         M2 = M._minor(contractions=[], deletions=[1])
         self.assertEqual(M2.groundset(), frozenset([0,2,3,4,5]))
-        self.assertEqual(M2._A, matrix(ZZ, [[-1, 0, -1, 2, 7], [ 6, -1, -2, 2, 5]]))
+        self.assertEqual(M2._A, matrix(ZZ, [[-1, 0, -1, 2, 7], [6, -1, -2, 2, 5]]))
         
         M2 = M._minor(contractions=[1], deletions=[])
         self.assertEqual(M2.groundset(), frozenset([0,2,3,4,5]))
@@ -515,6 +519,7 @@ class TestToric(unittest.TestCase):
         self.assertEqual(M._multiplicity([1]), 3)
         self.assertEqual(M._multiplicity([1,2]), 1)
     
+    
     def test_equivalence(self):
         # without Q
         A = matrix(ZZ, [[1, 1, 2], [0, 7, 7]])
@@ -539,7 +544,7 @@ class TestToric(unittest.TestCase):
     
     
     def test_non_equivalent_realizations(self):
-        M = ToricArithmeticMatroid(matrix(ZZ, [[6, 3, -2, 2], [ 3, 21, 0, -9], [-1, -4, 3, -2]]))
+        M = ToricArithmeticMatroid(matrix(ZZ, [[6, 3, -2, 2], [3, 21, 0, -9], [-1, -4, 3, -2]]))
         
         self.assertEqual(M.num_realizations(), 4)
         matroids = [ToricArithmeticMatroid(A) for A in M.all_realizations()]
