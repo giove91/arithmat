@@ -6,8 +6,8 @@ import sys
 import copy
 from fractions import gcd
 
+from sage.matroids.matroid import Matroid
 from sage.matroids.rank_matroid import RankMatroid
-from sage.matroids.basis_exchange_matroid import BasisExchangeMatroid
 from sage.matroids.linear_matroid import LinearMatroid
 from sage.matroids.dual_matroid import DualMatroid
 from sage.matroids.minor_matroid import MinorMatroid
@@ -16,7 +16,6 @@ from sage.matroids.minor_matroid import MinorMatroid
 """
 TODO
 
-* check if the stored representations of two ToricArithmeticMatroids are equivalent
 * check if M is decomposable and give the indecomposable addendum
 * more tests (minors, dual, copy, deepcopy, ToricArithmeticMatroid, groundset != [0,...,n-1])
 * other classes of the form XxxArithmeticMatroid
@@ -491,7 +490,7 @@ class DualArithmeticMatroid(ArithmeticMatroidMixin, DualMatroid):
 
 
 
-class ToricArithmeticMatroid(ArithmeticMatroidMixin, sage.matroids.matroid.Matroid):
+class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
     
     def __init__(self, matrix, torus_matrix=None, ordered_groundset=None):
         self._A = matrix
@@ -687,6 +686,22 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, sage.matroids.matroid.Matro
         change_signs(N, N1)
         
         return M.echelon_form() == N.echelon_form()
+    
+    
+    def decomposition(self):
+        """
+        Find the decomposition of the matroid as a direct sum of indecomposable matroids.
+        Returns a partition of the groundset.
+        """
+        A = self._A.echelon_form()
+        uf = DisjointSet(self.groundset())
+        
+        for i in xrange(A.nrows()):
+            for j in xrange(i+1, A.ncols()):
+                if A[i,j] != 0:
+                    uf.union(self._E[i], self._E[j])
+        
+        return SetPartition(uf)
         
     
 

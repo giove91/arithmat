@@ -546,7 +546,11 @@ class TestToric(unittest.TestCase):
         for N, O in itertools.combinations(matroids, 2):
             self.assertFalse(N.is_equivalent(O))
             self.assertTrue(N.is_isomorphic(O))
-        
+    
+    
+    def test_decomposition(self):
+        M = ToricArithmeticMatroid(matrix(ZZ, [[1, 5, -1, 5], [1, 7, 2, 6], [0, -2, -2, -1]]))
+        self.assertEqual(M.decomposition(), SetPartition([[2], [0,1,3]]))
     
 
 if __name__ == '__main__':
