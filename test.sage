@@ -3,7 +3,7 @@ import itertools
 from arithmetic_matroid import *
 
 
-def realization_to_matroid(A):
+def representation_to_matroid(A):
     """
     Given an integer matrix A, return the associated ArithmeticMatroid.
     """
@@ -33,11 +33,11 @@ class TestArithmeticMatroid(unittest.TestCase):
         M = ArithmeticMatroid(E, rk, m)
         self.assertTrue(M.is_valid())
         self.assertEqual(M.full_rank(), 9)
-        self.assertTrue(M.is_realizable())
+        self.assertTrue(M.is_representable())
         
     
     def test_valid(self):
-        # matroid with realization
+        # matroid with representation
         # [ 1, a, 1 ]
         # [ 0, b, 5 ]
         # with a|b and (b,5)=1
@@ -65,7 +65,7 @@ class TestArithmeticMatroid(unittest.TestCase):
         
         M = ArithmeticMatroid(E, rk, m)
         self.assertTrue(M.is_valid())
-        self.assertTrue(M.is_realizable())
+        self.assertTrue(M.is_representable())
         self.assertEqual(M.full_multiplicity(), 1)
 
 
@@ -96,7 +96,7 @@ class TestArithmeticMatroid(unittest.TestCase):
     
     
     def test_valid2(self):
-        # valid, not realizable, not orientable
+        # valid, not representable, not orientable
         E = [1,2,3,4,5]
 
         def rk(X):
@@ -110,21 +110,21 @@ class TestArithmeticMatroid(unittest.TestCase):
 
         M = ArithmeticMatroid(E, rk, m)
         self.assertTrue(M.is_valid())
-        self.assertFalse(M.is_realizable())
+        self.assertFalse(M.is_representable())
         self.assertFalse(M.is_orientable())
-        self.assertEqual(M.realization(), None)
+        self.assertEqual(M.representation(), None)
         self.assertEqual(M.full_multiplicity(), 1)
     
     
     def test_relizable(self):
-        # realizable with a 2x2 matrix
+        # representable with a 2x2 matrix
         for a in xrange(6):
             for b in xrange(1, 6):
                 A = matrix(ZZ, [[1, a], [0, b]])
-                M = realization_to_matroid(A)
+                M = representation_to_matroid(A)
                 
                 self.assertTrue(M.is_valid())
-                self.assertTrue(M.is_realizable())
+                self.assertTrue(M.is_representable())
                 self.assertTrue(M.is_orientable())
                 
                 R = ZZ['x, y']
@@ -132,39 +132,39 @@ class TestArithmeticMatroid(unittest.TestCase):
                 self.assertEqual(M.arithmetic_tutte_polynomial(), x**2 + x*(gcd(a,b)-1) + b-gcd(a,b))
     
     
-    def test_realizable2(self):
+    def test_representable2(self):
         A = matrix(ZZ, [[-1, -29, -1, 1], [1, -1, 0, 1]])
-        M = realization_to_matroid(A)
+        M = representation_to_matroid(A)
         
         self.assertTrue(M.is_valid())
-        self.assertTrue(M.is_realizable())
+        self.assertTrue(M.is_representable())
         self.assertTrue(M.is_orientable())
 
 
-    def test_realizable3(self):
+    def test_representable3(self):
         A = matrix(ZZ, [[-1, 1, 0, 0, -1], [6, 1, 1, -1, -1]])
-        M = realization_to_matroid(A)
+        M = representation_to_matroid(A)
         
         self.assertTrue(M.is_valid())
-        self.assertTrue(M.is_realizable())
+        self.assertTrue(M.is_representable())
         self.assertTrue(M.is_orientable())
     
     
-    def test_realizable4(self):
+    def test_representable4(self):
         A = matrix(ZZ, [[2, 2, 1, 0, 0], [1, 5, -1, 1, -2], [-2, 1, 0, -1, -1]])
-        M = realization_to_matroid(A)
+        M = representation_to_matroid(A)
         
         self.assertTrue(M.is_valid())
-        self.assertTrue(M.is_realizable())
+        self.assertTrue(M.is_representable())
         self.assertTrue(M.is_orientable())
 
 
-    def test_realizable_random(self):
+    def test_representable_random(self):
         A = random_matrix(ZZ,4,6)
-        M = realization_to_matroid(A)
+        M = representation_to_matroid(A)
         
         self.assertTrue(M.is_valid())
-        self.assertTrue(M.is_realizable())
+        self.assertTrue(M.is_representable())
         self.assertTrue(M.is_orientable())
 
 
@@ -182,28 +182,28 @@ class TestArithmeticMatroid(unittest.TestCase):
         
         M = ArithmeticMatroid(E, rk, m)
         self.assertTrue(M.is_valid())
-        self.assertFalse(M.is_realizable())
+        self.assertFalse(M.is_representable())
         self.assertTrue(M.is_orientable())
     
     
-    def test_non_realizable(self):
+    def test_non_representable(self):
         A = matrix(ZZ, [[-1, 1, 0, -1], [6, 1, -1, -2]])
-        M = realization_to_matroid(A)
+        M = representation_to_matroid(A)
         M2 = ArithmeticMatroid(M.groundset(), M.rank, lambda X: M._multiplicity(X)**2)
         
         self.assertTrue(M2.is_valid())
-        self.assertTrue(M.is_realizable())
-        self.assertFalse(M2.is_realizable())
+        self.assertTrue(M.is_representable())
+        self.assertFalse(M2.is_representable())
     
     
-    def test_non_realizable2(self):
+    def test_non_representable2(self):
         A = matrix(ZZ, [[-1, 1, 0, -1, 2, 7], [6, 1, -1, -2, 2, 5]])
-        M = realization_to_matroid(A)
+        M = representation_to_matroid(A)
         M2 = ArithmeticMatroid(M.groundset(), M.rank, lambda X: M._multiplicity(X)**2)
         
         self.assertTrue(M2.is_valid())
-        self.assertTrue(M.is_realizable())
-        self.assertFalse(M2.is_realizable())
+        self.assertTrue(M.is_representable())
+        self.assertFalse(M2.is_representable())
     
     
     def test_non_orientable(self):
@@ -233,16 +233,16 @@ class TestArithmeticMatroid(unittest.TestCase):
         
         M = ArithmeticMatroid(E, rk, m)
         self.assertTrue(M.is_valid())
-        self.assertFalse(M.is_realizable())
+        self.assertFalse(M.is_representable())
         self.assertFalse(M.is_orientable())
     
     
     def test_non_essential(self):
         A = matrix(ZZ, [[-1,  1,  0], [ 6,  1, -1], [2, -3, 0], [1, 2, 3], [-1, 0, 0]])
-        M = realization_to_matroid(A)
+        M = representation_to_matroid(A)
         
         self.assertTrue(M.is_valid())
-        self.assertTrue(M.is_realizable())
+        self.assertTrue(M.is_representable())
     
     
     def test_hash(self):
@@ -277,7 +277,7 @@ class TestArithmeticMatroid(unittest.TestCase):
 
         M = ArithmeticMatroid(E, rk, m)
         self.assertTrue(M.is_valid())
-        self.assertFalse(M.is_realizable())
+        self.assertFalse(M.is_representable())
         self.assertFalse(M.is_orientable())
         
         E1 = [4,5,6,7,8]
@@ -290,7 +290,7 @@ class TestArithmeticMatroid(unittest.TestCase):
         
         M1 = ArithmeticMatroid(E1, rk, m1)
         self.assertTrue(M1.is_valid())
-        self.assertFalse(M1.is_realizable())
+        self.assertFalse(M1.is_representable())
         self.assertFalse(M1.is_orientable())
         
         self.assertTrue(M.is_isomorphism(M1, {i: i+3 for i in E}))
@@ -301,15 +301,15 @@ class TestArithmeticMatroid(unittest.TestCase):
         self.assertTrue(M2.equals(M))
     
     
-    def test_num_realizations(self):
+    def test_num_representations(self):
         r = 3
         
         for m in xrange(23, 26): # m(E)
             E = range(r)
             A = matrix(ZZ, r, r, lambda i, j: 1 if i == j and i < r-1 else 0 if j < r-1 else m if i == r-1 else 1)
             
-            M = realization_to_matroid(A)
-            self.assertEqual(M.num_realizations(), euler_phi(m)**(r-1))
+            M = representation_to_matroid(A)
+            self.assertEqual(M.num_representations(), euler_phi(m)**(r-1))
 
 
 
@@ -483,11 +483,11 @@ class TestToric(unittest.TestCase):
         M2 = M1.dual()
         self.assertTrue(M.equals(M2))
         
-        # check realization
-        self.assertTrue(M.check_realization(A))
-        self.assertTrue(M.is_realizable())
-        self.assertEqual(M.realization(), A)
-        self.assertEqual(M.realization(ordered_groundset=[5,4,3,2,1,0]), matrix(ZZ, [[7, 2, -1, 0, 1, -1], [5, 2, -2, -1, 1, 6]]))
+        # check representation
+        self.assertTrue(M.check_representation(A))
+        self.assertTrue(M.is_representable())
+        self.assertEqual(M.representation(), A)
+        self.assertEqual(M.representation(ordered_groundset=[5,4,3,2,1,0]), matrix(ZZ, [[7, 2, -1, 0, 1, -1], [5, 2, -2, -1, 1, 6]]))
         
         # orientability
         self.assertTrue(M.is_orientable())
@@ -543,11 +543,11 @@ class TestToric(unittest.TestCase):
         self.assertTrue(M.is_isomorphic(O))
     
     
-    def test_non_equivalent_realizations(self):
+    def test_non_equivalent_representations(self):
         M = ToricArithmeticMatroid(matrix(ZZ, [[6, 3, -2, 2], [3, 21, 0, -9], [-1, -4, 3, -2]]))
         
-        self.assertEqual(M.num_realizations(), 4)
-        matroids = [ToricArithmeticMatroid(A) for A in M.all_realizations()]
+        self.assertEqual(M.num_representations(), 4)
+        matroids = [ToricArithmeticMatroid(A) for A in M.all_representations()]
         for N, O in itertools.combinations(matroids, 2):
             self.assertFalse(N.is_equivalent(O))
             self.assertTrue(N.is_isomorphic(O))

@@ -195,9 +195,9 @@ class ArithmeticMatroidMixin(object):
             return matroid
     
     
-    def check_realization(self, A, ordered_groundset=None, check_bases=False):
+    def check_representation(self, A, ordered_groundset=None, check_bases=False):
         """
-        Check if the given matrix is a realization for the matroid.
+        Check if the given matrix is a representation for the matroid.
         If check_bases==True, check that the multiplicity is correct only on the bases.
         """
         r = self.full_rank()
@@ -217,7 +217,7 @@ class ArithmeticMatroidMixin(object):
         for S in powerset(range(n)):
             T = frozenset(E[i] for i in S)   # corresponding subset of E
             if A[:,S].rank() != self.rank(T):
-                # print >> sys.stderr, "Not realizable, rank of %r is incorrect" % T
+                # print >> sys.stderr, "Not representable, rank of %r is incorrect" % T
                 return False
             
             if check_bases and len(T) != r and self.rank(T) < r:
@@ -225,18 +225,18 @@ class ArithmeticMatroidMixin(object):
                 continue
 
             if reduce(operator.mul, [d for d in A[:,S].elementary_divisors() if d != 0], 1) != self.multiplicity(T):
-                # print >> sys.stderr, "Not realizable, multiplicity of %r is incorrect" % T
+                # print >> sys.stderr, "Not representable, multiplicity of %r is incorrect" % T
                 return False
         
         return True
         
     
-    def realization_surjective(self, ordered_groundset=None, check_bases=False):
+    def representation_surjective(self, ordered_groundset=None, check_bases=False):
         """
-        Find a realization (if it exists) for a surjective matroid (m(E)=1).
-        If check_bases==True, find a realization of a matroid (E,rk,m')
+        Find a representation (if it exists) for a surjective matroid (m(E)=1).
+        If check_bases==True, find a representation of a matroid (E,rk,m')
         such that m'(B)=m(B) for every basis B.
-        Return None if no realization exists.
+        Return None if no representation exists.
         """
         assert self.full_multiplicity() == 1
 
@@ -334,26 +334,26 @@ class ArithmeticMatroidMixin(object):
         res = V.inverse()[:r,:]
         res = matrix(ZZ, res)
         
-        # print >> sys.stderr, "Candidate realization:"
+        # print >> sys.stderr, "Candidate representation:"
         # print >> sys.stderr, res
         
-        # check if this is indeed a realization
-        if not self.check_realization(res, ordered_groundset=ordered_groundset, check_bases=check_bases):
+        # check if this is indeed a representation
+        if not self.check_representation(res, ordered_groundset=ordered_groundset, check_bases=check_bases):
             return None
         
         return res
 
 
-    def all_realizations(self, ordered_groundset=None):
+    def all_representations(self, ordered_groundset=None):
         """
-        Generator of all non-equivalent essential realizations.
+        Generator of all non-equivalent essential representations.
         """
         # TODO implement m({}) > 1?
         r = self.full_rank()
         n = len(self.groundset())
         
         if self.full_multiplicity() == 1:
-            res = self.realization_surjective(ordered_groundset=ordered_groundset)
+            res = self.representation_surjective(ordered_groundset=ordered_groundset)
             if res is not None:
                 yield res
             return
@@ -369,40 +369,40 @@ class ArithmeticMatroidMixin(object):
         if not M.is_valid():
             return
         
-        # get realization of "reduced" matroid
-        A = M.realization_surjective(ordered_groundset=ordered_groundset)
+        # get representation of "reduced" matroid
+        A = M.representation_surjective(ordered_groundset=ordered_groundset)
         
         if A is None:
             return
         
         # try all left Hermite normal forms
         for H in hermite_normal_forms(r, self.multiplicity(self.groundset())):
-            if self.check_realization(H*A):
+            if self.check_representation(H*A):
                 yield H*A
     
     
-    def num_realizations(self):
+    def num_representations(self):
         """
-        Compute the number of non-equivalent essential realizations.
+        Compute the number of non-equivalent essential representations.
         """
-        return sum(1 for _ in self.all_realizations())
+        return sum(1 for _ in self.all_representations())
     
     
-    def realization(self, ordered_groundset=None):
+    def representation(self, ordered_groundset=None):
         """
-        Compute any essential realization.
-        Return None if the matroid is not realizable.
+        Compute any essential representation.
+        Return None if the matroid is not representable.
         """
-        for A in self.all_realizations(ordered_groundset=ordered_groundset):
+        for A in self.all_representations(ordered_groundset=ordered_groundset):
             return A
         return None
 
     
-    def is_realizable(self):
+    def is_representable(self):
         """
-        Determine if the matroid is a realizable arithmetic matroid.
+        Determine if the matroid is a representable arithmetic matroid.
         """
-        return self.realization() is not None
+        return self.representation() is not None
     
     
     def is_orientable(self):
@@ -417,7 +417,7 @@ class ArithmeticMatroidMixin(object):
         
         M = ArithmeticMatroid(self.groundset(), self._rank, multiplicity_function=m_bar) # note: this "matroid" might be non-valid
         
-        return M.realization_surjective(check_bases=True) is not None
+        return M.representation_surjective(check_bases=True) is not None
     
     
     def arithmetic_tutte_polynomial(self, x=None, y=None):
@@ -516,8 +516,8 @@ class DualArithmeticMatroid(ArithmeticMatroidMixin, DualMatroid):
 
 class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
     """
-    Arithmetic matroid defined by a given realization.
-    The realization is defined up to equivalence.
+    Arithmetic matroid defined by a given representation.
+    The representation is defined up to equivalence.
     """
     
     def __init__(self, matrix, torus_matrix=None, ordered_groundset=None):
@@ -613,10 +613,10 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
         return M._minor(deletions=temp_elements)
     
     
-    def realization(self, ordered_groundset=None):
+    def representation(self, ordered_groundset=None):
         """
-        Compute any essential realization.
-        Return None if the matroid is not realizable.
+        Compute any essential representation.
+        Return None if the matroid is not representable.
         """
         # first try to return self._A
         if self._Q.ncols() == 0:
@@ -632,7 +632,7 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
             return self._A[:, [self._groundset_to_index[e] for e in E]]
             # TODO should also return Q, when m({}) > 1?
         
-        return super(ToricArithmeticMatroid, self).realization(ordered_groundset=ordered_groundset)
+        return super(ToricArithmeticMatroid, self).representation(ordered_groundset=ordered_groundset)
 
     
     def is_orientable(self):
@@ -648,7 +648,7 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
     
     def is_equivalent(self, other, morphism=None):
         """
-        Check if the realizations are equivalent.
+        Check if the representations are equivalent.
         If morphism is None, assume that the groundsets coincide.
         """
         if not isinstance(other, ToricArithmeticMatroid):
@@ -797,7 +797,7 @@ if __name__ == '__main__':
     print M
     print "Valid:", M.is_valid()
 
-    print M.realization()
+    print M.representation()
     print M.arithmetic_tutte_polynomial()
     
     
