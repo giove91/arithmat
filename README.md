@@ -31,6 +31,9 @@ from arithmat import ArithmeticMatroid, ToricArithmeticMatroid
 
 All classes for arithmetic matroids derive from `ArithmeticMatroidMixin` and from some subclass of Sage's `Matroid`.
 The class `ArithmeticMatroidMixin` is not intended to be used by itself, but it is possible to subclass it in order to create new classes for arithmetic matroids (see below).
+
+A general way to construct an instance of some arithmetic matroid class `XxxArithmeticMatroid` (apart from `ToricArithmeticMatroid`, which is special) is the following. Suppose that `XxxArithmeticMatroid` derives from `XxxMatroid`. Then an instance of `XxxArithmeticMatroid` can be constructed with `XxxArithmeticMatroid(..., multiplicity_function=m)`, where the dots stand for arguments to construct an instance of `XxxMatroid`, and `m` is the multiplicity function.
+
 The classes which are already provided in `arithmat` are the following.
 
 * `ArithmeticMatroid` (derives from `ArithmeticMatroidMixin` and `RankMatroid`).
