@@ -21,7 +21,7 @@ All defined classes can be imported at once:
 ```sage
 from arithmat import *
 ```
-Alternatively, it is possible to import only specific classes:
+Alternatively, it is possible to import only specific classes. For example:
 ```sage
 from arithmat import ArithmeticMatroid, ToricArithmeticMatroid
 ```
@@ -32,12 +32,28 @@ from arithmat import ArithmeticMatroid, ToricArithmeticMatroid
 All classes for arithmetic matroids derive from `ArithmeticMatroidMixin` and from some subclass of Sage's `Matroid`.
 The class `ArithmeticMatroidMixin` is not intended to be used by itself, but it is possible to subclass it in order to create new classes for arithmetic matroids (see below).
 
-A general way to construct an instance of some arithmetic matroid class `XxxArithmeticMatroid` (apart from `ToricArithmeticMatroid`, which is special) is the following. Suppose that `XxxArithmeticMatroid` derives from `XxxMatroid`. Then an instance of `XxxArithmeticMatroid` can be constructed with `XxxArithmeticMatroid(..., multiplicity_function=m)`, where the dots stand for arguments to construct an instance of `XxxMatroid`, and `m` is the multiplicity function.
+A general way to construct an instance of some arithmetic matroid class `XxxArithmeticMatroid` (apart from `ToricArithmeticMatroid`, which is special) is the following. Suppose that `XxxArithmeticMatroid` derives from `XxxMatroid`. Then an instance of `XxxArithmeticMatroid` can be constructed with `XxxArithmeticMatroid(..., multiplicity_function=m)`, where `...` should be replaced by arguments to construct an instance of `XxxMatroid`, and `m` is the multiplicity function.
+However, some provided classes also accept the multiplicity function as the last positional argument (see the examples below).
 
 The classes which are already provided in `arithmat` are the following.
 
 * `ArithmeticMatroid` (derives from `ArithmeticMatroidMixin` and `RankMatroid`).
-
+  ```sage
+  E = [1,2,3,4,5]
+  
+  def rk(X):
+      return min(2, len(X))
+  
+  def m(X):
+      if len(X) == 2 and all(x in [3,4,5] for x in X):
+          return 2
+      else:
+          return 1
+  
+  M = ArithmeticMatroid(E, rk, m)
+  M
+  # Arithmetic matroid of rank 2 on 5 elements
+  ```
 
 
 ### Available methods
