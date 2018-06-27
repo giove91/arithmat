@@ -18,6 +18,10 @@ TODO
 
 
 class ArithmeticMatroidMixin(object):
+    """
+    A general mixin for arithmetic matroids, that can be added to any Matroid subclass of Sage.
+    """
+    
     def __init__(self, *args, **kwargs):
         # get multiplicity function
         try:
@@ -418,6 +422,7 @@ class ArithmeticMatroidMixin(object):
         M = ArithmeticMatroid(self.groundset(), self._rank, multiplicity_function=m_bar) # note: this "matroid" might be non-valid
         
         return M.representation_surjective(check_bases=True) is not None
+        # TODO maybe it is not necessary to check (on the bases) that the result is a representation
     
     
     def arithmetic_tutte_polynomial(self, x=None, y=None):
