@@ -17,7 +17,7 @@ TODO
 """
 
 
-class ArithmeticMatroidMixin(object):
+class ArithmeticMatroidMixin(SageObject):
     """
     A general mixin for arithmetic matroids, that can be added to any Matroid subclass of Sage.
     """
@@ -32,7 +32,7 @@ class ArithmeticMatroidMixin(object):
         super(ArithmeticMatroidMixin, self).__init__(*args, **kwargs)
         self._multiplicity = multiplicity
 
-    def __repr__(self):
+    def _repr_(self):
         return "Arithmetic matroid of rank %d on %d elements" % (self.full_rank(), len(self.groundset()))
     
     
@@ -235,7 +235,7 @@ class ArithmeticMatroidMixin(object):
         return True
         
     
-    def representation_surjective(self, ordered_groundset=None, check_bases=False):
+    def _representation_surjective(self, ordered_groundset=None, check_bases=False):
         """
         Find a representation (if it exists) for a surjective matroid (m(E)=1).
         If check_bases==True, find a representation of a matroid (E,rk,m')
@@ -357,7 +357,7 @@ class ArithmeticMatroidMixin(object):
         n = len(self.groundset())
         
         if self.full_multiplicity() == 1:
-            res = self.representation_surjective(ordered_groundset=ordered_groundset)
+            res = self._representation_surjective(ordered_groundset=ordered_groundset)
             if res is not None:
                 yield res
             return
@@ -374,13 +374,13 @@ class ArithmeticMatroidMixin(object):
             return
         
         # get representation of "reduced" matroid
-        A = M.representation_surjective(ordered_groundset=ordered_groundset)
+        A = M._representation_surjective(ordered_groundset=ordered_groundset)
         
         if A is None:
             return
         
         # try all left Hermite normal forms
-        for H in hermite_normal_forms(r, self.multiplicity(self.groundset())):
+        for H in _hermite_normal_forms(r, self.multiplicity(self.groundset())):
             if self.check_representation(H*A):
                 yield H*A
     
@@ -421,7 +421,7 @@ class ArithmeticMatroidMixin(object):
         
         M = ArithmeticMatroid(self.groundset(), self._rank, multiplicity_function=m_bar) # note: this "matroid" might be non-valid
         
-        return M.representation_surjective(check_bases=True) is not None
+        return M._representation_surjective(check_bases=True) is not None
         # TODO maybe it is not necessary to check (on the bases) that the result is a representation
     
     
@@ -497,7 +497,7 @@ class DualArithmeticMatroid(ArithmeticMatroidMixin, DualMatroid):
             raise TypeError("no arithmetic matroid provided to take dual of.")
         self._matroid = matroid
     
-    def __repr__(self):
+    def _repr_(self):
         return "Dual of '" + repr(self._matroid) + "'"
     
     def __eq__(self, other):
@@ -567,7 +567,7 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
         return reduce(operator.mul, [d for d in T.elementary_divisors() if d != 0], 1)
         
     
-    def __repr__(self):
+    def _repr_(self):
         return "Toric arithmetic matroid of rank %d on %d elements" % (self.full_rank(), len(self.groundset()))
     
     
@@ -761,7 +761,7 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
     
 
 
-def hermite_normal_forms(r, det):
+def _hermite_normal_forms(r, det):
     """
     Generate all r x r integer matrices in (left) Hermite normal form
     with the given determinant.
@@ -772,7 +772,7 @@ def hermite_normal_forms(r, det):
     
     else:
         for d in divisors(det):
-            for A in hermite_normal_forms(r-1, det//d):
+            for A in _hermite_normal_forms(r-1, det//d):
                 for column in itertools.product(range(d), repeat=r-1):
                     yield matrix(ZZ, r, r, lambda i, j:
                         A[i,j] if i < r-1 and j < r-1
