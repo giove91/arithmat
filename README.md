@@ -5,7 +5,7 @@ Authors: Giovanni Paolini and Roberto Pagaria
 
 ## Requirements
 
-* [Python](https://www.python.org/) 2.7 or 3.x (support for Python 3.x is not guaranteed at the moment)
+* [Python](https://www.python.org/) 2.7
 * [Sage](http://www.sagemath.org/) >= 8
 * The Python pacakge `networkx` (can be installed with `sage --python -m easy_install networkx` or `sage --python -m pip install networkx`)
 
