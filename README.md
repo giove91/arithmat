@@ -60,11 +60,41 @@ The classes which are already provided in `arithmat` are the following.
   print M
   # Arithmetic matroid of rank 2 on 5 elements
   ```
-* `ToricArithmeticMatroid(matrix, torus_matrix=None, ordered_groundset=None)`
+* `ToricArithmeticMatroid(arrangement_matrix, torus_matrix=None, ordered_groundset=None)`
 
-  Derives from `ArithmeticMatroidMixin` and `Matroid`.
+  Arithmetic matroid associated to a given toric arrangement. This class derives from `ArithmeticMatroidMixin` and `Matroid`.
+  
+  The constructor requires an integer matrix `arrangement_matrix` representing the toric arrangement. Otionally it accepts another integer matrix `torus_matrix` (whose cokernel describes the ambient torus, and defaults to `matrix(ZZ, arrangement_matrix.nrows(), 0)`) and/or an ordered copy `ordered_groundset` of the groundset (defaults to `range(matrix.ncols())`). The number of rows of `arrangement_matrix` must be equal to the numer of rows of `torus_matrix`.
+  
+  The two matrices are not guaranteed to remain unchanged: internally, `arrangement_matrix` is kept in Hermite normal form and `torus_matrix` is kept in Smith normal form.
+  
   Example:
-  ...
+  ```sage
+  A = matrix(ZZ, [[-1, 1, 0, 7], [6, 1, -1, -2]])
+  M = ToricArithmeticMatroid(A, Q)
+  
+  print M
+  # TToric arithmetic matroid of rank 2 on 4 elements
+  
+  print M.arrangement_matrix()
+  # [-1  1  0  7]
+  # [ 6  1 -1 -2]
+  
+  print M.torus_matrix()
+  # []
+  
+  Q = matrix(ZZ, [[5], [1]])
+  M = ToricArithmeticMatroid(A, Q)
+  
+  print M
+  # Toric arithmetic matroid of rank 1 on 4 elements
+  
+  print M.arrangement_matrix()
+  # [-31  -4   5  17]
+  
+  print M.torus_matrix()
+  # []
+  ```
 
 The other arithmetic matroid classes are of the form `XxxArithmeticMatroid`, deriving from the corresponding Sage class `XxxMatroid`.
 An instance of `XxxArithmeticMatroid` can be constructed with `XxxArithmeticMatroid(..., multiplicity_function=m)`, where `...` should be replaced by arguments to construct an instance of `XxxMatroid`, and `m` is the multiplicity function.
