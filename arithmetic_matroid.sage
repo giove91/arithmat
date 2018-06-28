@@ -300,7 +300,7 @@ class ArithmeticMatroidMixin(SageObject):
         while graph.number_of_edges() < len(edges):
             # find all paths in the graph
             paths = nx.all_pairs_dijkstra_path(graph)
-            for (x,y) in sorted(edges, key = lambda x,y: len(paths[x][y])):
+            for (x,y) in sorted(edges, key = lambda (x,y): len(paths[x][y])):
                 if len(paths[x][y]) == 2:
                     # (x,y) is in the graph
                     assert (x,y) in graph.edges()
@@ -524,17 +524,17 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
     The representation is defined up to equivalence.
     """
     
-    def __init__(self, matrix, torus_matrix=None, ordered_groundset=None):
-        self._A = matrix
-        self._Q = torus_matrix if torus_matrix is not None else Matrix(ZZ, matrix.nrows(), 0)
+    def __init__(self, arrangement_matrix, torus_matrix=None, ordered_groundset=None):
+        self._A = arrangement_matrix
+        self._Q = torus_matrix if torus_matrix is not None else matrix(ZZ, arrangement_matrix.nrows(), 0)
         
         assert self._A.nrows() == self._Q.nrows()
         self._normalize()
         
         if ordered_groundset is None:
-            ordered_groundset = range(matrix.ncols())
+            ordered_groundset = range(arrangement_matrix.ncols())
         else:
-            assert len(ordered_groundset) == matrix.ncols()
+            assert len(ordered_groundset) == arrangement_matrix.ncols()
         
         self._groundset = frozenset(ordered_groundset) # non-ordered groundset
         self._E = ordered_groundset                    # ordered groundset
@@ -581,10 +581,10 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
     
     
     def __copy__(self):
-        return ToricArithmeticMatroid(matrix=self._A, torus_matrix=self._Q, ordered_groundset=self._E)
+        return ToricArithmeticMatroid(arrangement_matrix=self._A, torus_matrix=self._Q, ordered_groundset=self._E)
     
     def __deepcopy__(self, *args, **kwargs):
-        return ToricArithmeticMatroid(matrix=copy.deepcopy(self._A), torus_matrix=copy.deepcopy(self._Q), ordered_groundset=copy.deepcopy(self._E))
+        return ToricArithmeticMatroid(arrangement_matrix=copy.deepcopy(self._A), torus_matrix=copy.deepcopy(self._Q), ordered_groundset=copy.deepcopy(self._E))
     
     def __reduce__(self):
         # TODO
@@ -601,7 +601,7 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
         new_groundset = [e for e in self._E if e not in contractions+deletions]
         A2 = copy.copy(self._A[:, [self._groundset_to_index[e] for e in new_groundset]])
         Q2 = block_matrix(ZZ, [[self._A[:, [self._groundset_to_index[e] for e in contractions]], self._Q]])
-        return ToricArithmeticMatroid(matrix=A2, torus_matrix=Q2, ordered_groundset=new_groundset)
+        return ToricArithmeticMatroid(arrangement_matrix=A2, torus_matrix=Q2, ordered_groundset=new_groundset)
     
     
     def dual(self):
@@ -613,7 +613,7 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
         while len(frozenset(temp_elements).intersection(self.groundset())) > 0:
             temp_elements = [e-1 for e in temp_elements]
         
-        M = ToricArithmeticMatroid(matrix=I, torus_matrix=T, ordered_groundset=self._E+temp_elements)
+        M = ToricArithmeticMatroid(arrangement_matrix=I, torus_matrix=T, ordered_groundset=self._E+temp_elements)
         return M._minor(deletions=temp_elements)
     
     
