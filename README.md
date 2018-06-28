@@ -1,12 +1,12 @@
 # Arithmat
-Sage implementation of arithmetic matroids and toric arrangements
+Sage implementation of arithmetic matroids and toric arrangements.
 
 Authors: Giovanni Paolini and Roberto Pagaria
 
 ## Requirements
 
-* Python 2.7 or 3.x (support for Python 3.x is not guaranteed at the moment)
-* Sage >= 8
+* [Python](https://www.python.org/) 2.7 or 3.x (support for Python 3.x is not guaranteed at the moment)
+* [Sage](http://www.sagemath.org/) >= 8
 * The Python pacakge `networkx` (can be installed with `sage --python -m easy_install networkx` or `sage --python -m pip install networkx`)
 
 ## Quick start
@@ -43,7 +43,7 @@ However, some provided classes also accept the multiplicity function as the last
 
 The classes which are already provided in `arithmat` are the following.
 
-* `ArithmeticMatroid` (derives from `ArithmeticMatroidMixin` and `RankMatroid`).
+* `ArithmeticMatroid(groundset, rank_function, multiplicity_function)` (derives from `ArithmeticMatroidMixin` and `RankMatroid`).
   ```sage
   E = [1,2,3,4,5]
   
@@ -57,7 +57,7 @@ The classes which are already provided in `arithmat` are the following.
           return 1
   
   M = ArithmeticMatroid(E, rk, m)
-  M
+  print M
   # Arithmetic matroid of rank 2 on 5 elements
   ```
 
@@ -68,7 +68,7 @@ All classes for arithmetic matroids must also derive from some subclass of Sage'
 In particular, all `Matroid` methods are still available. For example:
 ```sage
 M = ToricArithmeticMatroid(matrix(ZZ, [[1,2,3], [0,1, 1]]))
-list(M.bases())
+print list(M.bases())
 # [frozenset([0, 1]), frozenset([0, 2]), frozenset([1, 2])]
 ```
 
@@ -79,3 +79,9 @@ All subclasses of `ArithmeticMatroidMixin` also implement the following methods.
 
 
 ### Creating new classes for arithmetic matroids
+...
+
+
+## Bibliography
+
+...
