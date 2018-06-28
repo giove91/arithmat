@@ -557,6 +557,13 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
     def groundset(self):
         return self._groundset
     
+    def arrangement_matrix(self):
+        return self._A
+    
+    def torus_matrix(self):
+        return self._Q
+    
+    
     def _rank(self, X):
         T = block_matrix(ZZ, [[self._A[:, [self._groundset_to_index[e] for e in X]], self._Q]])
         return T.rank() - self._Q.ncols()
