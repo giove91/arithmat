@@ -40,7 +40,9 @@ The class `ArithmeticMatroidMixin` is not intended to be used by itself, but it 
 
 The classes which are already provided in `arithmat` are the following.
 
-* `ArithmeticMatroid(groundset, rank_function, multiplicity_function)` (derives from `ArithmeticMatroidMixin` and `RankMatroid`).
+* `ArithmeticMatroid(groundset, rank_function, multiplicity_function)`
+  
+  Derives from `ArithmeticMatroidMixin` and `RankMatroid`.
   Example:
   ```sage
   E = [1,2,3,4,5]
@@ -59,6 +61,10 @@ The classes which are already provided in `arithmat` are the following.
   # Arithmetic matroid of rank 2 on 5 elements
   ```
 * `ToricArithmeticMatroid(matrix, torus_matrix=None, ordered_groundset=None)`
+
+  Derives from `ArithmeticMatroidMixin` and `Matroid`.
+  Example:
+  ...
 
 The other arithmetic matroid classes are of the form `XxxArithmeticMatroid`, deriving from the corresponding `XxxMatroid`.
 An instance of `XxxArithmeticMatroid` can be constructed with `XxxArithmeticMatroid(..., multiplicity_function=m)`, where `...` should be replaced by arguments to construct an instance of `XxxMatroid`, and `m` is the multiplicity function.
