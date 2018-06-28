@@ -102,3 +102,7 @@ All subclasses of `ArithmeticMatroidMixin` also implement the following methods.
 ## Bibliography
 
 ...
+
+## Licence
+
+...
