@@ -15,8 +15,8 @@ Authors: Giovanni Paolini and Roberto Pagaria
 ## Overview
 
 Arithmat is a Sage package that implements arithmetic matroids.
-At its core there is the class `ArithmeticMatroidMixin`, which is intended to be used in combination with any existing `Matroid` subclass of Sage (e.g. `RankMatroid`, `BasisMatroid`, `LinearMatroid`) via multiple inheritance.
-The most common combinations are already defined, for example: `ArithmeticMatroid` and `RankArithmeticMatroid` (both deriving from `RankMatroid`), `BasisArithmeticMatroid` (deriving from `BasisMatroid`), `LinearArithmeticMatroid` (deriving from `LinearMatroid`).
+At its core there is the class `ArithmeticMatroidMixin`, which is intended to be used in combination with [any existing matroid class of Sage](http://doc.sagemath.org/html/en/reference/matroids/index.html) (e.g. `RankMatroid`, `BasisMatroid`, `LinearMatroid`) via multiple inheritance.
+The most common combinations are already defined, for example: `ArithmeticMatroid` (deriving from `RankMatroid`), `BasisArithmeticMatroid` (deriving from `BasisMatroid`), `LinearArithmeticMatroid` (deriving from `LinearMatroid`).
 An additional class `ToricArithmeticMatroid` is implemented, for arithmetic matroids constructed from a fixed given representation.
 
 ## Documentation
@@ -43,7 +43,6 @@ The classes which are already provided in `arithmat` are the following.
 * `ArithmeticMatroid(groundset, rank_function, multiplicity_function)`
   
   This is the simplest arithmetic matroid class, and derives from `ArithmeticMatroidMixin` and `RankMatroid`.
-  It differs from `RankArithmeticMatroid` only for the constructor.
   Example:
   ```sage
   E = [1,2,3,4,5]
@@ -67,7 +66,7 @@ The classes which are already provided in `arithmat` are the following.
   Example:
   ...
 
-The other arithmetic matroid classes are of the form `XxxArithmeticMatroid`, deriving from the corresponding `XxxMatroid`.
+The other arithmetic matroid classes are of the form `XxxArithmeticMatroid`, deriving from the corresponding Sage class `XxxMatroid`.
 An instance of `XxxArithmeticMatroid` can be constructed with `XxxArithmeticMatroid(..., multiplicity_function=m)`, where `...` should be replaced by arguments to construct an instance of `XxxMatroid`, and `m` is the multiplicity function.
 The multiplicity function needs to be passed as a keyword argument (and not as a positional argument).
 
