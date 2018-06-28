@@ -71,10 +71,10 @@ The classes which are already provided in `arithmat` are the following.
   Example:
   ```sage
   A = matrix(ZZ, [[-1, 1, 0, 7], [6, 1, -1, -2]])
-  M = ToricArithmeticMatroid(A, Q)
+  M = ToricArithmeticMatroid(A)
   
   print M
-  # TToric arithmetic matroid of rank 2 on 4 elements
+  # Toric arithmetic matroid of rank 2 on 4 elements
   
   print M.arrangement_matrix()
   # [-1  1  0  7]
