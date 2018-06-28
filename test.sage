@@ -494,7 +494,7 @@ class TestToric(unittest.TestCase):
     
     
     def test_with_Q(self):
-        A = matrix(ZZ, [[-1,  1,  0, -1, 2, 7], [ 6,  1, -1, -2, 2, 5]])
+        A = matrix(ZZ, [[-1, 1, 0, -1, 2, 7], [6, 1, -1, -2, 2, 5]])
         Q = matrix(ZZ, [[5, 9, 1], [-3, -2, -1]])
         M = ToricArithmeticMatroid(A, torus_matrix=Q)
         
@@ -505,7 +505,7 @@ class TestToric(unittest.TestCase):
 
     
     def test_with_Q_2(self):
-        A = matrix(ZZ, [[-1,  1,  0, -1, 2, 7], [0, 1, -1, -2, 2, 5]])
+        A = matrix(ZZ, [[-1, 1, 0, -1, 2, 7], [0, 1, -1, -2, 2, 5]])
         Q = matrix(ZZ, [[3, 9, 6], [0, 0, 0]])
         M = ToricArithmeticMatroid(A, torus_matrix=Q)
         
@@ -518,6 +518,15 @@ class TestToric(unittest.TestCase):
         self.assertEqual(M._multiplicity([0]), 1)
         self.assertEqual(M._multiplicity([1]), 3)
         self.assertEqual(M._multiplicity([1,2]), 1)
+    
+    
+    def test_with_Q_3(self):
+        A = matrix(ZZ, [[-1, 1, 0, 7], [6, 1, -1, -2]])
+        Q = matrix(ZZ, [[5], [1]])
+        M = ToricArithmeticMatroid(A, Q)
+        
+        self.assertEqual(M.full_rank(), M.rank(M.groundset()))
+        self.assertEqual(M._Q.ncols(), 0)
     
     
     def test_equivalence(self):

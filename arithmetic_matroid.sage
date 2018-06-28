@@ -450,6 +450,8 @@ class ArithmeticMatroid(ArithmeticMatroidMixin, RankMatroid):
         return super(ArithmeticMatroid, self).__init__(groundset, rank_function, multiplicity_function=multiplicity_function)
 
 
+# TODO add _repr_
+# TODO change __init__ so that it is possible to cast any arithmetic matroid to one of the following
 class LinearArithmeticMatroid(ArithmeticMatroidMixin, LinearMatroid):
     pass
 
