@@ -42,7 +42,8 @@ The classes which are already provided in `arithmat` are the following.
 
 * `ArithmeticMatroid(groundset, rank_function, multiplicity_function)`
   
-  Derives from `ArithmeticMatroidMixin` and `RankMatroid`.
+  This is the simplest arithmetic matroid class, and derives from `ArithmeticMatroidMixin` and `RankMatroid`.
+  It differs from `RankArithmeticMatroid` only for the constructor.
   Example:
   ```sage
   E = [1,2,3,4,5]
