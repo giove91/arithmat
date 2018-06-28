@@ -17,7 +17,7 @@ Authors: Giovanni Paolini and Roberto Pagaria
 Arithmat is a Sage package that implements arithmetic matroids.
 At its core there is the class `ArithmeticMatroidMixin`, which is intended to be used in combination with any existing `Matroid` subclass of Sage (e.g. `RankMatroid`, `BasisMatroid`, `LinearMatroid`) via multiple inheritance.
 The most common combinations are already defined, for example: `ArithmeticMatroid` (deriving from `RankMatroid`), `BasisArithmeticMatroid` (deriving from `BasisMatroid`), `LinearArithmeticMatroid` (deriving from `LinearMatroid`).
-An additional class `ToricArithmeticMatroid` is implemented, for arithmetic matroids constructed from a fixed representation.
+An additional class `ToricArithmeticMatroid` is implemented, for arithmetic matroids constructed from a fixed given representation.
 
 ## Documentation
 
