@@ -1,8 +1,7 @@
-import sage.matroids.matroid
 import itertools
 import networkx as nx
 import operator
-import sys
+# import sys
 import copy
 from fractions import gcd
 
@@ -301,7 +300,7 @@ class ArithmeticMatroidMixin(SageObject):
         while graph.number_of_edges() < len(edges):
             # find all paths in the graph
             paths = nx.all_pairs_dijkstra_path(graph)
-            for (x,y) in sorted(edges, key = lambda (x,y): len(paths[x][y])):
+            for (x,y) in sorted(edges, key = lambda x,y: len(paths[x][y])):
                 if len(paths[x][y]) == 2:
                     # (x,y) is in the graph
                     assert (x,y) in graph.edges()
@@ -798,12 +797,12 @@ if __name__ == '__main__':
 
 
     M = ArithmeticMatroid(E, rk, multiplicity_function=m)
-
+    """
     print M
     print "Valid:", M.is_valid()
 
     print M.representation()
     print M.arithmetic_tutte_polynomial()
-    
+    """
     
     
