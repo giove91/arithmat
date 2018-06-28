@@ -16,7 +16,7 @@ Authors: Giovanni Paolini and Roberto Pagaria
 
 Arithmat is a Sage package that implements arithmetic matroids.
 At its core there is the class `ArithmeticMatroidMixin`, which is intended to be used in combination with any existing `Matroid` subclass of Sage (e.g. `RankMatroid`, `BasisMatroid`, `LinearMatroid`) via multiple inheritance.
-The most common combinations are already defined, for example: `ArithmeticMatroid` (deriving from `RankMatroid`), `BasisArithmeticMatroid` (deriving from `BasisMatroid`), `LinearArithmeticMatroid` (deriving from `LinearMatroid`).
+The most common combinations are already defined, for example: `ArithmeticMatroid` and `RankArithmeticMatroid` (both deriving from `RankMatroid`), `BasisArithmeticMatroid` (deriving from `BasisMatroid`), `LinearArithmeticMatroid` (deriving from `LinearMatroid`).
 An additional class `ToricArithmeticMatroid` is implemented, for arithmetic matroids constructed from a fixed given representation.
 
 ## Documentation
@@ -38,12 +38,10 @@ from arithmat import ArithmeticMatroid, ToricArithmeticMatroid
 All classes for arithmetic matroids derive from `ArithmeticMatroidMixin` and from some subclass of Sage's `Matroid`.
 The class `ArithmeticMatroidMixin` is not intended to be used by itself, but it is possible to subclass it in order to create new classes for arithmetic matroids (see below).
 
-A general way to construct an instance of some arithmetic matroid class `XxxArithmeticMatroid` (apart from `ToricArithmeticMatroid`, which is special) is the following. Suppose that `XxxArithmeticMatroid` derives from `XxxMatroid`. Then an instance of `XxxArithmeticMatroid` can be constructed with `XxxArithmeticMatroid(..., multiplicity_function=m)`, where `...` should be replaced by arguments to construct an instance of `XxxMatroid`, and `m` is the multiplicity function.
-However, some provided classes also accept the multiplicity function as the last positional argument (see the examples below).
-
 The classes which are already provided in `arithmat` are the following.
 
 * `ArithmeticMatroid(groundset, rank_function, multiplicity_function)` (derives from `ArithmeticMatroidMixin` and `RankMatroid`).
+  Example:
   ```sage
   E = [1,2,3,4,5]
   
@@ -60,6 +58,19 @@ The classes which are already provided in `arithmat` are the following.
   print M
   # Arithmetic matroid of rank 2 on 5 elements
   ```
+* `ToricArithmeticMatroid(matrix, torus_matrix=None, ordered_groundset=None)`
+
+The other arithmetic matroid classes are of the form `XxxArithmeticMatroid`, deriving from the corresponding `XxxMatroid`.
+An instance of `XxxArithmeticMatroid` can be constructed with `XxxArithmeticMatroid(..., multiplicity_function=m)`, where `...` should be replaced by arguments to construct an instance of `XxxMatroid`, and `m` is the multiplicity function.
+The multiplicity function needs to be passed as a keyword argument (and not as a positional argument).
+
+* `BasisArithmeticMatroid`
+* `LinearArithmeticMatroid`
+* `CircuitClosuresArithmeticMatroid`
+* `GraphicArithmeticMatroid`
+* `MinorArithmeticMatroid`
+* `DualArithmeticMatroid`
+
 
 
 ### Available methods
