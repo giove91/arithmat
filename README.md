@@ -66,7 +66,7 @@ The classes which are already provided in `arithmat` are the following.
   
   The constructor requires an integer matrix `arrangement_matrix` representing the toric arrangement. Otionally it accepts another integer matrix `torus_matrix` (whose cokernel describes the ambient torus, and defaults to `matrix(ZZ, arrangement_matrix.nrows(), 0)`) and/or an ordered copy `ordered_groundset` of the groundset (defaults to `range(matrix.ncols())`). The number of rows of `arrangement_matrix` must be equal to the numer of rows of `torus_matrix`.
   
-  The two matrices are not guaranteed to remain unchanged: internally, `arrangement_matrix` is kept in Hermite normal form and `torus_matrix` is kept in Smith normal form.
+  The two matrices are not guaranteed to remain unchanged: internally,`torus_matrix` is kept in Smith normal form (this also affects `arrangement_matrix`).
   
   Example:
   ```sage
