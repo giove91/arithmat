@@ -133,6 +133,6 @@ All subclasses of `ArithmeticMatroidMixin` also implement the following methods.
 
 ...
 
-## Licence
+## License
 
-...
+This project is licensed under the [GNU General Public License v3.0](LICENSE.md).
