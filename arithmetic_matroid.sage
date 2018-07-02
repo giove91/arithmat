@@ -115,11 +115,11 @@ class ArithmeticMatroidMixin(SageObject):
         return True
     
     
-    def is_independent_from(self, v, X):
+    def _is_independent_from(self, v, X):
         return self.rank(X.union([v])) != self.rank(X)
     
-    def is_dependent_from(self, v, X):
-        return not self.is_independent_from(v, X)
+    def _is_dependent_from(self, v, X):
+        return not self._is_independent_from(v, X)
     
     
     def is_valid(self):
@@ -137,7 +137,7 @@ class ArithmeticMatroidMixin(SageObject):
             X = frozenset(X)
             for v in E:
                 if v not in X:
-                    if self.is_dependent_from(v, X):
+                    if self._is_dependent_from(v, X):
                         # check axiom 1
                         if self.multiplicity(X) % self.multiplicity(X.union([v])) != 0:
                             # print >> sys.stderr, "Axiom 1 fails on", X, v
@@ -160,7 +160,7 @@ class ArithmeticMatroidMixin(SageObject):
                 
                 for y in Y:
                     if y not in X:
-                        if self.is_dependent_from(y, X):
+                        if self._is_dependent_from(y, X):
                             T.append(y)
                         else:
                             F.append(y)
