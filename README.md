@@ -16,7 +16,7 @@ Authors: Giovanni Paolini and Roberto Pagaria
 
 Arithmat is a Sage package that implements arithmetic matroids.
 At its core there is the class `ArithmeticMatroidMixin`, which is intended to be used in combination with [any existing matroid class of Sage](http://doc.sagemath.org/html/en/reference/matroids/index.html) (e.g. `RankMatroid`, `BasisMatroid`, `LinearMatroid`) via multiple inheritance.
-The most common combinations are already defined, for example: `ArithmeticMatroid` (deriving from `RankMatroid`), `BasisArithmeticMatroid` (deriving from `BasisMatroid`), `LinearArithmeticMatroid` (deriving from `LinearMatroid`).
+The most common combinations are already defined: `ArithmeticMatroid` (deriving from `RankMatroid`), `BasisArithmeticMatroid` (deriving from `BasisMatroid`), and `LinearArithmeticMatroid` (deriving from `LinearMatroid`).
 An additional class `ToricArithmeticMatroid` is implemented, for arithmetic matroids constructed from a fixed given representation.
 
 ## Documentation
@@ -96,7 +96,7 @@ The classes which are already provided in `arithmat` are the following.
   # []
   ```
 
-The other arithmetic matroid classes are of the form `XxxArithmeticMatroid`, deriving from the corresponding Sage class `XxxMatroid`.
+The classes `BasisArithmeticMatroid` and `LinearArithmeticMatroid` derive from the Sage classes `BasisMatroid` and `LinearMatroid`, respectively.
 An instance of `XxxArithmeticMatroid` can be constructed with `XxxArithmeticMatroid(..., multiplicity_function=m)`, where `...` should be replaced by arguments to construct an instance of `XxxMatroid`, and `m` is the multiplicity function.
 The multiplicity function needs to be passed as a keyword argument (and not as a positional argument).
 
@@ -135,8 +135,8 @@ The multiplicity function needs to be passed as a keyword argument (and not as a
   # True
   ```
 
-* `CircuitClosuresArithmeticMatroid`
-* `GraphicArithmeticMatroid`
+Finally, `MinorArithmeticMatroid` and `DualArithmeticMatroid` are the analogs of `MinorMatroid` and `DualMatroid`.
+
 * `MinorArithmeticMatroid`
 * `DualArithmeticMatroid`
 
