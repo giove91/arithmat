@@ -231,7 +231,7 @@ All subclasses of `ArithmeticMatroidMixin` also (re-)implement the following met
   This is not faster than `representation`.
 
 * `is_orientable()`
-  Check if the matroid is orientable as an arithmetic matroid, according to [Pagaria https://arxiv.org/abs/1805.11888]
+  Check if the matroid is orientable as an arithmetic matroid, according to [Pag18].
 
 
 ### Creating new classes for arithmetic matroids
@@ -240,7 +240,17 @@ All subclasses of `ArithmeticMatroidMixin` also (re-)implement the following met
 
 ## Bibliography
 
-...
+[BM14] P. Brändén and L. Moci, *The multivariate arithmetic Tutte polynomial*, Transactions of the American Mathematical Society **366** (2014), no. 10, 5523–5540.
+
+[DM13] M. D'Adderio and L. Moci, *Arithmetic matroids, the Tutte polynomial and toric arrangements*, Advances in Mathematics **232** (2013), 335–367.
+
+[Len17] M. Lenz, *Representations of weakly multiplicative arithmetic matroids are unique*, ArXiv preprint 1704.08607 (2017).
+
+[Pag17] R. Pagaria, *Combinatorics of Toric Arrangements*, ArXiv preprint 1710.00409 (2017).
+
+[Pag18] R. Pagaria, *Orientable arithmetic matroids*, ArXiv e-prints 1805.11888 (2018).
+
+
 
 ## License
 
