@@ -161,17 +161,65 @@ Finally, `MinorArithmeticMatroid` and `DualArithmeticMatroid` are the analogs of
 ### Available methods
 
 All classes for arithmetic matroids must also derive from some subclass of Sage's `Matroid`.
-In particular, all `Matroid` methods are still available. For example:
+In particular, `Matroid` methods are still available. For example:
 ```sage
 M = ToricArithmeticMatroid(matrix(ZZ, [[1,2,3], [0,1, 1]]))
 print list(M.bases())
 # [frozenset([0, 1]), frozenset([0, 2]), frozenset([1, 2])]
 ```
 
-All subclasses of `ArithmeticMatroidMixin` also implement the following methods.
+All subclasses of `ArithmeticMatroidMixin` also (re-)implement the following methods.
 
 * `multiplicity(X)`
   Return the multiplicity of the set `X`.
+
+* `full_multiplicity()`
+  Return the multiplicity of the groundset.
+
+* `is_valid()`
+  Check if the arithmetic matroid axioms are satisfied.
+  This method overwrites `Matroid.is_valid`.
+
+* `is_isomorphism(other, morphism)`
+  Check if the given morphism of groundsets is an isomoprhism of arithmetic matroids.
+  It works also when comparing instances of different subclasses of `ArithmeticMatroid`.
+  This method overwrites `Matroid.is_isomorphism`.
+
+* `delete(X)`
+  Delete elements.
+  This method overwrites `Matroid.delete`.
+
+* `contract(X)`
+  Contract elements.
+  This method overwrites `Matroid.contract`.
+
+* `dual()`
+  Return the dual of the matroid.
+  This method overwrites `Matroid.dual`.
+
+* `arithmetic_tutte_polynomial(x=None, y=None)`
+  Return the arithmetic Tutte polynomial of the matroid.
+
+* `check_representation(A, ordered_groundset=None)`
+  Check if the given integer matrix `A` is a representation of the matroid.
+  The optional parameter `ordered_groundset` specifies the bijection between the columns of the matrix and the groundset.
+
+* `all_representations(ordered_groundset=None)`
+  Generator of all non-equivalent essential representations of the matroid.
+
+* `num_representations()`
+  Return the number of non-equivalent essential representations of the matroid.
+  This is not faster than `all_representations`.
+
+* `representation(ordered_groundset=None)`
+  Return any essential representation of the matroid, or `None` if the matroid is not representable.
+
+* `is_representable()`
+  Check if the matroid is representable.
+  This is not faster than `representation`.
+
+* `is_orientable()`
+  Check if the matroid is orientable as an arithmetic matroid, according to [Pagaria https://arxiv.org/abs/1805.11888]
 
 
 ### Creating new classes for arithmetic matroids
