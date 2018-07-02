@@ -117,6 +117,22 @@ The multiplicity function needs to be passed as a keyword argument (and not as a
    print M.is_valid()
    # True
    ```
+   
+   It is possible to cast any arithmetic matroid to a `BasisArithmeticMatroid`:
+   
+   ```sage
+   M1 = ToricArithmeticMatroid(matrix(ZZ, [[-1, 1, 0, 7], [6, 1, -1, -2]]))
+   M2 = BasisArithmeticMatroid(M1)
+   
+   print M1
+   # Toric arithmetic matroid of rank 2 on 4 elements
+   
+   print M2
+   # Basis arithmetic matroid of rank 2 on 4 elements
+   
+   print M2.full_multiplicity() == M1.full_multiplicity()
+   # True
+   ```
 
 * `LinearArithmeticMatroid(matrix=None, groundset=None, ..., multiplicity_function)`
   
