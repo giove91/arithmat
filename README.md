@@ -3,6 +3,18 @@ Sage implementation of arithmetic matroids and toric arrangements.
 
 Authors: Giovanni Paolini and Roberto Pagaria
 
+* [Requirements](#requirements)
+* [Quick start](#quick-start)
+* [Overview](#overview)
+* [Documentation](#documentation)
+  + [Import](#import)
+  + [Available classes for arithmetic matroids](#available-classes-for-arithmetic-matroids)
+  + [Available methods](#available-methods)
+  + [Creating new classes for arithmetic matroids](#creating-new-classes-for-arithmetic-matroids)
+* [Bibliography](#bibliography)
+* [License](#license)
+
+
 ## Requirements
 
 * [Python](https://www.python.org/) 2.7
