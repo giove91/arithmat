@@ -100,8 +100,41 @@ The other arithmetic matroid classes are of the form `XxxArithmeticMatroid`, der
 An instance of `XxxArithmeticMatroid` can be constructed with `XxxArithmeticMatroid(..., multiplicity_function=m)`, where `...` should be replaced by arguments to construct an instance of `XxxMatroid`, and `m` is the multiplicity function.
 The multiplicity function needs to be passed as a keyword argument (and not as a positional argument).
 
-* `BasisArithmeticMatroid`
-* `LinearArithmeticMatroid`
+* `BasisArithmeticMatroid(M=None, groundset=None, bases=None, ..., multiplicity_function)`
+
+   ```sage
+   def m(X):
+       if len(X) == 2 and all(x in ['b','c','d'] for x in X):
+           return 2
+       else:
+           return 1
+   
+   M = BasisArithmeticMatroid(groundset='abcd', bases=['ab', 'ac', 'ad', 'bc', 'bd', 'cd'], multiplicity_function=m)
+   
+   print M
+   # Basis arithmetic matroid of rank 2 on 4 elements
+   
+   print M.is_valid()
+   # True
+   ```
+
+* `LinearArithmeticMatroid(matrix=None, groundset=None, ..., multiplicity_function)`
+  
+  ```sage
+  A = matrix(GF(2), [[1, 0, 0, 1, 1], [0, 1, 0, 1, 0], [0, 0, 1, 0, 1]])
+  
+  def m(X):
+      return 1
+  
+  M = LinearArithmeticMatroid(A, multiplicity_function=m)
+  
+  print M
+  # Linear arithmetic matroid of rank 3 on 5 elements
+  
+  print M.is_valid()
+  # True
+  ```
+
 * `CircuitClosuresArithmeticMatroid`
 * `GraphicArithmeticMatroid`
 * `MinorArithmeticMatroid`
