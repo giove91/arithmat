@@ -19,4 +19,4 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see http://www.gnu.org/licenses/.
 """
 
-from arithmetic_matroid import ArithmeticMatroidMixin, ArithmeticMatroid, LinearArithmeticMatroid, BasisArithmeticMatroid, CircuitClosuresArithmeticMatroid, GraphicArithmeticMatroid, MinorArithmeticMatroid, DualArithmeticMatroid, ToricArithmeticMatroid
+from arithmetic_matroid import ArithmeticMatroidMixin, ArithmeticMatroid, LinearArithmeticMatroid, BasisArithmeticMatroid, MinorArithmeticMatroid, DualArithmeticMatroid, ToricArithmeticMatroid

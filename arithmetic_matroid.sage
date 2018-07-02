@@ -470,19 +470,22 @@ class ArithmeticMatroid(ArithmeticMatroidMixin, RankMatroid):
         return super(ArithmeticMatroid, self).__init__(groundset, rank_function, multiplicity_function=multiplicity_function)
 
 
-# TODO add _repr_
-# TODO change __init__ so that it is possible to cast any arithmetic matroid to one of the following
 class LinearArithmeticMatroid(ArithmeticMatroidMixin, LinearMatroid):
-    pass
+    def _repr_(self):
+        return "Linear arithmetic matroid of rank %d on %d elements" % (self.full_rank(), len(self.groundset()))
+
 
 class BasisArithmeticMatroid(ArithmeticMatroidMixin, BasisMatroid):
-    pass
+    def __init__(self, M=None, *args, **kwargs):
+        # M = kwargs.get('M')
+        if isinstance(M, ArithmeticMatroidMixin):
+            # extract multiplicity function from the given arithmetic matroid
+            kwargs['multiplicity_function'] = M._multiplicity
+        super(BasisArithmeticMatroid, self).__init__(M=M, *args, **kwargs)
+    
+    def _repr_(self):
+        return "Basis arithmetic matroid of rank %d on %d elements" % (self.full_rank(), len(self.groundset()))
 
-class CircuitClosuresArithmeticMatroid(ArithmeticMatroidMixin, CircuitClosuresMatroid):
-    pass
-
-class GraphicArithmeticMatroid(ArithmeticMatroidMixin, GraphicMatroid):
-    pass
 
 
 class MinorArithmeticMatroid(ArithmeticMatroidMixin, MinorMatroid):
@@ -492,8 +495,8 @@ class MinorArithmeticMatroid(ArithmeticMatroidMixin, MinorMatroid):
     def __init__(self, *args, **kwargs):
         super(ArithmeticMatroidMixin, self).__init__(*args, **kwargs)
     
-    def __repr__(self):
-        super(ArithmeticMatroidMixin, self).__repr__()
+    def _repr_(self):
+        super(ArithmeticMatroidMixin, self)._repr_()
     
     def __eq__(self, other):
         return (self._contractions == other._contractions) and (self._deletions == other._deletions) and (self._matroid == other._matroid)
@@ -826,6 +829,37 @@ if __name__ == '__main__':
 
 
     M = ArithmeticMatroid(E, rk, multiplicity_function=m)
+    
+    
+    ### linear matroid
+    
+    A = matrix(GF(2), [[1, 0, 0, 1, 1], [0, 1, 0, 1, 0], [0, 0, 1, 0, 1]])
+    
+    def m(X):
+        return 1
+    
+    M = LinearArithmeticMatroid(A, multiplicity_function=m)
+    
+    
+    
+    def m(X):
+        if len(X) == 2 and all(x in ['b','c','d'] for x in X):
+            return 2
+        else:
+            return 1
+    
+    M = BasisArithmeticMatroid(groundset='abcd', bases=['ab', 'ac', 'ad', 'bc', 'bd', 'cd'], multiplicity_function=m)
+    
+    
+    A = matrix(ZZ, [[-1, 1, 0, 7], [6, 1, -1, -2]])
+    M1 = ToricArithmeticMatroid(A)
+    M2 = BasisArithmeticMatroid(M=M1)
+    
+    print M1
+    print M2
+    print M2.is_valid()
+    print M2.full_multiplicity() == M1.full_multiplicity()
+    
     """
     print M
     print "Valid:", M.is_valid()
