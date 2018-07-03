@@ -248,8 +248,9 @@ All subclasses of `ArithmeticMatroidMixin` also (re-)implement the following met
 
 [Pag17] R. Pagaria, *Combinatorics of Toric Arrangements*, ArXiv preprint 1710.00409 (2017).
 
-[Pag18] R. Pagaria, *Orientable arithmetic matroids*, ArXiv e-prints 1805.11888 (2018).
+[Pag18] R. Pagaria, *Orientable arithmetic matroids*, ArXiv preprint 1805.11888 (2018).
 
+[PP18] R. Pagaria and G. Paolini, *??*, ArXiv preprint ?? (2018).
 
 
 ## License
