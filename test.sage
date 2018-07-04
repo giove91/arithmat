@@ -630,7 +630,7 @@ class TestReduction(unittest.TestCase):
             if tuple(sorted(X)) != (1,2,3):
                 self.assertEqual(M1.multiplicity(X), M.multiplicity(X))
         
-        self.assertFalse(M.is_valid())
+        self.assertFalse(M1.is_valid())
 
 
 if __name__ == '__main__':
