@@ -212,6 +212,9 @@ All subclasses of `ArithmeticMatroidMixin` also (re-)implement the following met
 * `arithmetic_tutte_polynomial(x=None, y=None)`
   Return the arithmetic Tutte polynomial of the matroid.
 
+* `reduction()`
+  Return the reduction of the matroid, as defined in [PP18].
+
 * `check_representation(A, ordered_groundset=None)`
   Check if the given integer matrix `A` is a representation of the matroid.
   The optional parameter `ordered_groundset` specifies the bijection between the columns of the matrix and the groundset.
