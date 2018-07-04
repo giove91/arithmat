@@ -601,19 +601,20 @@ class TestReduction(unittest.TestCase):
             if len(X) == 0:
                 return 1
             elif len(X) == 1:
-                if 1 in X or 2 in X:
+                if X == frozenset([1]) or X == frozenset([2]):
                     return 2
                 else:
                     return 1
             elif sum(1 for i in X if i not in [1,2]) >= 2:
                 return 1
             elif len(X) == 2:
-                if 1 in X and 2 in X:
+                if X == frozenset([1,2]):
                     return 4
                 else:
                     return 2
             elif 3 in X:
                 # X = {1,2,3}
+                assert X == frozenset([1,2,3])
                 return 1
             else:
                 # X = {1,2,j} with j > 3
