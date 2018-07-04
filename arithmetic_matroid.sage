@@ -33,6 +33,7 @@ from sage.matroids.advanced import *
 TODO
 
 * more tests (minors, dual, copy, deepcopy, ToricArithmeticMatroid, groundset != [0,...,n-1], decomposition, is_equivalent, XxxArithmeticMatroid)
+* reduction
 """
 
 
@@ -218,6 +219,18 @@ class ArithmeticMatroidMixin(SageObject):
             return matroid
     
     
+    def reduction(self):
+        """
+        Return reduction of the matroid, as defined in [PP18].
+        """
+        d = reduce(gcd, [self.multiplicity(B) for B in self.bases()], 0)
+        
+        def m_bar(X):
+            return reduce(gcd, [self.multiplicity(B) for B in self.bases() if self.rank(X) == self.rank(X.intersection(B))], 0) // d
+        
+        return ArithmeticMatroid(self.groundset(), self._rank, multiplicity_function=m_bar)
+    
+    
     def check_representation(self, A, ordered_groundset=None, check_bases=False):
         """
         Check if the given matrix is a representation for the matroid.
@@ -381,18 +394,12 @@ class ArithmeticMatroidMixin(SageObject):
                 yield res
             return
         
-        # construct "reduced" matroid
-        denominator = reduce(gcd, [self.multiplicity(B) for B in self.bases()], 0)
-        
-        def m_bar(X):
-            return reduce(gcd, [self.multiplicity(B) for B in self.bases() if self.rank(X) == self.rank(X.intersection(B))], 0) // denominator
-        
-        M = ArithmeticMatroid(self.groundset(), self._rank, multiplicity_function=m_bar)
+        M = self.reduction()
         
         if not M.is_valid():
             return
         
-        # get representation of "reduced" matroid
+        # get representation of reduced matroid
         A = M._representation_surjective(ordered_groundset=ordered_groundset)
         
         if A is None:
@@ -432,13 +439,7 @@ class ArithmeticMatroidMixin(SageObject):
         """
         Determine if the matroid is an orientable arithmetic matroid according to [Pagaria https://arxiv.org/abs/1805.11888].
         """
-        # construct "reduced" matroid
-        denominator = reduce(gcd, [self.multiplicity(B) for B in self.bases()], 0)
-        
-        def m_bar(X):
-            return reduce(gcd, [self.multiplicity(B) for B in self.bases() if self.rank(X) == self.rank(X.intersection(B))], 0) // denominator
-        
-        M = ArithmeticMatroid(self.groundset(), self._rank, multiplicity_function=m_bar) # note: this "matroid" might be non-valid
+        M = self.reduction() # note that this might not be an arithmetic matroid
         
         return M._representation_surjective(check_bases=True) is not None
         # TODO maybe it is not necessary to check (on the bases) that the result is a representation
