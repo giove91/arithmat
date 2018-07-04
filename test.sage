@@ -589,6 +589,47 @@ class TestToric(unittest.TestCase):
         self.assertTrue(M.is_decomposable())
 
 
+class TestReduction(unittest.TestCase):
+    
+    def test_example(self):
+        E = [1,2,3,4,5,6]
+        
+        def rk(X):
+            return min(2, len(X))
+        
+        def m(X):
+            if len(X) == 0:
+                return 1
+            elif len(X) == 1:
+                if 1 in X or 2 in X:
+                    return 2
+                else:
+                    return 1
+            elif sum(1 for i in X if i not in [1,2]) >= 2:
+                return 1
+            elif len(X) == 2:
+                if 1 in X and 2 in X:
+                    return 4
+                else:
+                    return 2
+            elif 3 in X:
+                # X = {1,2,3}
+                return 1
+            else:
+                # X = {1,2,j} with j > 3
+                return 2
+        
+        M = ArithmeticMatroid(E, rk, m)
+        self.assertTrue(M.is_valid())
+        
+        M1 = M.reduction()
+        self.assertEqual(M1.multiplicity([1,2,3]), 2)
+        
+        for X in powerset(E):
+            if tuple(sorted(X)) != (1,2,3):
+                self.assertEqual(M1.multiplicity(X), M.multiplicity(X))
+        
+        self.assertFalse(M.is_valid())
 
 
 if __name__ == '__main__':
