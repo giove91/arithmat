@@ -192,6 +192,18 @@ All subclasses of `ArithmeticMatroidMixin` also (re-)implement the following met
   Check if the arithmetic matroid axioms are satisfied.
   This method overwrites `Matroid.is_valid`.
 
+* `is_torsion_free()`
+  Check if the matroid is torsion-free, i.e. the multiplicity of the empty set is equal to 1.
+
+* `is_surjective()`
+  Check if the matroid is surjective, i.e. the multiplicity of the groundset is equal to 1.
+
+* `is_gcd()`
+  Check if the matroid satisfies the gcd property.
+
+* `is_strong_gcd()`
+  Check if the matroid satisfies the strong gcd property, as defined in [PP18].
+
 * `is_isomorphism(other, morphism)`
   Check if the given morphism of groundsets is an isomoprhism of arithmetic matroids.
   It works also when comparing instances of different subclasses of `ArithmeticMatroid`.
