@@ -33,8 +33,9 @@ from sage.matroids.advanced import *
 TODO
 
 * more tests (minors, dual, copy, deepcopy, ToricArithmeticMatroid, groundset != [0,...,n-1], decomposition, is_equivalent, XxxArithmeticMatroid)
-* reimplement reduction in some subclasses
+* reimplement reduction in some subclasses (should it return some ReductionArithmeticMatroid?)
 * easy way to construct an arithmetic matroid from the underlying matroid and the multiplicity function? (copy the matroid, add ArithmeticMatroidMixin, add _multiplicity_function)
+* is_gcd() and is_strong_gcd()
 """
 
 
