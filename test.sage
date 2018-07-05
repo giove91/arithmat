@@ -331,6 +331,25 @@ class TestArithmeticMatroid(unittest.TestCase):
             
             M = representation_to_matroid(A)
             self.assertEqual(M.num_representations(), euler_phi(m)**(r-1))
+    
+    
+    def test_gcd(self):
+        M = ToricArithmeticMatroid(matrix(ZZ, [[6, 3, -2, 2], [3, 21, 0, -9], [-1, -4, 3, -2]]))
+        
+        self.assertTrue(M.is_torsion_free())
+        self.assertFalse(M.is_surjective())
+        self.assertTrue(M.is_representable())
+        self.assertTrue(M.is_gcd())
+        self.assertFalse(M.is_strong_gcd())
+        
+        M1 = M.reduction()
+        
+        self.assertTrue(M1.is_torsion_free())
+        self.assertTrue(M1.is_surjective())
+        self.assertTrue(M1.is_representable())
+        self.assertTrue(M1.is_gcd())
+        
+        self.assertTrue(M1.is_strong_gcd())
 
 
 
@@ -470,6 +489,9 @@ class TestDualAndMinor(unittest.TestCase):
         self.assertIsInstance(N3, LinearArithmeticMatroid)
         self.assertNotEqual(M2, N3)
         self.assertFalse(M2.equals(N3))
+    
+    
+
 
 
 
@@ -631,6 +653,23 @@ class TestReduction(unittest.TestCase):
                 self.assertEqual(M1.multiplicity(X), M.multiplicity(X))
         
         self.assertFalse(M1.is_valid())
+        
+        self.assertTrue(M1.is_torsion_free())
+        self.assertTrue(M1.is_surjective())
+    
+    
+    def test_dual(self):
+        A = matrix(ZZ, [[-1, 1, 0, -1, 2, 7], [6, 1, -1, -2, 2, 5]])
+        M = representation_to_matroid(A)
+        M2 = ArithmeticMatroid(M.groundset(), M.rank, lambda X: M._multiplicity(X)**2)
+        
+        self.assertTrue(M.is_valid())
+        self.assertTrue(M2.is_valid())
+        self.assertFalse(M2.is_representable())
+        
+        self.assertFalse(M.dual().reduction().is_isomorphic(M.reduction()))
+        self.assertTrue(M.dual().reduction().is_isomorphic(M.reduction().dual()))
+        self.assertTrue(M2.dual().reduction().is_isomorphic(M2.reduction().dual()))
 
 
 if __name__ == '__main__':

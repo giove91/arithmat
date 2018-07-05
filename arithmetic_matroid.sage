@@ -32,10 +32,9 @@ from sage.matroids.advanced import *
 """
 TODO
 
-* more tests (minors, dual, copy, deepcopy, ToricArithmeticMatroid, groundset != [0,...,n-1], decomposition, is_equivalent, XxxArithmeticMatroid)
+* more tests (minors, dual, copy, deepcopy, ToricArithmeticMatroid, groundset != [0,...,n-1], decomposition, is_equivalent, XxxArithmeticMatroid, is_gcd, is_strong_gcd, is_surjective, is_torsion_free)
 * reimplement reduction in some subclasses (should it return some ReductionArithmeticMatroid?)
 * easy way to construct an arithmetic matroid from the underlying matroid and the multiplicity function? (copy the matroid, add ArithmeticMatroidMixin, add _multiplicity_function)
-* is_gcd() and is_strong_gcd()
 """
 
 
@@ -183,6 +182,34 @@ class ArithmeticMatroidMixin(SageObject):
                         return False
         
         return True
+    
+    
+    def is_torsion_free(self):
+        """
+        Check if the matroid is torsion-free, i.e. m({}) = 1.
+        """
+        return self.multiplicity(frozenset()) == 1
+    
+    
+    def is_surjective(self):
+        """
+        Check if the matroid is surjective, i.e. m(E) = 1.
+        """
+        return self.full_multiplicity() == 1
+    
+    
+    def is_gcd(self):
+        """
+        Check if the matroid satisfies the gcd property.
+        """
+        return all(self.multiplicity(X) == reduce(gcd, (self.multiplicity(I) for I in powerset(X) if self.rank(X) == self.rank(I) and self.is_independent(I)), 0) for X in powerset(self.groundset()))
+    
+    
+    def is_strong_gcd(self):
+        """
+        Check if the matroid satisfies the gcd property, as defined in [PP18].
+        """
+        return all(self.multiplicity(X) == reduce(gcd, (self.multiplicity(B) for B in self.bases() if len(B.intersection(X)) == self.rank(X)), 0) for X in powerset(self.groundset()))
     
     
     def _minor(self, contractions=[], deletions=[]):
