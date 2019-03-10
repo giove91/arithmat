@@ -680,51 +680,72 @@ class TestNormalForm(unittest.TestCase):
             A = matrix(ZZ, [[x]])
             self.assertEqual(normal_form(A), matrix(ZZ, [[abs(x)]]))
 
+
     def test_2x2(self):
         A = matrix(ZZ, [[5, 8], [0, 3]])
         self.assertEqual(normal_form(A), matrix(ZZ, [[5, 1], [0, 3]]))
 
-    def test_random_2x2(self):
-        r = 2
-        n = 2
-        A = random_matrix(ZZ, r, n)
-        print A
-        U = random_matrix(ZZ, r, r, algorithm='unimodular')
-        S = diagonal_matrix([sage.misc.prandom.choice([1, -1]) for i in xrange(n)])
-        print U*A*S
-        print normal_form(A)
 
-        self.assertEqual(normal_form(A), normal_form(U*A*S))
+    def random_test(self, r, n, all=False):
+        A = random_matrix(ZZ, r, n)
+        U = random_matrix(ZZ, r, r, algorithm='unimodular')
+
+        if all:
+            for diag in itertools.product([1, -1], repeat=n):
+                S = diagonal_matrix(diag)
+                self.assertEqual(normal_form(A), normal_form(U*A*S))
+
+        else:
+            S = diagonal_matrix([sage.misc.prandom.choice([1, -1]) for i in xrange(n)])
+            self.assertEqual(normal_form(A), normal_form(U*A*S))
+
+
+    def test_random_1x2(self):
+        self.random_test(1, 2, all=True)
+
+    def test_random_1x7(self):
+        self.random_test(1, 7)
+
+    def test_random_2x2(self):
+        self.random_test(2, 2, all=True)
+
+    def test_random_2x3(self):
+        self.random_test(2, 3, all=True)
 
     def test_random_2x4(self):
-        r = 2
-        n = 4
-        A = random_matrix(ZZ, r, n)
-        print A
-        U = random_matrix(ZZ, r, r, algorithm='unimodular')
-        S = diagonal_matrix([sage.misc.prandom.choice([1, -1]) for i in xrange(n)])
-        print U*A*S
-        print normal_form(A)
+        self.random_test(2, 4, all=True)
 
     def test_random_3x4(self):
-        r = 3
-        n = 4
-        A = random_matrix(ZZ, r, n)
-        print A
-        U = random_matrix(ZZ, r, r, algorithm='unimodular')
-        S = diagonal_matrix([sage.misc.prandom.choice([1, -1]) for i in xrange(n)])
-        print U*A*S
-        print normal_form(A)
+        self.random_test(3, 4, all=True)
 
     def test_random_4x6(self):
-        r = 4
-        n = 6
-        A = random_matrix(ZZ, r, n)
-        print A
-        U = random_matrix(ZZ, r, r, algorithm='unimodular')
-        S = diagonal_matrix([sage.misc.prandom.choice([1, -1]) for i in xrange(n)])
-        print U*A*S
-        print normal_form(A)
+        self.random_test(4, 6)
+
+    def test_random_6x10(self):
+        self.random_test(6, 10)
+
+
+    def test_cardinality_four_orbit(self):
+        # in these examples, an orbit of cardinality 4 occurs
+        for A in [
+            matrix(ZZ, [[1, 1, 1], [0, 2, 3], [0, 0, 6]]),
+            matrix(ZZ, [[1, 1, 1], [0, 2, 4], [0, 0, 8]]),
+        ]:
+            self.assertEqual(normal_form(A), A)
+
+            for i in xrange(3):
+                U = random_matrix(ZZ, 3, 3, algorithm='unimodular')
+                for diag in itertools.product([1, -1], repeat=3):
+                    S = diagonal_matrix(diag)
+                    self.assertEqual(normal_form(U*A*S), A)
+
+
+    def test_is_in_hermite_form(self):
+        # check that the output of normal_form is in Hermite normal form
+        for i in xrange(10):
+            A = random_matrix(ZZ, 3, 4)
+            B = normal_form(A)
+            self.assertEqual(B, B.echelon_form())
 
 
 

@@ -32,10 +32,10 @@ def normal_form(A):
     m = 0   # rank of A[:,:j]
 
     for j in xrange(n):
+        # print "Column:", j
         A = A.echelon_form()
         q = A[m,j] if m < r else 0  # pivot
-        print "Column:", j
-        print "Pivot:", q
+        # print "Pivot:", q
 
         phi = []
         for S in G_basis:
@@ -49,6 +49,7 @@ def normal_form(A):
 
         for i in reversed(range(m)):
             # find possible values of A[i,j]
+            # print "Row", i
             x = Integer(A[i,j])
             if q > 0:
                 x %= q
@@ -73,7 +74,6 @@ def normal_form(A):
                             new_elements = True
 
             assert len(orbit) in [1,2,4]
-            print "Row {}, orbit {}".format(i, orbit)
 
             # find action of G on the orbit
             action = []
@@ -111,7 +111,7 @@ def normal_form(A):
                     # the product of the two basis elements of the complement sends u to action[h][u]
                     x, y = list(complement_basis)
                     G_new_basis.append(S * G_basis[complement_basis[x]] * G_basis[complement_basis[y]])
-                    new_phi.append(phi[h] * phi[complemente_basis[x]] * phi[complement_basis[y]])
+                    new_phi.append(phi[h] * phi[complement_basis[x]] * phi[complement_basis[y]])
 
                 else:
                     # add S to the basis of the complement
