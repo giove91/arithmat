@@ -748,6 +748,15 @@ class TestNormalForm(unittest.TestCase):
             self.assertEqual(B, B.echelon_form())
 
 
+    def test_zero_pivot(self):
+        # in this example, the second column has a zero pivot
+        A = matrix(ZZ, [[1, -1, -1, 11], [1, -1, 0, -1], [3, -3, 7, -2]])
+        U = random_matrix(ZZ, 3, 3, algorithm='unimodular')
+        for diag in itertools.product([1, -1], repeat=4):
+            S = diagonal_matrix(diag)
+            self.assertEqual(normal_form(U*A*S), normal_form(A))
+            self.assertEqual(normal_form(U*A), normal_form(A))
+
 
 
 if __name__ == '__main__':
