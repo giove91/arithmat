@@ -22,6 +22,7 @@ along with this program. If not, see http://www.gnu.org/licenses/.
 import unittest
 import itertools
 from arithmetic_matroid import *
+from normal_form import normal_form
 
 
 def representation_to_matroid(A):
@@ -670,6 +671,62 @@ class TestReduction(unittest.TestCase):
         self.assertFalse(M.dual().reduction().is_isomorphic(M.reduction()))
         self.assertTrue(M.dual().reduction().is_isomorphic(M.reduction().dual()))
         self.assertTrue(M2.dual().reduction().is_isomorphic(M2.reduction().dual()))
+
+
+class TestNormalForm(unittest.TestCase):
+
+    def test_1x1(self):
+        for x in xrange(-5, 5):
+            A = matrix(ZZ, [[x]])
+            self.assertEqual(normal_form(A), matrix(ZZ, [[abs(x)]]))
+
+    def test_2x2(self):
+        A = matrix(ZZ, [[5, 8], [0, 3]])
+        self.assertEqual(normal_form(A), matrix(ZZ, [[5, 1], [0, 3]]))
+
+    def test_random_2x2(self):
+        r = 2
+        n = 2
+        A = random_matrix(ZZ, r, n)
+        print A
+        U = random_matrix(ZZ, r, r, algorithm='unimodular')
+        S = diagonal_matrix([sage.misc.prandom.choice([1, -1]) for i in xrange(n)])
+        print U*A*S
+        print normal_form(A)
+
+        self.assertEqual(normal_form(A), normal_form(U*A*S))
+
+    def test_random_2x4(self):
+        r = 2
+        n = 4
+        A = random_matrix(ZZ, r, n)
+        print A
+        U = random_matrix(ZZ, r, r, algorithm='unimodular')
+        S = diagonal_matrix([sage.misc.prandom.choice([1, -1]) for i in xrange(n)])
+        print U*A*S
+        print normal_form(A)
+
+    def test_random_3x4(self):
+        r = 3
+        n = 4
+        A = random_matrix(ZZ, r, n)
+        print A
+        U = random_matrix(ZZ, r, r, algorithm='unimodular')
+        S = diagonal_matrix([sage.misc.prandom.choice([1, -1]) for i in xrange(n)])
+        print U*A*S
+        print normal_form(A)
+
+    def test_random_4x6(self):
+        r = 4
+        n = 6
+        A = random_matrix(ZZ, r, n)
+        print A
+        U = random_matrix(ZZ, r, r, algorithm='unimodular')
+        S = diagonal_matrix([sage.misc.prandom.choice([1, -1]) for i in xrange(n)])
+        print U*A*S
+        print normal_form(A)
+
+
 
 
 if __name__ == '__main__':

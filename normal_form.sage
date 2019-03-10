@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Arithmetic matroids classes.
+S-normal form.
 
 Copyright (C) 2019 Giovanni Paolini
 Copyright (C) 2019 Roberto Pagaria
@@ -19,9 +19,6 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see http://www.gnu.org/licenses/.
 """
 
-import itertools
-import operator
-import copy
 
 def normal_form(A):
     """
@@ -31,11 +28,11 @@ def normal_form(A):
     """
     r = A.nrows()
     n = A.ncols()
-    G_basis = []    # basis of G
+    G_basis = []    # Z_2-basis of G
     m = 0   # rank of A[:,:j]
 
     for j in xrange(n):
-        A.echelonize()
+        A = A.echelon_form()
         q = A[m,j] if m < r else 0  # pivot
         print "Column:", j
         print "Pivot:", q
@@ -46,8 +43,9 @@ def normal_form(A):
             assert H == A[:,:j]
             phi.append(U)
 
-        G_basis.append(matrix(ZZ, [[0 if k != i else -1 if k == j else 1 for k in xrange(n)] for i in xrange(n)]))
-        phi.append(matrix(ZZ, [[0 if k != i else -1 if k < m else 1 for k in xrange(r)] for i in xrange(r)]))
+        G_basis.append(diagonal_matrix([-1 if i == j else 1 for i in xrange(n)]))
+        phi.append(diagonal_matrix([-1 if i < m else 1 for i in xrange(r)]))
+        assert len(G_basis) == len(phi)
 
         for i in reversed(range(m)):
             # find possible values of A[i,j]
@@ -57,7 +55,7 @@ def normal_form(A):
 
             orbit = [x]
             columns = [A[:,j]]
-            construction = [identity_matrix(n)] # which element of G gives a certain element
+            construction = [identity_matrix(n)] # which element of G gives a certain element of the orbit
 
             new_elements = True
             while new_elements:
@@ -74,6 +72,17 @@ def normal_form(A):
                             construction.append(G_basis[h] * construction[k])
                             new_elements = True
 
+            assert len(orbit) in [1,2,4]
+            print "Row {}, orbit {}".format(i, orbit)
+
+            # find action of G on the orbit
+            action = []
+            for h, U in enumerate(phi):
+                if q > 0:
+                    action.append({x: Integer((U*columns[k])[i,0]) % q for k, x in enumerate(orbit)})
+                else:
+                    action.append({x: Integer((U*columns[k])[i,0]) for k, x in enumerate(orbit)})
+
             # select the minimal possible value
             u = min(orbit)
             k = orbit.index(u)
@@ -84,13 +93,36 @@ def normal_form(A):
             assert A[i,j] == u
 
             # update the stabilizer G
-            # TODO
+            G_new_basis = []    # basis for the new stabilizer
+            new_phi = []    # value of phi on the new basis elements
+            complement_basis = {} # dictionary of the form {x: h}, where G_basis[h] sends u to x
+            for h, S in enumerate(G_basis):
+                if action[h][u] == u:
+                    # this basis element fixes u
+                    G_new_basis.append(S)
+                    new_phi.append(phi[h])
+
+                elif action[h][u] in complement_basis:
+                    # we already encountered a basis element which sends u to action[h][u]
+                    G_new_basis.append(S * G_basis[complement_basis[action[h][u]]])
+                    new_phi.append(phi[h] * phi[complement_basis[action[h][u]]])
+
+                elif len(complement_basis) == 2:
+                    # the product of the two basis elements of the complement sends u to action[h][u]
+                    x, y = list(complement_basis)
+                    G_new_basis.append(S * G_basis[complement_basis[x]] * G_basis[complement_basis[y]])
+                    new_phi.append(phi[h] * phi[complemente_basis[x]] * phi[complement_basis[y]])
+
+                else:
+                    # add S to the basis of the complement
+                    complement_basis[action[h][u]] = h
+
+            assert len(G_new_basis) + len(complement_basis) == len(G_basis)
+            G_basis = G_new_basis
+            phi = new_phi
+            assert len(G_basis) == len(phi)
 
         if q != 0:
             m += 1
 
     return A
-
-
-A = matrix(ZZ, [[5, 8], [0, 3]])
-print normal_form(A)
