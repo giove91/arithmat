@@ -28,6 +28,7 @@ import networkx as nx
 from sage.matroids.matroid import Matroid
 from sage.matroids.advanced import *
 
+from shnf import signed_hermite_normal_form
 
 """
 TODO
@@ -298,7 +299,7 @@ class ArithmeticMatroidMixin(SageObject):
 
     def _representation_surjective(self, ordered_groundset=None, check_bases=False):
         """
-        Find a representation (if it exists) for a surjective matroid (m(E)=1).
+        Find a representation (if it exists) for a surjective matroid (m(emptyset)=m(E)=1).
         If check_bases==True, find a representation of a matroid (E,rk,m')
         such that m'(B)=m(B) for every basis B.
         Return None if no representation exists.
@@ -436,10 +437,15 @@ class ArithmeticMatroidMixin(SageObject):
         if A is None:
             return
 
+        found_representations = set()
+
         # try all left Hermite normal forms
         for H in _hermite_normal_forms(r, self.multiplicity(self.groundset())):
             if self.check_representation(H*A):
-                yield H*A
+                B = signed_hermite_normal_form(H*A)
+                if B not in found_representations:
+                    found_representations.add(B)
+                    yield B
 
 
     def num_representations(self):

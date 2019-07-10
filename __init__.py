@@ -20,3 +20,5 @@ along with this program. If not, see http://www.gnu.org/licenses/.
 """
 
 from arithmetic_matroid import ArithmeticMatroidMixin, ArithmeticMatroid, LinearArithmeticMatroid, BasisArithmeticMatroid, MinorArithmeticMatroid, DualArithmeticMatroid, ToricArithmeticMatroid
+
+from normal_form import normal_form

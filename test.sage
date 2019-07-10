@@ -331,7 +331,7 @@ class TestArithmeticMatroid(unittest.TestCase):
             A = matrix(ZZ, r, r, lambda i, j: 1 if i == j and i < r-1 else 0 if j < r-1 else m if i == r-1 else 1)
 
             M = representation_to_matroid(A)
-            self.assertEqual(M.num_representations(), euler_phi(m)**(r-1))
+            self.assertEqual(M.num_representations(), (euler_phi(m)//2)**(r-1))
 
 
     def test_gcd(self):
@@ -756,6 +756,13 @@ class TestNormalForm(unittest.TestCase):
             S = diagonal_matrix(diag)
             self.assertEqual(normal_form(U*A*S), normal_form(A))
             self.assertEqual(normal_form(U*A), normal_form(A))
+
+    def test_not_reducible(self):
+        # in this example, the matrix seems a block matrix but it isn't
+        A = matrix(ZZ, [[2,2,0,0,0],[0,4,0,0,4],[0,0,4,4,0],[0,0,0,8,8]])
+        for diag in itertools.product([1, -1], repeat=5):
+            S = diagonal_matrix(diag)
+            self.assertEqual(normal_form(A*S), normal_form(A))
 
 
 
