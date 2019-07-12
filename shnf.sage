@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-S-normal form.
+Signed Hermite normal form.
 
 Copyright (C) 2019 Giovanni Paolini
 Copyright (C) 2019 Roberto Pagaria
