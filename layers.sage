@@ -32,30 +32,91 @@ def poset_of_layers(A):
     n = A.ncols()
     E = range(n)
 
-    data = {tuple(S): A[:,S].smith_form() for S in powerset(E)}
-    # D, U, V = A[:,S].smith_form()
-    #   assert D == U*A[:,S]*V
-    
-    elements = {tuple(S): list(vector(ZZ, x) for x in itertools.product(*(range(max(data[tuple(S)][0][i,i], 1) if i < data[tuple(S)][0].nrows() else 1) for i in xrange(len(S))))) for S in powerset(E)}
+    data = {}
+
+    # compute Smith normal forms of all submatrices
+    for S in powerset(E):
+        D, U, V = A[:,S].smith_form()   # D == U*A[:,S]*V
+        diagonal = [D[i,i] if i < D.nrows() else 0 for i in xrange(len(S))]
+        data[tuple(S)] = (diagonal, V)
+
+        assert len(S) == V.nrows()
+
+    # generate al possible elements of the poset of layers
+    elements = {tuple(S): list(vector(ZZ, x) for x in itertools.product(*(range(max(data[tuple(S)][0][i], 1)) for i in xrange(len(S))))) for S in powerset(E)}
 
     for l in elements.itervalues():
         for v in l:
             v.set_immutable()
 
-    #print list(elements.iteritems())
-    uf = DisjointSet((S, x) for (S, l) in elements.iteritems() for x in l)
-    print uf
+    possible_layers = list((S, x) for (S, l) in elements.iteritems() for x in l)
+    uf = DisjointSet(possible_layers)
+    # print uf
+
+    cover_relations = []
 
     for (S, l) in elements.iteritems():
-        D, U, V = data[S]
+        print "S =", S
+        diagonal_S, V_S = data[S]
+        rk_S = A[:,S].rank()
+
         for s in S:
+            i = S.index(s)  # index where the element s appears in S
             T = tuple(t for t in S if t != s)
+
+            diagonal_T, V_T = data[T]
+            rk_T = A[:,T].rank()
+
             for x in l:
                 h = (S, x)
-                ph = (T, )  # TODO
+
+                y = V_S**(-1) * x
+                z = V_T * vector(ZZ, y[:i].list() + y[i+1:].list())
+                w = vector(ZZ, (a % diagonal_T[j] if diagonal_T[j] > 0 else 0 for j, a in enumerate(z)))
+                w.set_immutable()
+
+                ph = (T, w)
+
+                assert rk_T <= rk_S <= rk_T + 1
+
+                if rk_S == rk_T:
+                    uf.union(h, ph)
+
+                else:
+                    cover_relations.append((ph, h))
+
+    # find actual layers and cover relations
+    layers = [a for a in possible_layers if uf.find(a) == a]
+    print len(layers)
+    cover_relations = set((uf.find(a), uf.find(b)) for (a,b) in cover_relations)
+    print len(cover_relations)
+
+    return Poset(data=(layers, cover_relations), cover_relations=True)
 
 
+# A = matrix(ZZ, [[1,0,1], [0,1,3]])
+# A = random_matrix(ZZ, 4, 4)
+
+# A = matrix(ZZ, [[-1, -3, -1, 4, 0, 1],
+#     [1, 0, -3, -1, -1, 2],
+#     [1, 0, -1, -1, -1, 2],
+#     [0, -1, 4, 1, 1, 0]])
 
 
-A = matrix(ZZ, [[1,0,1], [0,1,3]])
-print poset_of_layers(A)
+A = matrix(ZZ, [[1, 0, 0, 0],
+    [0, 1, 0, 0],
+    [0, 0, 2, 0],
+    [0, 0, 0, 1]])
+
+# A = matrix(ZZ, [[1,0,0], [0,1,0], [0,0,2]])
+
+# from shnf import signed_hermite_normal_form
+# A = signed_hermite_normal_form(A)
+
+print A
+P = poset_of_layers(A)
+print P
+
+K = P.subposet([a for a in P if a != P.bottom()]).order_complex(on_ints=True)
+
+print K.homology()
