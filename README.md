@@ -202,7 +202,7 @@ All subclasses of `ArithmeticMatroidMixin` also (re-)implement the following met
   Check if the matroid satisfies the gcd property.
 
 * `is_strong_gcd()`
-  Check if the matroid satisfies the strong gcd property, as defined in [PP18].
+  Check if the matroid satisfies the strong gcd property, as defined in [PP19].
 
 * `is_isomorphism(other, morphism)`
   Check if the given morphism of groundsets is an isomoprhism of arithmetic matroids.
@@ -225,14 +225,14 @@ All subclasses of `ArithmeticMatroidMixin` also (re-)implement the following met
   Return the arithmetic Tutte polynomial of the matroid.
 
 * `reduction()`
-  Return the reduction of the matroid, as defined in [PP18].
+  Return the reduction of the matroid, as defined in [PP19].
 
 * `check_representation(A, ordered_groundset=None)`
   Check if the given integer matrix `A` is a representation of the matroid.
   The optional parameter `ordered_groundset` specifies the bijection between the columns of the matrix and the groundset.
 
 * `all_representations(ordered_groundset=None)`
-  Generator of all non-equivalent essential representations of the matroid.
+  Generator of all non-equivalent essential representations of the matroid, computed using the algorithm described in [PP19].
 
 * `num_representations()`
   Return the number of non-equivalent essential representations of the matroid.
@@ -246,12 +246,12 @@ All subclasses of `ArithmeticMatroidMixin` also (re-)implement the following met
   This is not faster than `representation`.
 
 * `is_orientable()`
-  Check if the matroid is orientable as an arithmetic matroid, according to [Pag18].
+  Check if the matroid is orientable as an arithmetic matroid, according to [Pag18a].
 
 In addition, `ToricArithmeticMatroid` has the following method.
 
 * `poset_of_layers()`
-  Return the poset of layers of the toric arrangement.
+  Return the poset of layers of the toric arrangement, computed using Lenz's algorithm [Len17a].
 
 
 
