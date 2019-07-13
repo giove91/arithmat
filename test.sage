@@ -612,6 +612,15 @@ class TestToric(unittest.TestCase):
         self.assertTrue(M.is_decomposable())
 
 
+    def test_poset_of_layers(self):
+        M = ToricArithmeticMatroid(matrix(ZZ, [[1,0,1], [0,1,3]]))
+        P = M.poset_of_layers()
+        self.assertEqual(len(P), 7)
+        self.assertTrue(P.has_bottom())
+        self.assertFalse(P.has_top())
+        self.assertEqual(len(P.cover_relations()), 10)
+
+
 class TestReduction(unittest.TestCase):
 
     def test_example(self):
