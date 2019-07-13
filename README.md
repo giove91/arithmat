@@ -248,9 +248,11 @@ All subclasses of `ArithmeticMatroidMixin` also (re-)implement the following met
 * `is_orientable()`
   Check if the matroid is orientable as an arithmetic matroid, according to [Pag18].
 
+In addition, `ToricArithmeticMatroid` has the following method.
 
-### Creating new classes for arithmetic matroids
-...
+* `poset_of_layers()`
+  Return the poset of layers of the toric arrangement.
+
 
 
 ## Bibliography
@@ -259,13 +261,19 @@ All subclasses of `ArithmeticMatroidMixin` also (re-)implement the following met
 
 [DM13] M. D'Adderio and L. Moci, *Arithmetic matroids, the Tutte polynomial and toric arrangements*, Advances in Mathematics **232** (2013), 335–367.
 
-[Len17] M. Lenz, *Representations of weakly multiplicative arithmetic matroids are unique*, ArXiv preprint 1704.08607 (2017).
+[DGP17] E. Delucchi, N. Girard, and G. Paolini, *Shellability of posets of labeled partitions and arrangements defined by root systems*, ArXiv preprint 1706.06360 (2017).
+
+[Len17a] M. Lenz, *Computing the poset of layers of a toric arrangement*, ArXiv preprint 1708.06646 (2017).
+
+[Len17b] M. Lenz, *Representations of weakly multiplicative arithmetic matroids are unique*, ArXiv preprint 1704.08607 (2017).
 
 [Pag17] R. Pagaria, *Combinatorics of Toric Arrangements*, ArXiv preprint 1710.00409 (2017).
 
-[Pag18] R. Pagaria, *Orientable arithmetic matroids*, ArXiv preprint 1805.11888 (2018).
+[Pag18a] R. Pagaria, *Orientable arithmetic matroids*, ArXiv preprint 1805.11888 (2018).
 
-[PP18] R. Pagaria and G. Paolini, *??*, ArXiv preprint ?? (2018).
+[Pag18b] R. Pagaria, *Two Examples of Toric Arrangements*, ArXiv preprint 1804.05767 (2018).
+
+[PP19] R. Pagaria and G. Paolini, *??*, ArXiv preprint ?? (2019).
 
 
 ## License
