@@ -70,6 +70,12 @@ The classes which are already provided in `arithmat` are the following.
   M = ArithmeticMatroid(E, rk, m)
   print M
   # Arithmetic matroid of rank 2 on 5 elements
+  
+  print M.arithmetic_tutte_polynomial()
+  # y^3 + x^2 + 2*y^2 + 3*x + 3*y + 3
+  
+  print M.representation()
+  # None (this arithmetic matroid is not representable)
   ```
 * `ToricArithmeticMatroid(arrangement_matrix, torus_matrix=None, ordered_groundset=None)`
 
@@ -81,31 +87,38 @@ The classes which are already provided in `arithmat` are the following.
   
   Example:
   ```sage
-  A = matrix(ZZ, [[-1, 1, 0, 7], [6, 1, -1, -2]])
+  A = matrix(ZZ, [[-1, 1, 0, 2], [3, 1, -1, -2]])
   M = ToricArithmeticMatroid(A)
   
   print M
   # Toric arithmetic matroid of rank 2 on 4 elements
   
   print M.arrangement_matrix()
-  # [-1  1  0  7]
-  # [ 6  1 -1 -2]
+  # [-1  1  0  2]
+  # [ 3  1 -1 -2]
   
   print M.torus_matrix()
   # []
   
   Q = matrix(ZZ, [[5], [1]])
-  M = ToricArithmeticMatroid(A, Q)
+  N = ToricArithmeticMatroid(A, Q)
   
-  print M
+  print N
   # Toric arithmetic matroid of rank 1 on 4 elements
   
-  print M.arrangement_matrix()
-  # [-31  -4   5  17]
+  print N.arrangement_matrix()
+  # [-16  -4   5  12]
   
-  print M.torus_matrix()
+  print N.torus_matrix()
   # []
+  
+  P = M.poset_of_layers()
+  print P
+  # Finite poset containing 11 elements
+  
+  P.show(label_elements=False)
   ```
+  <img src="figures/poset.png" height="240">
 
 The classes `BasisArithmeticMatroid` and `LinearArithmeticMatroid` derive from the Sage classes `BasisMatroid` and `LinearMatroid`, respectively.
 An instance of `XxxArithmeticMatroid` can be constructed with `XxxArithmeticMatroid(..., multiplicity_function=m)`, where `...` should be replaced by arguments to construct an instance of `XxxMatroid`, and `m` is the multiplicity function.
