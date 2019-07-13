@@ -56,7 +56,6 @@ def poset_of_layers(A):
     cover_relations = []
 
     for (S, l) in elements.iteritems():
-        print "S =", S
         diagonal_S, V_S = data[S]
         rk_S = A[:,S].rank()
 
@@ -66,17 +65,21 @@ def poset_of_layers(A):
 
             diagonal_T, V_T = data[T]
             rk_T = A[:,T].rank()
-
+            
+            #print "S = ", S, "   T = ", T
+            
             for x in l:
                 h = (S, x)
 
-                y = V_S**(-1) * x
-                z = V_T * vector(ZZ, y[:i].list() + y[i+1:].list())
+                y = V_S * x
+                z = V_T**(-1) * vector(ZZ, y[:i].list() + y[i+1:].list())
                 w = vector(ZZ, (a % diagonal_T[j] if diagonal_T[j] > 0 else 0 for j, a in enumerate(z)))
                 w.set_immutable()
 
                 ph = (T, w)
-
+                
+                #print "h = ", h, "    ph = ", ph, "   V_S = ", V_S, "  y=", y
+                
                 assert rk_T <= rk_S <= rk_T + 1
 
                 if rk_S == rk_T:
@@ -87,9 +90,9 @@ def poset_of_layers(A):
 
     # find actual layers and cover relations
     layers = [a for a in possible_layers if uf.find(a) == a]
-    print len(layers)
+#print len(layers)
     cover_relations = set((uf.find(a), uf.find(b)) for (a,b) in cover_relations)
-    print len(cover_relations)
+#print len(cover_relations)
 
     return Poset(data=(layers, cover_relations), cover_relations=True)
 
@@ -97,25 +100,26 @@ def poset_of_layers(A):
 # A = matrix(ZZ, [[1,0,1], [0,1,3]])
 # A = random_matrix(ZZ, 4, 4)
 
-# A = matrix(ZZ, [[-1, -3, -1, 4, 0, 1],
-#     [1, 0, -3, -1, -1, 2],
-#     [1, 0, -1, -1, -1, 2],
-#     [0, -1, 4, 1, 1, 0]])
+
+A = matrix(ZZ, [[-1, -3, -1, 4, 0, 1],
+     [1, 0, -3, -1, -1, 2],
+     [1, 0, -1, -1, -1, 2],
+     [0, -1, 4, 1, 1, 0]])
 
 
-A = matrix(ZZ, [[1, 0, 0, 0],
-    [0, 1, 0, 0],
-    [0, 0, 2, 0],
-    [0, 0, 0, 1]])
+#A = matrix(ZZ, [[1, 0, 0, 0],
+#    [0, 1, 0, 0],
+#    [0, 0, 2, 0],
+#    [0, 0, 0, 1]])
 
-# A = matrix(ZZ, [[1,0,0], [0,1,0], [0,0,2]])
+A = matrix(ZZ, [[1,0,0], [0,2,0], [0,0,1]])
 
 # from shnf import signed_hermite_normal_form
 # A = signed_hermite_normal_form(A)
 
 print A
 P = poset_of_layers(A)
-print P
+print P.show(label_elements = False)
 
 K = P.subposet([a for a in P if a != P.bottom()]).order_complex(on_ints=True)
 
