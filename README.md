@@ -47,7 +47,7 @@ from arithmat import ArithmeticMatroid, ToricArithmeticMatroid
 ### Available classes for arithmetic matroids
 
 All classes for arithmetic matroids derive from `ArithmeticMatroidMixin` and from some subclass of Sage's `Matroid`.
-The class `ArithmeticMatroidMixin` is not intended to be used by itself, but it is possible to subclass it in order to create new classes for arithmetic matroids (see below).
+The class `ArithmeticMatroidMixin` is not intended to be used by itself, but it is possible to subclass it in order to create new classes for arithmetic matroids.
 
 The classes which are already provided in `arithmat` are the following.
 
