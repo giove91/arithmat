@@ -28,19 +28,16 @@ def poset_of_layers(A):
     Poset of layers of the central toric arrangement defined by the integer matrix A.
     Uses Lenz's algorithm.
     """
-    r = A.nrows()
-    n = A.ncols()
-    E = range(n)
+    A = A.transpose()
+    E = range(A.nrows())
 
     data = {}
 
     # compute Smith normal forms of all submatrices
     for S in powerset(E):
-        D, U, V = A[:,S].smith_form()   # D == U*A[:,S]*V
-        diagonal = [D[i,i] if i < D.nrows() else 0 for i in xrange(len(S))]
-        data[tuple(S)] = (diagonal, V)
-
-        assert len(S) == V.nrows()
+        D, U, V = A[S,:].smith_form()   # D == U*A[S,:]*V
+        diagonal = [D[i,i] if i < D.ncols() else 0 for i in xrange(len(S))]
+        data[tuple(S)] = (diagonal, U)
 
     # generate al possible elements of the poset of layers
     elements = {tuple(S): list(vector(ZZ, x) for x in itertools.product(*(range(max(data[tuple(S)][0][i], 1)) for i in xrange(len(S))))) for S in powerset(E)}
@@ -55,22 +52,21 @@ def poset_of_layers(A):
     cover_relations = []
 
     for (S, l) in elements.iteritems():
-        diagonal_S, V_S = data[S]
-        rk_S = A[:,S].rank()
+        diagonal_S, U_S = data[S]
+        rk_S = A[S,:].rank()
 
         for s in S:
             i = S.index(s)  # index where the element s appears in S
             T = tuple(t for t in S if t != s)
 
-            diagonal_T, V_T = data[T]
-            rk_T = A[:,T].rank()
-            assert rk_T <= rk_S <= rk_T + 1
+            diagonal_T, U_T = data[T]
+            rk_T = A[T,:].rank()
 
             for x in l:
                 h = (S, x)
 
-                y = V_S * x
-                z = V_T**(-1) * vector(ZZ, y[:i].list() + y[i+1:].list())
+                y = U_S**(-1) * x
+                z = U_T * vector(ZZ, y[:i].list() + y[i+1:].list())
                 w = vector(ZZ, (a % diagonal_T[j] if diagonal_T[j] > 0 else 0 for j, a in enumerate(z)))
                 w.set_immutable()
 

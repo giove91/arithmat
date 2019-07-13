@@ -621,6 +621,32 @@ class TestToric(unittest.TestCase):
         self.assertEqual(len(P.cover_relations()), 10)
 
 
+    def test_poset_of_layers_root_system_C2(self):
+        # see [DGP]
+        A = matrix(ZZ, [[2,0,1,1,], [0,2,1,-1]])
+        M = ToricArithmeticMatroid(A)
+        P = M.poset_of_layers()
+        self.assertEqual(len(P), 11)
+        self.assertEqual(len(P.cover_relations()), 18)
+        homology = P.subposet([a for a in P if a != P.bottom()]).order_complex(on_ints=True).homology()
+        self.assertEqual([homology[i].ngens() for i in xrange(2)], [0,3])
+        self.assertEqual(homology[1].ngens(), M.arithmetic_tutte_polynomial()(x=0, y=0))
+
+
+    def test_poset_of_layers_root_system_C3(self):
+        # see [DGP]
+        A = matrix(ZZ, [[2,0,0,1,1,1,1,0,0], [0,2,0,1,-1,0,0,1,1], [0,0,2,0,0,1,-1,1,-1]])
+        M = ToricArithmeticMatroid(A)
+        P = M.poset_of_layers()
+        homology = P.subposet([a for a in P if a != P.bottom()]).order_complex(on_ints=True).homology()
+        # print homology
+        # print P.characteristic_polynomial()
+        # print M.arithmetic_tutte_polynomial()(y=0)
+        self.assertEqual([homology[i].ngens() for i in xrange(3)], [0,0,15])
+        self.assertEqual(homology[2].ngens(), M.arithmetic_tutte_polynomial()(x=0, y=0))
+
+
+
 class TestReduction(unittest.TestCase):
 
     def test_example(self):
