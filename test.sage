@@ -619,6 +619,7 @@ class TestToric(unittest.TestCase):
         self.assertTrue(P.has_bottom())
         self.assertFalse(P.has_top())
         self.assertEqual(len(P.cover_relations()), 10)
+        self.assertTrue(P.is_isomorphic(Poset(data=(range(7), [(0,1), (0,2), (0,3), (1,4), (2,4), (2,5), (2,6), (3,4), (3,5), (3,6)]))))
 
 
     def test_poset_of_layers_root_system_C2(self):
@@ -639,10 +640,37 @@ class TestToric(unittest.TestCase):
         M = ToricArithmeticMatroid(A)
         P = M.poset_of_layers()
         homology = P.subposet([a for a in P if a != P.bottom()]).order_complex(on_ints=True).homology()
-        # print homology
-        # print P.characteristic_polynomial()
-        # print M.arithmetic_tutte_polynomial()(y=0)
         self.assertEqual([homology[i].ngens() for i in xrange(3)], [0,0,15])
+        self.assertEqual(homology[2].ngens(), M.arithmetic_tutte_polynomial()(x=0, y=0))
+
+
+    def test_poset_of_layers_root_system_B2(self):
+        # see [DGP]
+        A = matrix(ZZ, [[1,0,1,1,], [0,1,1,-1]])
+        M = ToricArithmeticMatroid(A)
+        P = M.poset_of_layers()
+        homology = P.subposet([a for a in P if a != P.bottom()]).order_complex(on_ints=True).homology()
+        self.assertEqual([homology[i].ngens() for i in xrange(2)], [0,1])
+        self.assertEqual(homology[1].ngens(), M.arithmetic_tutte_polynomial()(x=0, y=0))
+
+
+    def test_poset_of_layers_root_system_B3(self):
+        # see [DGP]
+        A = matrix(ZZ, [[1,0,0,1,1,1,1,0,0], [0,1,0,1,-1,0,0,1,1], [0,0,1,0,0,1,-1,1,-1]])
+        M = ToricArithmeticMatroid(A)
+        P = M.poset_of_layers()
+        homology = P.subposet([a for a in P if a != P.bottom()]).order_complex(on_ints=True).homology()
+        self.assertEqual([homology[i].ngens() for i in xrange(3)], [0,0,6])
+        self.assertEqual(homology[2].ngens(), M.arithmetic_tutte_polynomial()(x=0, y=0))
+
+
+    def test_poset_of_layers_root_system_D3(self):
+        # see [DGP]
+        A = matrix(ZZ, [[1,1,1,1,0,0], [1,-1,0,0,1,1], [0,0,1,-1,1,-1]])
+        M = ToricArithmeticMatroid(A)
+        P = M.poset_of_layers()
+        homology = P.subposet([a for a in P if a != P.bottom()]).order_complex(on_ints=True).homology()
+        self.assertEqual([homology[i].ngens() for i in xrange(3)], [0,0,3])
         self.assertEqual(homology[2].ngens(), M.arithmetic_tutte_polynomial()(x=0, y=0))
 
 
