@@ -28,15 +28,8 @@ import networkx as nx
 from sage.matroids.matroid import Matroid
 from sage.matroids.advanced import *
 
-from shnf import signed_hermite_normal_form
-
-"""
-TODO
-
-* more tests (minors, dual, copy, deepcopy, ToricArithmeticMatroid, groundset != [0,...,n-1], decomposition, is_equivalent, XxxArithmeticMatroid, is_gcd, is_strong_gcd, is_surjective, is_torsion_free)
-* reimplement reduction in some subclasses (should it return some ReductionArithmeticMatroid?)
-* easy way to construct an arithmetic matroid from the underlying matroid and the multiplicity function? (copy the matroid, add ArithmeticMatroidMixin, add _multiplicity_function)
-"""
+from shnf import signed_hermite_normal_form as _signed_hermite_normal_form
+from layers import poset_of_layers as _poset_of_layers
 
 
 class ArithmeticMatroidMixin(SageObject):
@@ -414,8 +407,6 @@ class ArithmeticMatroidMixin(SageObject):
         """
         Generator of all non-equivalent essential representations.
         """
-        # FIXME: at the moment they can be equivalent...
-
         # TODO implement m({}) > 1?
         r = self.full_rank()
         n = len(self.groundset())
@@ -442,7 +433,7 @@ class ArithmeticMatroidMixin(SageObject):
         # try all left Hermite normal forms
         for H in _hermite_normal_forms(r, self.multiplicity(self.groundset())):
             if self.check_representation(H*A):
-                B = signed_hermite_normal_form(H*A)
+                B = _signed_hermite_normal_form(H*A)
                 if B not in found_representations:
                     found_representations.add(B)
                     yield B
@@ -515,7 +506,6 @@ class LinearArithmeticMatroid(ArithmeticMatroidMixin, LinearMatroid):
 
 class BasisArithmeticMatroid(ArithmeticMatroidMixin, BasisMatroid):
     def __init__(self, M=None, *args, **kwargs):
-        # M = kwargs.get('M')
         if isinstance(M, ArithmeticMatroidMixin):
             # extract multiplicity function from the given arithmetic matroid
             kwargs['multiplicity_function'] = M._multiplicity
@@ -829,6 +819,13 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
         return not self.is_decomposable()
 
 
+    def poset_of_layers(self):
+        """
+        Compute the poset of layers, using Lenz's algorithm.
+        """
+        return _poset_of_layers(self._A)
+
+
 
 def _hermite_normal_forms(r, det):
     """
@@ -849,8 +846,3 @@ def _hermite_normal_forms(r, det):
                         else column[i] if j == r-1
                         else 0
                     )
-
-
-
-if __name__ == '__main__':
-    pass
