@@ -22,7 +22,7 @@ along with this program. If not, see http://www.gnu.org/licenses/.
 
 def signed_hermite_normal_form(A):
     """
-    Signed Hermite normal form of an integer matrix A.
+    Signed Hermite normal form of an integer matrix A, see [PP19].
     This is a normal form up to left multiplication by an invertible matrix and change of sign of the columns.
     A matrix in signed Hermite normal form is also in left Hermite normal form.
     """

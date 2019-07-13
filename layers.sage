@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Signed Hermite normal form.
+Implementation of Lenz's algorithm for the poset of layers of a toric arrangement.
 
 Copyright (C) 2019 Giovanni Paolini
 Copyright (C) 2019 Roberto Pagaria
@@ -26,7 +26,7 @@ import itertools
 def poset_of_layers(A):
     """
     Poset of layers of the central toric arrangement defined by the integer matrix A.
-    Uses Lenz's algorithm.
+    Uses Lenz's algorithm [Len17a].
     """
     A = A.transpose()
     E = range(A.nrows())

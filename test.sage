@@ -623,7 +623,7 @@ class TestToric(unittest.TestCase):
 
 
     def test_poset_of_layers_root_system_C2(self):
-        # see [DGP]
+        # see [DGP17]
         A = matrix(ZZ, [[2,0,1,1,], [0,2,1,-1]])
         M = ToricArithmeticMatroid(A)
         P = M.poset_of_layers()
@@ -635,7 +635,7 @@ class TestToric(unittest.TestCase):
 
 
     def test_poset_of_layers_root_system_C3(self):
-        # see [DGP]
+        # see [DGP17]
         A = matrix(ZZ, [[2,0,0,1,1,1,1,0,0], [0,2,0,1,-1,0,0,1,1], [0,0,2,0,0,1,-1,1,-1]])
         M = ToricArithmeticMatroid(A)
         P = M.poset_of_layers()
@@ -645,7 +645,7 @@ class TestToric(unittest.TestCase):
 
 
     def test_poset_of_layers_root_system_B2(self):
-        # see [DGP]
+        # see [DGP17]
         A = matrix(ZZ, [[1,0,1,1,], [0,1,1,-1]])
         M = ToricArithmeticMatroid(A)
         P = M.poset_of_layers()
@@ -655,7 +655,7 @@ class TestToric(unittest.TestCase):
 
 
     def test_poset_of_layers_root_system_B3(self):
-        # see [DGP]
+        # see [DGP17]
         A = matrix(ZZ, [[1,0,0,1,1,1,1,0,0], [0,1,0,1,-1,0,0,1,1], [0,0,1,0,0,1,-1,1,-1]])
         M = ToricArithmeticMatroid(A)
         P = M.poset_of_layers()
@@ -665,7 +665,7 @@ class TestToric(unittest.TestCase):
 
 
     def test_poset_of_layers_root_system_D3(self):
-        # see [DGP]
+        # see [DGP17]
         A = matrix(ZZ, [[1,1,1,1,0,0], [1,-1,0,0,1,1], [0,0,1,-1,1,-1]])
         M = ToricArithmeticMatroid(A)
         P = M.poset_of_layers()

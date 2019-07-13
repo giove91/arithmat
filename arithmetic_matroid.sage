@@ -821,7 +821,7 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
 
     def poset_of_layers(self):
         """
-        Compute the poset of layers, using Lenz's algorithm.
+        Compute the poset of layers, using Lenz's algorithm [Len17a].
         """
         return _poset_of_layers(self._A)
 
