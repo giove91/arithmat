@@ -100,6 +100,15 @@ The classes which are already provided in `arithmat` are the following.
   print M.torus_matrix()
   # []
   
+  P = M.poset_of_layers()
+  print P
+  # Finite poset containing 11 elements
+  
+  P.show(label_elements=False)
+  ```
+  <img src="figures/poset.png" height="240">
+  
+  ```sage
   Q = matrix(ZZ, [[5], [1]])
   N = ToricArithmeticMatroid(A, Q)
   
@@ -112,13 +121,7 @@ The classes which are already provided in `arithmat` are the following.
   print N.torus_matrix()
   # []
   
-  P = M.poset_of_layers()
-  print P
-  # Finite poset containing 11 elements
-  
-  P.show(label_elements=False)
   ```
-  <img src="figures/poset.png" height="240">
 
 The classes `BasisArithmeticMatroid` and `LinearArithmeticMatroid` derive from the Sage classes `BasisMatroid` and `LinearMatroid`, respectively.
 An instance of `XxxArithmeticMatroid` can be constructed with `XxxArithmeticMatroid(..., multiplicity_function=m)`, where `...` should be replaced by arguments to construct an instance of `XxxMatroid`, and `m` is the multiplicity function.
