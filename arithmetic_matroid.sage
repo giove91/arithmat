@@ -794,13 +794,19 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
         Find the decomposition of the matroid as a direct sum of indecomposable matroids.
         Return a partition of the groundset.
         """
-        A = self._A.echelon_form()
+        B = self.basis()
+        new_groundset = list(B) + list(self.groundset().difference(B))
+
+        # construct matrix with permuted columns
+        columns = [vector(self._A[:,self._groundset_to_index[e]]) for e in new_groundset]
+        A = matrix(ZZ, columns).transpose().echelon_form()
+
         uf = DisjointSet(self.groundset())
 
         for i in xrange(A.nrows()):
             for j in xrange(i+1, A.ncols()):
                 if A[i,j] != 0:
-                    uf.union(self._E[i], self._E[j])
+                    uf.union(new_groundset[i], new_groundset[j])
 
         return SetPartition(uf)
 
