@@ -823,6 +823,12 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
         """
         Compute the poset of layers, using Lenz's algorithm [Len17a].
         """
+        # TODO: implement for Q != 0
+        if self._Q.ncols() > 0:
+            raise NotImplementedError
+
+        # TODO: move here
+        # TODO: relabel with ordered_groundset
         return _poset_of_layers(self._A)
 
 
@@ -832,6 +838,10 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
         This is defined in [Len17c, Definition 5], [Mar18, Definitions 2.1 and 2.2], [DD18, Section 7].
         Notice that it is not the same as the independence poset of the underlying matroid.
         """
+        # TODO: implement for Q != 0
+        if self._Q.ncols() > 0:
+            raise NotImplementedError
+        
         A = self._A.transpose()
         # E = range(A.nrows())
 
@@ -876,6 +886,7 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
                     ph = (T, w)
                     cover_relations.append((ph, h))
 
+        # TODO: relabel with ordered_groundset
         return Poset(data=(all_elements, cover_relations), cover_relations=True)
 
 
