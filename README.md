@@ -261,7 +261,7 @@ All subclasses of `ArithmeticMatroidMixin` also (re-)implement the following met
   This is not faster than `representation`.
 
 * `is_orientable()`
-  Check if the matroid is orientable as an arithmetic matroid, according to [Pag18a].
+  Check if the matroid is orientable as an arithmetic matroid, according to [Pag18].
 
 In addition, `ToricArithmeticMatroid` has the following method.
 
