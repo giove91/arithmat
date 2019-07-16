@@ -52,75 +52,75 @@ The class `ArithmeticMatroidMixin` is not intended to be used by itself, but it 
 The classes which are already provided in `arithmat` are the following.
 
 * `ArithmeticMatroid(groundset, rank_function, multiplicity_function)`
-  
+
   This is the simplest arithmetic matroid class, and derives from `ArithmeticMatroidMixin` and `RankMatroid`.
   Example:
   ```sage
   E = [1,2,3,4,5]
-  
+
   def rk(X):
       return min(2, len(X))
-  
+
   def m(X):
       if len(X) == 2 and all(x in [3,4,5] for x in X):
           return 2
       else:
           return 1
-  
+
   M = ArithmeticMatroid(E, rk, m)
   print M
   # Arithmetic matroid of rank 2 on 5 elements
-  
+
   print M.arithmetic_tutte_polynomial()
   # y^3 + x^2 + 2*y^2 + 3*x + 3*y + 3
-  
+
   print M.representation()
   # None (this arithmetic matroid is not representable)
   ```
 * `ToricArithmeticMatroid(arrangement_matrix, torus_matrix=None, ordered_groundset=None)`
 
   Arithmetic matroid associated to a given toric arrangement. This class derives from `ArithmeticMatroidMixin` and `Matroid`.
-  
+
   The constructor requires an integer matrix `arrangement_matrix` representing the toric arrangement. Otionally it accepts another integer matrix `torus_matrix` (whose cokernel describes the ambient torus, and defaults to `matrix(ZZ, arrangement_matrix.nrows(), 0)`) and/or an ordered copy `ordered_groundset` of the groundset (defaults to `range(matrix.ncols())`). The number of rows of `arrangement_matrix` must be equal to the numer of rows of `torus_matrix`.
-  
+
   The two matrices are not guaranteed to remain unchanged: internally,`torus_matrix` is kept in Smith normal form (this also affects `arrangement_matrix`).
-  
+
   Example:
   ```sage
   A = matrix(ZZ, [[-1, 1, 0, 2], [3, 1, -1, -2]])
   M = ToricArithmeticMatroid(A)
-  
+
   print M
   # Toric arithmetic matroid of rank 2 on 4 elements
-  
+
   print M.arrangement_matrix()
   # [-1  1  0  2]
   # [ 3  1 -1 -2]
-  
+
   print M.torus_matrix()
   # []
-  
+
   P = M.poset_of_layers()
   print P
   # Finite poset containing 11 elements
-  
+
   P.show(label_elements=False)
   ```
   <img src="figures/poset.png" height="240">
-  
+
   ```sage
   Q = matrix(ZZ, [[5], [1]])
   N = ToricArithmeticMatroid(A, Q)
-  
+
   print N
   # Toric arithmetic matroid of rank 1 on 4 elements
-  
+
   print N.arrangement_matrix()
   # [-16  -4   5  12]
-  
+
   print N.torus_matrix()
   # []
-  
+
   ```
 
 The classes `BasisArithmeticMatroid` and `LinearArithmeticMatroid` derive from the Sage classes `BasisMatroid` and `LinearMatroid`, respectively.
@@ -135,45 +135,45 @@ The multiplicity function needs to be passed as a keyword argument (and not as a
            return 2
        else:
            return 1
-   
+
    M = BasisArithmeticMatroid(groundset='abcd', bases=['ab', 'ac', 'ad', 'bc', 'bd', 'cd'], multiplicity_function=m)
-   
+
    print M
    # Basis arithmetic matroid of rank 2 on 4 elements
-   
+
    print M.is_valid()
    # True
    ```
-   
+
    It is possible to cast any arithmetic matroid to a `BasisArithmeticMatroid`:
-   
+
    ```sage
    M1 = ToricArithmeticMatroid(matrix(ZZ, [[-1, 1, 0, 7], [6, 1, -1, -2]]))
    M2 = BasisArithmeticMatroid(M1)
-   
+
    print M1
    # Toric arithmetic matroid of rank 2 on 4 elements
-   
+
    print M2
    # Basis arithmetic matroid of rank 2 on 4 elements
-   
+
    print M2.full_multiplicity() == M1.full_multiplicity()
    # True
    ```
 
 * `LinearArithmeticMatroid(matrix=None, groundset=None, ..., multiplicity_function)`
-  
+
   ```sage
   A = matrix(GF(2), [[1, 0, 0, 1, 1], [0, 1, 0, 1, 0], [0, 0, 1, 0, 1]])
-  
+
   def m(X):
       return 1
-  
+
   M = LinearArithmeticMatroid(A, multiplicity_function=m)
-  
+
   print M
   # Linear arithmetic matroid of rank 3 on 5 elements
-  
+
   print M.is_valid()
   # True
   ```
@@ -276,11 +276,17 @@ In addition, `ToricArithmeticMatroid` has the following method.
 
 [DM13] M. D'Adderio and L. Moci, *Arithmetic matroids, the Tutte polynomial and toric arrangements*, Advances in Mathematics **232** (2013), 335–367.
 
+[DD18] A. D'Alì and E. Delucchi, *Stanley-Reisner rings for symmetric simplicial complexes, G-semimatroids and Abelian arrangements*, ArXiv preprint 1804.07366 (2018).
+
 [DGP17] E. Delucchi, N. Girard, and G. Paolini, *Shellability of posets of labeled partitions and arrangements defined by root systems*, ArXiv preprint 1706.06360 (2017).
 
 [Len17a] M. Lenz, *Computing the poset of layers of a toric arrangement*, ArXiv preprint 1708.06646 (2017).
 
 [Len17b] M. Lenz, *Representations of weakly multiplicative arithmetic matroids are unique*, ArXiv preprint 1704.08607 (2017).
+
+[Len17c] M. Lenz, *Stanley-Reisner rings for quasi-arithmetic matroids*, ArXiv preprint 1709.03834 (2017).
+
+[Mar18] I. Martino, *Face module for realizable Z-matroids*, Contributions to Discrete Mathematics **13** (2018).
 
 [Pag17] R. Pagaria, *Combinatorics of Toric Arrangements*, ArXiv preprint 1710.00409 (2017).
 

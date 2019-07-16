@@ -686,6 +686,17 @@ class TestToric(unittest.TestCase):
         self.assertFalse(MA.poset_of_layers().is_isomorphic(MB.poset_of_layers()))
 
 
+    def test_independence_poset(self):
+        A = matrix(ZZ, [[1,0,1], [0,1,3]])
+        M = ToricArithmeticMatroid(A)
+        P = M.arithmetic_independence_poset()
+
+        self.assertEqual(len(P), 9)
+        self.assertEqual(len(P.cover_relations()), 13)
+        self.assertEqual(P.rank(), 2)
+        self.assertTrue(P.has_bottom())
+
+
 class TestReduction(unittest.TestCase):
 
     def test_example(self):
