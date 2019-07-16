@@ -272,9 +272,9 @@ In addition, `ToricArithmeticMatroid` has the following method.
 
 ## Bibliography
 
-[BM14] P. Brändén and L. Moci, *The multivariate arithmetic Tutte polynomial*, Transactions of the American Mathematical Society **366** (2014), no. 10, 5523–5540.
+[BM14] P. Brändén and L. Moci, *The multivariate arithmetic Tutte polynomial*, Transactions of the American Mathematical Society **366** (2014), no. 10, 5523-5540.
 
-[DM13] M. D'Adderio and L. Moci, *Arithmetic matroids, the Tutte polynomial and toric arrangements*, Advances in Mathematics **232** (2013), 335–367.
+[DM13] M. D'Adderio and L. Moci, *Arithmetic matroids, the Tutte polynomial and toric arrangements*, Advances in Mathematics **232** (2013), 335-367.
 
 [DD18] A. D'Alì and E. Delucchi, *Stanley-Reisner rings for symmetric simplicial complexes, G-semimatroids and Abelian arrangements*, ArXiv preprint 1804.07366 (2018).
 
@@ -290,9 +290,9 @@ In addition, `ToricArithmeticMatroid` has the following method.
 
 [Pag17] R. Pagaria, *Combinatorics of Toric Arrangements*, ArXiv preprint 1710.00409 (2017).
 
-[Pag18a] R. Pagaria, *Orientable arithmetic matroids*, ArXiv preprint 1805.11888 (2018).
+[Pag18] R. Pagaria, *Orientable arithmetic matroids*, ArXiv preprint 1805.11888 (2018).
 
-[Pag18b] R. Pagaria, *Two Examples of Toric Arrangements*, ArXiv preprint 1804.05767 (2018).
+[Pag19] R. Pagaria, *Two Examples of Toric Arrangements*, Journal of Combinatorial Theory, Series A **167** (2019), 389-402.
 
 [PP19] R. Pagaria and G. Paolini, *??*, ArXiv preprint ?? (2019).
 
