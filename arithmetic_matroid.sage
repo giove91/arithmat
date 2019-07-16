@@ -29,7 +29,7 @@ from sage.matroids.matroid import Matroid
 from sage.matroids.advanced import *
 
 from shnf import signed_hermite_normal_form as _signed_hermite_normal_form
-from layers import poset_of_layers as _poset_of_layers
+from posets import poset_of_layers as _poset_of_layers
 
 
 class ArithmeticMatroidMixin(SageObject):
