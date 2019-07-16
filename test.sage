@@ -678,12 +678,17 @@ class TestToric(unittest.TestCase):
         # see [Pag18, Section 3]
         A = matrix(ZZ, [[1,1,1,3], [0,5,0,5], [0,0,5,5]])
         B = matrix(ZZ, [[1,4,1,6], [0,5,0,5], [0,0,5,5]])
+        C = matrix(ZZ, [[1,2,2,1], [0,5,0,5], [0,0,5,-5]])  # new matrix
 
         MA = ToricArithmeticMatroid(A)
         MB = ToricArithmeticMatroid(B)
+        MC = ToricArithmeticMatroid(C)
 
         self.assertTrue(MA.is_isomorphic(MB))
         self.assertFalse(MA.poset_of_layers().is_isomorphic(MB.poset_of_layers()))
+        self.assertTrue(MA.is_isomorphic(MC))
+        self.assertFalse(MA.poset_of_layers().is_isomorphic(MC.poset_of_layers()))
+        self.assertFalse(MB.poset_of_layers().is_isomorphic(MC.poset_of_layers()))
 
 
     def test_independence_poset(self):
