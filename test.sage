@@ -675,7 +675,7 @@ class TestToric(unittest.TestCase):
 
 
     def test_different_posets_of_layers(self):
-        # see [Pag18, Section 3]
+        # see [Pag19, Section 3]
         A = matrix(ZZ, [[1,1,1,3], [0,5,0,5], [0,0,5,5]])
         B = matrix(ZZ, [[1,4,1,6], [0,5,0,5], [0,0,5,5]])
         C = matrix(ZZ, [[1,2,2,1], [0,5,0,5], [0,0,5,-5]])  # new matrix

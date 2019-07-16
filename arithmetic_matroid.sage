@@ -465,7 +465,7 @@ class ArithmeticMatroidMixin(SageObject):
 
     def is_orientable(self):
         """
-        Determine if the matroid is an orientable arithmetic matroid according to [Pagaria https://arxiv.org/abs/1805.11888].
+        Determine if the matroid is an orientable arithmetic matroid according to [Pag18].
         """
         M = self.reduction() # note that this might not be an arithmetic matroid
 
@@ -701,7 +701,7 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
 
     def is_orientable(self):
         """
-        Determine if the matroid is an orientable arithmetic matroid according to [Pagaria https://arxiv.org/abs/1805.11888].
+        Determine if the matroid is an orientable arithmetic matroid according to [Pag18].
         """
         if self._Q.ncols() == 0:
             return True
@@ -841,7 +841,7 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
         # TODO: implement for Q != 0
         if self._Q.ncols() > 0:
             raise NotImplementedError
-        
+
         A = self._A.transpose()
         # E = range(A.nrows())
 
