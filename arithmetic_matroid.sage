@@ -29,7 +29,6 @@ from sage.matroids.matroid import Matroid
 from sage.matroids.advanced import *
 
 from shnf import signed_hermite_normal_form as _signed_hermite_normal_form
-from posets import poset_of_layers as _poset_of_layers
 
 
 class ArithmeticMatroidMixin(SageObject):
@@ -827,15 +826,69 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
 
     def poset_of_layers(self):
         """
-        Compute the poset of layers, using Lenz's algorithm [Len17a].
+        Compute the poset of layers of the associated toric arrangement, using Lenz's algorithm [Len17a].
         """
         # TODO: implement for Q != 0
         if self._Q.ncols() > 0:
             raise NotImplementedError
 
-        # TODO: move here
+
+        A = self._A.transpose()
+        E = range(A.nrows())
+
+        data = {}
+
+        # compute Smith normal forms of all submatrices
+        for S in powerset(E):
+            D, U, V = A[S,:].smith_form()   # D == U*A[S,:]*V
+            diagonal = [D[i,i] if i < D.ncols() else 0 for i in xrange(len(S))]
+            data[tuple(S)] = (diagonal, U)
+
+        # generate al possible elements of the poset of layers
+        elements = {tuple(S): list(vector(ZZ, x) for x in itertools.product(*(range(max(data[tuple(S)][0][i], 1)) for i in xrange(len(S))))) for S in powerset(E)}
+
+        for l in elements.itervalues():
+            for v in l:
+                v.set_immutable()
+
+        possible_layers = list((S, x) for (S, l) in elements.iteritems() for x in l)
+        uf = DisjointSet(possible_layers)
+
+        cover_relations = []
+
+        for (S, l) in elements.iteritems():
+            diagonal_S, U_S = data[S]
+            rk_S = A[S,:].rank()
+
+            for s in S:
+                i = S.index(s)  # index where the element s appears in S
+                T = tuple(t for t in S if t != s)
+
+                diagonal_T, U_T = data[T]
+                rk_T = A[T,:].rank()
+
+                for x in l:
+                    h = (S, x)
+
+                    y = U_S**(-1) * x
+                    z = U_T * vector(ZZ, y[:i].list() + y[i+1:].list())
+                    w = vector(ZZ, (a % diagonal_T[j] if diagonal_T[j] > 0 else 0 for j, a in enumerate(z)))
+                    w.set_immutable()
+
+                    ph = (T, w)
+
+                    if rk_S == rk_T:
+                        uf.union(h, ph)
+
+                    else:
+                        cover_relations.append((ph, h))
+
+        # find actual layers and cover relations
+        layers = [a for a in possible_layers if uf.find(a) == a]
+        cover_relations = set((uf.find(a), uf.find(b)) for (a,b) in cover_relations)
+
         # TODO: relabel with ordered_groundset
-        return _poset_of_layers(self._A)
+        return Poset(data=(layers, cover_relations), cover_relations=True)
 
 
     def arithmetic_independence_poset(self):
