@@ -22,11 +22,23 @@ along with this program. If not, see http://www.gnu.org/licenses/.
 import itertools
 import operator
 import copy
-from fractions import gcd
 import networkx as nx
 
+from sage.structure.sage_object import SageObject
 from sage.matroids.matroid import Matroid
 from sage.matroids.advanced import *
+from sage.combinat.set_partition import SetPartition
+from sage.sets.disjoint_set import DisjointSet
+from sage.combinat.posets.posets import Poset
+
+from sage.rings.integer_ring import ZZ
+from sage.matrix.constructor import matrix, vector
+from sage.matrix.special import identity_matrix, block_matrix
+
+from sage.misc.misc import powerset
+from sage.arith.misc import divisors, gcd
+
+
 
 from shnf import signed_hermite_normal_form as _signed_hermite_normal_form
 

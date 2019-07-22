@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see http://www.gnu.org/licenses/.
 """
 
+from sage.matrix.special import diagonal_matrix, identity_matrix
 
 def signed_hermite_normal_form(A):
     """
@@ -50,7 +51,7 @@ def signed_hermite_normal_form(A):
         for i in reversed(range(m)):
             # find possible values of A[i,j]
             # print "Row", i
-            x = Integer(A[i,j])
+            x = A[i,j]
             if q > 0:
                 x %= q
 
@@ -64,7 +65,7 @@ def signed_hermite_normal_form(A):
                 for h, U in enumerate(phi):
                     for k, v in enumerate(columns):
                         w = U*v
-                        y = Integer(w[i,0])
+                        y = w[i,0]
                         if q > 0:
                             y %= q
                         if y not in orbit:
@@ -79,9 +80,9 @@ def signed_hermite_normal_form(A):
             action = []
             for h, U in enumerate(phi):
                 if q > 0:
-                    action.append({x: Integer((U*columns[k])[i,0]) % q for k, x in enumerate(orbit)})
+                    action.append({x: (U*columns[k])[i,0] % q for k, x in enumerate(orbit)})
                 else:
-                    action.append({x: Integer((U*columns[k])[i,0]) for k, x in enumerate(orbit)})
+                    action.append({x: (U*columns[k])[i,0] for k, x in enumerate(orbit)})
 
             # select the minimal possible value
             u = min(orbit)
