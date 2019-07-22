@@ -22,7 +22,7 @@ along with this program. If not, see http://www.gnu.org/licenses/.
 import unittest
 import itertools
 from arithmetic_matroid import *
-from normal_form import normal_form
+from shnf import signed_hermite_normal_form as normal_form
 
 
 def representation_to_matroid(A):
