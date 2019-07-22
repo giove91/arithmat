@@ -883,11 +883,19 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
                     else:
                         cover_relations.append((ph, h))
 
-        # find actual layers and cover relations
-        layers = [a for a in possible_layers if uf.find(a) == a]
-        cover_relations = set((uf.find(a), uf.find(b)) for (a,b) in cover_relations)
+        # find representatives for layers (we keep the representative (S,x) with maximal S)
+        root_to_representative_dict = {}
+        for root, subset in uf.root_to_elements_dict().iteritems():
+            S, x = max(subset, key=lambda (S, x): len(S))
+            S_labeled = tuple(self._E[i] for i in S)
+            root_to_representative_dict[root] = (S_labeled, x)
 
-        # TODO: relabel with ordered_groundset
+        # get layers and cover relations
+        layers = root_to_representative_dict.values()
+        cover_relations = set(
+            (root_to_representative_dict[uf.find(a)], root_to_representative_dict[uf.find(b)])
+            for (a,b) in cover_relations)
+
         return Poset(data=(layers, cover_relations), cover_relations=True)
 
 
@@ -902,8 +910,6 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
             raise NotImplementedError
 
         A = self._A.transpose()
-        # E = range(A.nrows())
-
         data = {}
 
         # compute Smith normal forms of all submatrices
@@ -913,39 +919,37 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
             diagonal = [D[i,i] if i < D.ncols() else 0 for i in xrange(len(S))]
             data[tuple(S)] = (diagonal, U)
 
-        # generate al possible elements of the poset of layers
+        # generate all elements of the poset
         elements = {S: list(vector(ZZ, x) for x in itertools.product(*(range(max(data[tuple(S)][0][i], 1)) for i in xrange(len(S))))) for S in data.iterkeys()}
 
         for l in elements.itervalues():
             for v in l:
                 v.set_immutable()
 
-        all_elements = list((S, x) for (S, l) in elements.iteritems() for x in l)
+        all_elements = list((tuple(self._E[i] for i in S), x) for (S, l) in elements.iteritems() for x in l)
         cover_relations = []
 
         for (S, l) in elements.iteritems():
             diagonal_S, U_S = data[S]
             rk_S = A[S,:].rank()
+            S_labeled = tuple(self._E[i] for i in S)
 
             for s in S:
                 i = S.index(s)  # index where the element s appears in S
                 T = tuple(t for t in S if t != s)
+                T_labeled = tuple(self._E[i] for i in T)
 
                 diagonal_T, U_T = data[T]
                 rk_T = A[T,:].rank()
 
                 for x in l:
-                    h = (S, x)
-
                     y = U_S**(-1) * x
                     z = U_T * vector(ZZ, y[:i].list() + y[i+1:].list())
                     w = vector(ZZ, (a % diagonal_T[j] if diagonal_T[j] > 0 else 0 for j, a in enumerate(z)))
                     w.set_immutable()
 
-                    ph = (T, w)
-                    cover_relations.append((ph, h))
+                    cover_relations.append(((T_labeled, w), (S_labeled, x)))
 
-        # TODO: relabel with ordered_groundset
         return Poset(data=(all_elements, cover_relations), cover_relations=True)
 
 

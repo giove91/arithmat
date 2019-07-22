@@ -634,6 +634,17 @@ class TestToric(unittest.TestCase):
         self.assertTrue(P.is_isomorphic(Poset(data=(range(7), [(0,1), (0,2), (0,3), (1,4), (2,4), (2,5), (2,6), (3,4), (3,5), (3,6)]))))
 
 
+    def test_poset_of_layers_relabeled(self):
+        M = ToricArithmeticMatroid(matrix(ZZ, [[1,0,1], [0,1,3]]), ordered_groundset=['a', 'c', 'b'])
+        P = M.poset_of_layers()
+        self.assertEqual(len(P), 7)
+        self.assertTrue(P.has_bottom())
+        self.assertFalse(P.has_top())
+        self.assertEqual(len(P.cover_relations()), 10)
+        self.assertTrue(P.is_isomorphic(Poset(data=(range(7), [(0,1), (0,2), (0,3), (1,4), (2,4), (2,5), (2,6), (3,4), (3,5), (3,6)]))))
+        self.assertEqual(set(S for (S, x) in P), set([(), ('a',), ('b',), ('c',), ('a', 'c', 'b'), ('a', 'b')]))
+
+
     def test_poset_of_layers_root_system_C2(self):
         # see [DGP17]
         A = matrix(ZZ, [[2,0,1,1,], [0,2,1,-1]])
@@ -712,6 +723,17 @@ class TestToric(unittest.TestCase):
         self.assertEqual(len(P.cover_relations()), 13)
         self.assertEqual(P.rank(), 2)
         self.assertTrue(P.has_bottom())
+
+
+    def test_independence_poset_relabeled(self):
+        M = ToricArithmeticMatroid(matrix(ZZ, [[1,0,1], [0,1,3]]), ordered_groundset=['a', 'c', 'b'])
+        P = M.arithmetic_independence_poset()
+
+        self.assertEqual(len(P), 9)
+        self.assertEqual(len(P.cover_relations()), 13)
+        self.assertEqual(P.rank(), 2)
+        self.assertTrue(P.has_bottom())
+        self.assertEqual(set(S for (S, x) in P), set([(), ('a',), ('b',), ('c',), ('a', 'c'), ('a', 'b'), ('c', 'b')]))
 
 
 class TestReduction(unittest.TestCase):
