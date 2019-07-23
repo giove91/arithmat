@@ -598,6 +598,7 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
         if ordered_groundset is None:
             ordered_groundset = range(arrangement_matrix.ncols())
         else:
+            assert len(set(ordered_groundset)) == len(ordered_groundset)
             assert len(ordered_groundset) == arrangement_matrix.ncols()
 
         self._groundset = frozenset(ordered_groundset) # non-ordered groundset
