@@ -501,6 +501,27 @@ class TestDualAndMinor(unittest.TestCase):
         self.assertFalse(M2.equals(N3))
 
 
+    def test_delete(self):
+        E = [1,2,3,4,5]
+
+        def rk(X):
+            return min(2, len(X))
+
+        def m(X):
+            if len(X) == 2 and all(x in [3,4,5] for x in X):
+                return 2
+            else:
+                return 1
+
+        M = ArithmeticMatroid(E, rk, m)
+        N = M.delete([2,3])
+        print N.groundset()
+
+        N = N.delete([5])
+        print N.groundset()
+        print N
+
+
 
 
 
@@ -580,6 +601,30 @@ class TestToric(unittest.TestCase):
 
         self.assertEqual(M.full_rank(), M.rank(M.groundset()))
         self.assertEqual(M._Q.ncols(), 0)
+
+
+    def test_minor(self):
+        A = matrix(ZZ, [[-1, 1, 0, -1, 2, 7], [6, 1, -1, -2, 2, 5]])
+        M = ToricArithmeticMatroid(A)
+
+        self.assertEqual(M.full_rank(), M.rank(M.groundset()))
+
+        self.assertEqual(M._Q, matrix(ZZ, 2, 0))
+        self.assertEqual(M.rank([0]), 1)
+        self.assertEqual(M.rank([0,1]), 2)
+        self.assertEqual(M.rank([0,1,2]), 2)
+
+        self.assertEqual(M.multiplicity([1,2]), 1)
+
+        # minor
+        M2 = M.minor(contractions=[], deletions=[1])
+        self.assertEqual(M2.groundset(), frozenset([0,2,3,4,5]))
+        self.assertEqual(M2._A, matrix(ZZ, [[-1, 0, -1, 2, 7], [6, -1, -2, 2, 5]]))
+
+        M2 = M.minor(contractions=[1], deletions=[])
+        self.assertEqual(M2.groundset(), frozenset([0,2,3,4,5]))
+        self.assertEqual(M2._Q, matrix(ZZ, [[]]))
+        self.assertEqual(M2.multiplicity([0,2]), 1)
 
 
     def test_ordered_groundset(self):

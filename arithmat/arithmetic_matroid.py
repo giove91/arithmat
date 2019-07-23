@@ -122,6 +122,15 @@ class ArithmeticMatroidMixin(SageObject):
         return True
 
 
+    def _is_isomorphic(self, other):
+        """
+        Test if self is isomorphic to other.
+        Internal version that performs no checks on input (see Matroid.is_isomorphic).
+        """
+        # TODO
+        raise NotImplementedError
+
+
     def _is_independent_from(self, v, X):
         return self.rank(X.union([v])) != self.rank(X)
 
@@ -420,7 +429,10 @@ class ArithmeticMatroidMixin(SageObject):
         """
         Generator of all non-equivalent essential representations.
         """
-        # TODO implement m({}) > 1?
+        if self.multiplicity([]) > 1:
+            raise NotImplementedError
+            # TODO implement m({}) > 1
+
         r = self.full_rank()
         n = len(self.groundset())
 
@@ -537,6 +549,8 @@ class MinorArithmeticMatroid(ArithmeticMatroidMixin, MinorMatroid):
         super(ArithmeticMatroidMixin, self).__init__(*args, **kwargs)
 
     def _repr_(self):
+        print "Sono qua"
+        print super(ArithmeticMatroidMixin, self)
         super(ArithmeticMatroidMixin, self)._repr_()
 
     def __eq__(self, other):
@@ -623,6 +637,9 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
 
     def groundset(self):
         return self._groundset
+
+    def ordered_groundset(self):
+        return self._E
 
     def arrangement_matrix(self):
         return self._A
