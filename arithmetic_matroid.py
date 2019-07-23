@@ -277,6 +277,7 @@ class ArithmeticMatroidMixin(SageObject):
             # use the groundset in the given order
             E = ordered_groundset
             assert frozenset(E) == self.groundset()
+            assert len(E) == len(self.groundset())
         else:
             # to sort the groundset
             E = list(sorted(self.groundset()))
@@ -317,6 +318,7 @@ class ArithmeticMatroidMixin(SageObject):
             # use the groundset in the given order
             E = ordered_groundset
             assert frozenset(E) == self.groundset()
+            assert len(E) == len(self.groundset())
         else:
             # sort the groundset
             E = list(sorted(self.groundset()))
@@ -598,6 +600,7 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
         if ordered_groundset is None:
             ordered_groundset = range(arrangement_matrix.ncols())
         else:
+            assert len(set(ordered_groundset)) == len(ordered_groundset)
             assert len(ordered_groundset) == arrangement_matrix.ncols()
 
         self._groundset = frozenset(ordered_groundset) # non-ordered groundset
@@ -699,6 +702,7 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
                 # use the groundset in the given order
                 E = ordered_groundset
                 assert frozenset(E) == self.groundset()
+                assert len(E) == len(self.groundset())
             else:
                 # use self._E (which is ordered)
                 E = self._E

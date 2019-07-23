@@ -573,6 +573,26 @@ class TestToric(unittest.TestCase):
         self.assertEqual(M._Q.ncols(), 0)
 
 
+    def test_ordered_groundset(self):
+        A = matrix(ZZ, [[-1, 1, 0, -1, 2, 7], [6, 1, -1, -2, 2, 5]])
+        M = ToricArithmeticMatroid(A, ordered_groundset=['a', 'b', 'f', 'e', 'd', 'c'])
+
+        self.assertEqual(M.groundset(), frozenset(['a', 'b', 'f', 'e', 'd', 'c']))
+        self.assertEqual(M.full_rank(), M.rank(M.groundset()))
+
+        self.assertEqual(M._Q, matrix(ZZ, 2, 0))
+        self.assertEqual(M.rank(['a']), 1)
+        self.assertEqual(M.rank(['a', 'b']), 2)
+        self.assertEqual(M.rank(['f', 'a', 'b']), 2)
+
+        self.assertEqual(M._multiplicity(['b', 'f']), 1)
+
+        # test failure if there are repetition in the ordered groundset
+        with self.assertRaises(AssertionError):
+            M = ToricArithmeticMatroid(A, ordered_groundset=['a', 'b', 'f', 'e', 'd', 'b'])
+
+
+
     def test_equivalence(self):
         # without Q
         A = matrix(ZZ, [[1, 1, 2], [0, 7, 7]])
