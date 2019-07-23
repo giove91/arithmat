@@ -328,7 +328,7 @@ class TestArithmeticMatroid(unittest.TestCase):
         B = matrix(ZZ, [[3,1],[0,1]])
         M = ToricArithmeticMatroid(A)
         N = ToricArithmeticMatroid(B).minor(deletions = [0])
-
+        
         self.assertFalse(N.is_isomorphic(M))
 
 

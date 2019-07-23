@@ -127,8 +127,21 @@ class ArithmeticMatroidMixin(SageObject):
         Test if self is isomorphic to other.
         Internal version that performs no checks on input (see Matroid.is_isomorphic).
         """
-        # TODO
-        raise NotImplementedError
+        if certificate:
+            # TODO
+            raise NotImplementedError
+
+        if len(self.groundset()) != len(other.groundset()) or self.full_rank() != other.full_rank() or self.full_multiplicity() != other.full_multiplicity():
+            return False
+
+        # TODO: try to make more efficient
+        E = list(self.groundset())
+        for perm in itertools.permutations(other.groundset()):
+            morphism = {e: perm[i] for i, e in enumerate(E)}
+            if self.is_isomorphism(other, morphism):
+                return True
+
+        return False
 
 
     def _is_independent_from(self, v, X):
