@@ -59,11 +59,14 @@ An additional class `ToricArithmeticMatroid` is implemented, for arithmetic matr
 
 ### Import
 
-All defined classes can be imported at once:
+All defined classes and functions can be imported at once:
+
 ```sage
 from arithmat import *
 ```
-Alternatively, it is possible to import only specific classes. For example:
+
+Alternatively, it is possible to import only specific classes and/or functions. For example:
+
 ```sage
 from arithmat import ArithmeticMatroid, ToricArithmeticMatroid
 ```
