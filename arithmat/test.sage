@@ -392,7 +392,7 @@ class TestDualAndMinor(unittest.TestCase):
         self.assertNotIsInstance(M2, DualArithmeticMatroid)
         self.assertEqual(M, M2)
 
-        M3 = M1._minor()
+        M3 = M1.minor()
         self.assertIsInstance(M3, DualArithmeticMatroid)
         # self.assertEqual(M1, M3) # this is not an equality for (non-arithmetic) matroids
         self.assertTrue(M3.is_valid())
@@ -415,7 +415,7 @@ class TestDualAndMinor(unittest.TestCase):
         M = ArithmeticMatroid(E, rk, m)
         self.assertTrue(M.is_valid())
 
-        M1 = M._minor(contractions=[1], deletions=[2])
+        M1 = M.minor(contractions=[1], deletions=[2])
         self.assertIsInstance(M1, MinorArithmeticMatroid)
         self.assertTrue(M1.is_valid())
 
@@ -429,12 +429,12 @@ class TestDualAndMinor(unittest.TestCase):
         self.assertIsInstance(N1, DualArithmeticMatroid)
         self.assertTrue(N1.is_valid())
 
-        N2 = N1._minor(contractions=[2], deletions=[1])
+        N2 = N1.minor(contractions=[2], deletions=[1])
         self.assertTrue(N2.is_valid())
         self.assertIsInstance(N2, DualArithmeticMatroid)
         self.assertEqual(M2, N2)
 
-        N3 = N1._minor(contractions=[1], deletions=[2])
+        N3 = N1.minor(contractions=[1], deletions=[2])
         self.assertTrue(N3.is_valid())
         self.assertIsInstance(N3, DualArithmeticMatroid)
         self.assertNotEqual(M2, N3)
@@ -469,7 +469,7 @@ class TestDualAndMinor(unittest.TestCase):
         M = LinearArithmeticMatroid(A, multiplicity_function=m)
         self.assertTrue(M.is_valid())
 
-        M1 = M._minor(contractions=frozenset([1]), deletions=frozenset([2]))
+        M1 = M.minor(contractions=frozenset([1]), deletions=frozenset([2]))
         self.assertIsInstance(M1, LinearArithmeticMatroid)
         self.assertTrue(M1.is_valid())
 
@@ -488,13 +488,13 @@ class TestDualAndMinor(unittest.TestCase):
         self.assertIsInstance(N1, LinearArithmeticMatroid)
         self.assertTrue(N1.is_valid())
 
-        N2 = N1._minor(contractions=frozenset([2]), deletions=frozenset([1]))
+        N2 = N1.minor(contractions=frozenset([2]), deletions=frozenset([1]))
         self.assertTrue(N2.is_valid())
         self.assertIsInstance(N2, LinearArithmeticMatroid)
         self.assertNotEqual(M2, N2) # multiplicity functions are not equal in the sense of ==
         self.assertTrue(M2.equals(N2))
 
-        N3 = N1._minor(contractions=frozenset([1]), deletions=frozenset([2]))
+        N3 = N1.minor(contractions=frozenset([1]), deletions=frozenset([2]))
         self.assertTrue(N3.is_valid())
         self.assertIsInstance(N3, LinearArithmeticMatroid)
         self.assertNotEqual(M2, N3)
@@ -542,11 +542,11 @@ class TestToric(unittest.TestCase):
         self.assertEqual(M._multiplicity([1,2]), 1)
 
         # minor
-        M2 = M._minor(contractions=[], deletions=[1])
+        M2 = M.minor(contractions=[], deletions=[1])
         self.assertEqual(M2.groundset(), frozenset([0,2,3,4,5]))
         self.assertEqual(M2._A, matrix(ZZ, [[-1, 0, -1, 2, 7], [6, -1, -2, 2, 5]]))
 
-        M2 = M._minor(contractions=[1], deletions=[])
+        M2 = M.minor(contractions=[1], deletions=[])
         self.assertEqual(M2.groundset(), frozenset([0,2,3,4,5]))
         self.assertEqual(M2._Q, matrix(ZZ, [[]]))
         self.assertEqual(M2._multiplicity([0,2]), 1)
@@ -625,7 +625,7 @@ class TestToric(unittest.TestCase):
         self.assertEqual(M2.groundset(), frozenset([0,2,3,4,5]))
         self.assertEqual(M2._Q, matrix(ZZ, [[]]))
         self.assertEqual(M2.multiplicity([0,2]), 1)
-    
+
     def test_minor2(self):
         A = matrix(ZZ, [[2,1],[0,3]])
         M = ToricArithmeticMatroid(A).minor(contractions=[0], deletions=[])

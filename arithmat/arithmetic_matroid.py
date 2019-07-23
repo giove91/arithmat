@@ -122,7 +122,7 @@ class ArithmeticMatroidMixin(SageObject):
         return True
 
 
-    def _is_isomorphic(self, other):
+    def _is_isomorphic(self, other, certificate=False):
         """
         Test if self is isomorphic to other.
         Internal version that performs no checks on input (see Matroid.is_isomorphic).
@@ -226,7 +226,7 @@ class ArithmeticMatroidMixin(SageObject):
         return all(self.multiplicity(X) == reduce(gcd, (self.multiplicity(B) for B in self.bases() if len(B.intersection(X)) == self.rank(X)), 0) for X in powerset(self.groundset()))
 
 
-    def _minor(self, contractions=[], deletions=[]):
+    def minor(self, contractions=[], deletions=[]):
         # get minor as a (non-arithmetic) matroid
         matroid = super(ArithmeticMatroidMixin, self)._minor(contractions, deletions)
 
@@ -566,7 +566,7 @@ class MinorArithmeticMatroid(ArithmeticMatroidMixin, MinorMatroid):
     def _multiplicity(self, X):
         return self._matroid._multiplicity(self._contractions.union(X))
 
-    def _minor(self, contractions=[], deletions=[]):
+    def minor(self, contractions=[], deletions=[]):
         return MinorArithmeticMatroid(self._matroid, self._contractions.union(contractions), self._deletions.union(deletions))
 
 
@@ -596,9 +596,9 @@ class DualArithmeticMatroid(ArithmeticMatroidMixin, DualMatroid):
     def dual(self):
         return self._matroid
 
-    def _minor(self, contractions=[], deletions=[]):
+    def minor(self, contractions=[], deletions=[]):
         # Assumption: if self._matroid cannot make a dual, neither can its minor.
-        return DualArithmeticMatroid(self._matroid._minor(contractions=deletions, deletions=contractions))
+        return DualArithmeticMatroid(self._matroid.minor(contractions=deletions, deletions=contractions))
 
 
 
@@ -689,7 +689,7 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
         return True
 
 
-    def _minor(self, contractions=[], deletions=[]):
+    def minor(self, contractions=[], deletions=[]):
         contractions = list(contractions)
         deletions = list(deletions)
 
@@ -709,7 +709,7 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
             temp_elements = [e-1 for e in temp_elements]
 
         M = ToricArithmeticMatroid(arrangement_matrix=I, torus_matrix=T, ordered_groundset=list(self._E)+temp_elements)
-        return M._minor(deletions=temp_elements)
+        return M.minor(deletions=temp_elements)
 
 
     def representation(self, ordered_groundset=None):
