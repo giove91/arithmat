@@ -625,7 +625,14 @@ class TestToric(unittest.TestCase):
         self.assertEqual(M2.groundset(), frozenset([0,2,3,4,5]))
         self.assertEqual(M2._Q, matrix(ZZ, [[]]))
         self.assertEqual(M2.multiplicity([0,2]), 1)
-
+    
+    def test_minor2(self):
+        A = matrix(ZZ, [[2,1],[0,3]])
+        M = ToricArithmeticMatroid(A).minor(contractions=[0], deletions=[])
+        N = ToricArithmeticMatroid(A).minor(contractions=[], deletions=[0])
+        self.assertFalse(M.is_torsion_free())
+        self.assertTrue(N.is_torsion_free())
+        self.assertFalse(N.is_isomorphic(M))
 
     def test_ordered_groundset(self):
         A = matrix(ZZ, [[-1, 1, 0, -1, 2, 7], [6, 1, -1, -2, 2, 5]])

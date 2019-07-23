@@ -686,12 +686,14 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
 
 
     def _minor(self, contractions=[], deletions=[]):
+        print 'pippo', contractions, deletions
         contractions = list(contractions)
         deletions = list(deletions)
-
+        print contractions, deletions
         new_groundset = [e for e in self._E if e not in contractions+deletions]
         A2 = copy.copy(self._A[:, [self._groundset_to_index[e] for e in new_groundset]])
         Q2 = block_matrix(ZZ, [[self._A[:, [self._groundset_to_index[e] for e in contractions]], self._Q]])
+        print Q2, contractions, deletions
         return ToricArithmeticMatroid(arrangement_matrix=A2, torus_matrix=Q2, ordered_groundset=new_groundset)
 
 
