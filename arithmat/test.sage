@@ -534,6 +534,24 @@ class TestDualAndMinor(unittest.TestCase):
         self.assertFalse(repr(N) is None)
 
 
+    def test_contract(self):
+        E = [1,2,3,4,5]
+
+        def rk(X):
+            return min(2, len(X))
+
+        def m(X):
+            if len(X) == 2 and all(x in [3,4,5] for x in X):
+                return 2
+            else:
+                return 1
+
+        M = ArithmeticMatroid(E, rk, m)
+        N = M.contract([2,3])
+        self.assertEqual(N.groundset(), frozenset([1,4,5]))
+
+        N = N.delete([5])
+        self.assertEqual(N.groundset(), frozenset([1,4]))
 
 
 

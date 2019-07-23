@@ -702,10 +702,9 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
         return True
 
 
-    def minor(self, contractions=[], deletions=[]):
-        print contractions, deletions
-        contractions = list(contractions)
-        deletions = list(deletions)
+    def minor(self, contractions=None, deletions=None):
+        contractions = list(contractions) if contractions else []
+        deletions = list(deletions) if deletions else []
 
         new_groundset = [e for e in self._E if e not in contractions+deletions]
         A2 = copy.copy(self._A[:, [self._groundset_to_index[e] for e in new_groundset]])
