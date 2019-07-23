@@ -439,6 +439,18 @@ class TestDualAndMinor(unittest.TestCase):
         self.assertIsInstance(N3, DualArithmeticMatroid)
         self.assertNotEqual(M2, N3)
 
+    def test_contract_delete(self):
+        A = matrix(ZZ, [[2,0,4],[0,3,0]])
+        M = ToricArithmeticMatroid(A)
+        D = M.delete([1,2])
+        C = M.contract([1,2])
+        assertEqual(C.full_multiplicity(),6)
+        assertEqual(D.full_multiplicity(),2)
+        assertEqual(C.multiplicity([]),12)
+        assertEqual(D.multiplicity([]),0)
+        assertEqual(C,M.minor(contractions=[1,2], deletions=[]))
+        assertEqual(D,M.minor(contractions=[], deletions=[1,2]))
+
 
     def test_dual_linear_matroid(self):
         A = matrix(QQ, [[-1, 1, 0, -1, 2, 7], [6, 1, -1, -2, 2, 5]])
