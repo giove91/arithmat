@@ -327,10 +327,10 @@ class TestArithmeticMatroid(unittest.TestCase):
         A = matrix(ZZ, [[1]])
         B = matrix(ZZ, [[3,1],[0,1]])
         M = ToricArithmeticMatroid(A)
-        N = ToricArithmeticMatroid(B).minor(deletions = [0])
-        
-        self.assertFalse(N.is_isomorphic(M))
-
+        DN = ToricArithmeticMatroid(B).minor(deletions = [0])
+        CN = ToricArithmeticMatroid(B).minor(contractions = [0])
+        self.assertTrue(DN.is_isomorphic(M))
+        self.assertFalse(CN.is_isomorphic(M))
 
     def test_num_representations(self):
         r = 3
