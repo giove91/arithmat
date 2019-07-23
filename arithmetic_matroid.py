@@ -684,7 +684,7 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
         while len(frozenset(temp_elements).intersection(self.groundset())) > 0:
             temp_elements = [e-1 for e in temp_elements]
 
-        M = ToricArithmeticMatroid(arrangement_matrix=I, torus_matrix=T, ordered_groundset=self._E+temp_elements)
+        M = ToricArithmeticMatroid(arrangement_matrix=I, torus_matrix=T, ordered_groundset=list(self._E)+temp_elements)
         return M._minor(deletions=temp_elements)
 
 
