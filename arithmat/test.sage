@@ -444,12 +444,12 @@ class TestDualAndMinor(unittest.TestCase):
         M = ToricArithmeticMatroid(A)
         D = M.delete([1,2])
         C = M.contract([1,2])
-        assertEqual(C.full_multiplicity(),6)
-        assertEqual(D.full_multiplicity(),2)
-        assertEqual(C.multiplicity([]),12)
-        assertEqual(D.multiplicity([]),0)
-        assertEqual(C,M.minor(contractions=[1,2], deletions=[]))
-        assertEqual(D,M.minor(contractions=[], deletions=[1,2]))
+        self.assertEqual(C.full_multiplicity(), 6)
+        self.assertEqual(D.full_multiplicity(), 2)
+        self.assertEqual(C.multiplicity([]), 12)
+        self.assertEqual(D.multiplicity([]), 1)
+        self.assertEqual(C,M.minor(contractions=[1,2], deletions=[]))
+        self.assertEqual(D,M.minor(contractions=[], deletions=[1,2]))
 
 
     def test_dual_linear_matroid(self):
