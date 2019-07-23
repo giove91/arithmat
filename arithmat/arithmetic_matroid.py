@@ -241,7 +241,7 @@ class ArithmeticMatroidMixin(SageObject):
 
     def minor(self, contractions=[], deletions=[]):
         # get minor as a (non-arithmetic) matroid
-        matroid = super(ArithmeticMatroidMixin, self)._minor(contractions, deletions)
+        matroid = super(ArithmeticMatroidMixin, self).minor(contractions, deletions)
 
         if isinstance(matroid, MinorMatroid):
             # return an instance of MinorArithmeticMatroid
@@ -252,7 +252,7 @@ class ArithmeticMatroidMixin(SageObject):
             matroid.__class__ = type(self)
 
             # add multiplicity function
-            matroid._multiplicity = lambda X : self._multiplicity(contractions.union(X))
+            matroid._multiplicity = lambda X : self._multiplicity(frozenset(contractions).union(X))
 
             return matroid
 
