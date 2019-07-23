@@ -28,7 +28,7 @@ The easiest way to start using Arithmat is to install the latest release from Py
 Type the following command:
 
 ```bash
-sage -pip install arithmat
+sage -pip install --upgrade arithmat
 ```
 
 ### From source
