@@ -246,6 +246,10 @@ All subclasses of `ArithmeticMatroidMixin` also (re-)implement the following met
 * `is_strong_gcd()`
   Check if the matroid satisfies the strong gcd property, as defined in [PP19].
 
+* `is_isomorphic(other, morphism)`
+  Check if the two arithmetic matroids are isomorphic.
+  This method overwrites `Matroid.is_isomorphic`.
+
 * `is_isomorphism(other, morphism)`
   Check if the given morphism of groundsets is an isomoprhism of arithmetic matroids.
   It works also when comparing instances of different subclasses of `ArithmeticMatroid`.
