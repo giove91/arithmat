@@ -239,9 +239,12 @@ class ArithmeticMatroidMixin(SageObject):
         return all(self.multiplicity(X) == reduce(gcd, (self.multiplicity(B) for B in self.bases() if len(B.intersection(X)) == self.rank(X)), 0) for X in powerset(self.groundset()))
 
 
-    def minor(self, contractions=[], deletions=[]):
+    def minor(self, contractions=None, deletions=None):
         # get minor as a (non-arithmetic) matroid
         matroid = super(ArithmeticMatroidMixin, self).minor(contractions, deletions)
+
+        contractions = list(contractions) if contractions else []
+        deletions = list(deletions) if deletions else []
 
         if isinstance(matroid, MinorMatroid):
             # return an instance of MinorArithmeticMatroid
@@ -579,7 +582,11 @@ class MinorArithmeticMatroid(ArithmeticMatroidMixin, MinorMatroid):
     def _multiplicity(self, X):
         return self._matroid._multiplicity(self._contractions.union(X))
 
-    def minor(self, contractions=[], deletions=[]):
+    def minor(self, contractions=None, deletions=None):
+        if contractions is None:
+            contractions = []
+        if deletions is None:
+            deletions = []
         return MinorArithmeticMatroid(self._matroid, self._contractions.union(contractions), self._deletions.union(deletions))
 
 
@@ -609,7 +616,7 @@ class DualArithmeticMatroid(ArithmeticMatroidMixin, DualMatroid):
     def dual(self):
         return self._matroid
 
-    def minor(self, contractions=[], deletions=[]):
+    def minor(self, contractions=None, deletions=None):
         # Assumption: if self._matroid cannot make a dual, neither can its minor.
         return DualArithmeticMatroid(self._matroid.minor(contractions=deletions, deletions=contractions))
 
@@ -701,10 +708,9 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
     def is_valid(self):
         return True
 
-
-    def minor(self, contractions=[], deletions=[]):
-        contractions = list(contractions)
-        deletions = list(deletions)
+    def minor(self, contractions=None, deletions=None):
+        contractions = list(contractions) if contractions else []
+        deletions = list(deletions) if deletions else []
 
         new_groundset = [e for e in self._E if e not in contractions+deletions]
         A2 = copy.copy(self._A[:, [self._groundset_to_index[e] for e in new_groundset]])

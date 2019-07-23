@@ -444,12 +444,12 @@ class TestDualAndMinor(unittest.TestCase):
         M = ToricArithmeticMatroid(A)
         D = M.delete([1,2])
         C = M.contract([1,2])
-        assertEqual(C.full_multiplicity(),6)
-        assertEqual(D.full_multiplicity(),2)
-        assertEqual(C.multiplicity([]),12)
-        assertEqual(D.multiplicity([]),0)
-        assertEqual(C,M.minor(contractions=[1,2], deletions=[]))
-        assertEqual(D,M.minor(contractions=[], deletions=[1,2]))
+        self.assertEqual(C.full_multiplicity(), 6)
+        self.assertEqual(D.full_multiplicity(), 2)
+        self.assertEqual(C.multiplicity([]), 12)
+        self.assertEqual(D.multiplicity([]), 1)
+        self.assertEqual(C,M.minor(contractions=[1,2], deletions=[]))
+        self.assertEqual(D,M.minor(contractions=[], deletions=[1,2]))
 
 
     def test_dual_linear_matroid(self):
@@ -534,6 +534,24 @@ class TestDualAndMinor(unittest.TestCase):
         self.assertFalse(repr(N) is None)
 
 
+    def test_contract(self):
+        E = [1,2,3,4,5]
+
+        def rk(X):
+            return min(2, len(X))
+
+        def m(X):
+            if len(X) == 2 and all(x in [3,4,5] for x in X):
+                return 2
+            else:
+                return 1
+
+        M = ArithmeticMatroid(E, rk, m)
+        N = M.contract([2,3])
+        self.assertEqual(N.groundset(), frozenset([1,4,5]))
+
+        N = N.delete([5])
+        self.assertEqual(N.groundset(), frozenset([1,4]))
 
 
 
