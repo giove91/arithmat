@@ -26,8 +26,10 @@ Authors: Giovanni Paolini and Roberto Pagaria
 ## Overview
 
 Arithmat is a Sage package that implements arithmetic matroids.
+
 At its core there is the class `ArithmeticMatroidMixin`, which is intended to be used in combination with [any existing matroid class of Sage](http://doc.sagemath.org/html/en/reference/matroids/index.html) (e.g. `RankMatroid`, `BasisMatroid`, `LinearMatroid`) via multiple inheritance.
 The most common combinations are already defined: `ArithmeticMatroid` (deriving from `RankMatroid`), `BasisArithmeticMatroid` (deriving from `BasisMatroid`), and `LinearArithmeticMatroid` (deriving from `LinearMatroid`).
+
 An additional class `ToricArithmeticMatroid` is implemented, for arithmetic matroids constructed from a fixed given representation.
 
 ## Documentation
@@ -54,7 +56,7 @@ The classes which are already provided in `arithmat` are the following.
 * `ArithmeticMatroid(groundset, rank_function, multiplicity_function)`
 
   This is the simplest arithmetic matroid class, and derives from `ArithmeticMatroidMixin` and `RankMatroid`.
-  Example:
+  
   ```sage
   E = [1,2,3,4,5]
 
@@ -85,7 +87,6 @@ The classes which are already provided in `arithmat` are the following.
 
   The two matrices are not guaranteed to remain unchanged: internally,`torus_matrix` is kept in Smith normal form (this also affects `arrangement_matrix`).
 
-  Example:
   ```sage
   A = matrix(ZZ, [[-1, 1, 0, 2], [3, 1, -1, -2]])
   M = ToricArithmeticMatroid(A)
@@ -268,6 +269,17 @@ In addition, `ToricArithmeticMatroid` has the following method.
 * `poset_of_layers()`
   Return the poset of layers of the toric arrangement, computed using Lenz's algorithm [Len17a].
 
+The following function is available outside of arithmetic matroid classes.
+
+* `signed_hermite_normal_form(A)`
+  Return the signed Hermite normal form of the integer matrix `A`, as defined in [PP19].
+  ```sage
+  from arithmat import signed_hermite_normal_form
+  
+  print signed_hermite_normal_form(matrix([[3, 2, 1], [-1, 1, 3]]))
+  # [  1   1  -3]
+  # [  0   5 -10]
+  ```
 
 
 ## Bibliography
