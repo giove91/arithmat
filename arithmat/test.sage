@@ -328,7 +328,7 @@ class TestArithmeticMatroid(unittest.TestCase):
         B = matrix(ZZ, [[3,1],[0,1]])
         M = ToricArithmeticMatroid(A)
         N = ToricArithmeticMatroid(B).minor(deletions = [0])
-    
+
         self.assertFalse(N.is_isomorphic(M))
 
 
@@ -515,11 +515,11 @@ class TestDualAndMinor(unittest.TestCase):
 
         M = ArithmeticMatroid(E, rk, m)
         N = M.delete([2,3])
-        print N.groundset()
+        self.assertEqual(N.groundset(), frozenset([1,4,5]))
 
         N = N.delete([5])
-        print N.groundset()
-        print N
+        self.assertEqual(N.groundset(), frozenset([1,4]))
+        self.assertFalse(repr(N) is None)
 
 
 

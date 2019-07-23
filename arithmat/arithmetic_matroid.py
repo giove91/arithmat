@@ -549,9 +549,13 @@ class MinorArithmeticMatroid(ArithmeticMatroidMixin, MinorMatroid):
         super(ArithmeticMatroidMixin, self).__init__(*args, **kwargs)
 
     def _repr_(self):
-        print "Sono qua"
-        print super(ArithmeticMatroidMixin, self)
-        super(ArithmeticMatroidMixin, self)._repr_()
+        s = "M"
+        if self._contractions:
+            s += r" / " + setprint_s(self._contractions)
+        if self._deletions:
+            s += r" \ " + setprint_s(self._deletions)
+        s += ", where M is " + repr(self._matroid)
+        return s
 
     def __eq__(self, other):
         return (self._contractions == other._contractions) and (self._deletions == other._deletions) and (self._matroid == other._matroid)
@@ -1007,3 +1011,51 @@ def _hermite_normal_forms(r, det):
                         else column[i] if j == r-1
                         else 0
                     )
+
+
+# copied from sage.matroids.utilities
+def setprint_s(X, toplevel=False):
+    """
+    Create the string for use by ``setprint()``.
+
+    INPUT:
+
+    - ``X`` -- any Python object
+    - ``toplevel`` -- (default: ``False``) indicates whether this is a
+      recursion or not.
+
+    OUTPUT:
+
+    A string representation of the object, with nice notation for sets and
+    frozensets.
+
+    EXAMPLES::
+
+        sage: from sage.matroids.utilities import setprint_s
+        sage: L = [{1, 2, 3}, {1, 2, 4}, {2, 3, 4}, {4, 1, 3}]
+        sage: setprint_s(L)
+        '[{1, 2, 3}, {1, 2, 4}, {1, 3, 4}, {2, 3, 4}]'
+
+    The ``toplevel`` argument only affects strings, to mimic ``print``'s
+    behavior::
+
+        sage: X = 'abcd'
+        sage: setprint_s(X)
+        "'abcd'"
+        sage: setprint_s(X, toplevel=True)
+        'abcd'
+    """
+    if isinstance(X, frozenset) or isinstance(X, set):
+        return '{' + ', '.join(sorted(setprint_s(x) for x in X)) + '}'
+    elif isinstance(X, dict):
+        return '{' + ', '.join(sorted(setprint_s(key) + ': ' + setprint_s(val)
+                                      for key, val in iteritems(X))) + '}'
+    elif isinstance(X, str):
+        if toplevel:
+            return X
+        else:
+            return "'" + X + "'"
+    elif hasattr(X, '__iter__') and not isinstance(X, SageObject):
+        return '[' + ', '.join(sorted(setprint_s(x) for x in X)) + ']'
+    else:
+        return repr(X)
