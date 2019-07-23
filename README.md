@@ -4,7 +4,7 @@ Sage implementation of arithmetic matroids and toric arrangements.
 Authors: Giovanni Paolini and Roberto Pagaria
 
 * [Requirements](#requirements)
-* [Quick start](#quick-start)
+* [Installation](#installation)
 * [Overview](#overview)
 * [Documentation](#documentation)
   + [Import](#import)
@@ -20,12 +20,35 @@ Authors: Giovanni Paolini and Roberto Pagaria
 * [Sage](http://www.sagemath.org/) >= 8
 
 
-## Quick start
-...
+## Installation
+
+### From PyPI
+
+The easiest way to start using Arithmat is to install the latest release from PyPI.
+Type the following command:
+
+```bash
+sage -pip install arithmat
+```
+
+### From source
+
+Download the source from the git repository:
+
+```bash
+git clone https://github.com/giove91/arithmat.git
+```
+
+Change to the root directory and run:
+
+```bash
+sage -pip install --upgrade --no-index -v .
+```
+
 
 ## Overview
 
-Arithmat is a Sage package that implements arithmetic matroids.
+Arithmat is a Sage package that implements arithmetic matroids and toric arrangements.
 
 At its core there is the class `ArithmeticMatroidMixin`, which is intended to be used in combination with [any existing matroid class of Sage](http://doc.sagemath.org/html/en/reference/matroids/index.html) (e.g. `RankMatroid`, `BasisMatroid`, `LinearMatroid`) via multiple inheritance.
 The most common combinations are already defined: `ArithmeticMatroid` (deriving from `RankMatroid`), `BasisArithmeticMatroid` (deriving from `BasisMatroid`), and `LinearArithmeticMatroid` (deriving from `LinearMatroid`).
