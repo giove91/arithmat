@@ -703,7 +703,6 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
 
 
     def minor(self, contractions=[], deletions=[]):
-        print contractions, deletions
         contractions = list(contractions)
         deletions = list(deletions)
 
