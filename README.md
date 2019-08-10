@@ -6,6 +6,7 @@ Authors: Giovanni Paolini and Roberto Pagaria
 * [Requirements](#requirements)
 * [Installation](#installation)
 * [Overview](#overview)
+* [Citing Arithmat](#citing-arithmat)
 * [Documentation](#documentation)
   + [Import](#import)
   + [Available classes for arithmetic matroids](#available-classes-for-arithmetic-matroids)
@@ -54,6 +55,20 @@ At its core there is the class `ArithmeticMatroidMixin`, which is intended to be
 The most common combinations are already defined: `ArithmeticMatroid` (deriving from `RankMatroid`), `BasisArithmeticMatroid` (deriving from `BasisMatroid`), and `LinearArithmeticMatroid` (deriving from `LinearMatroid`).
 
 An additional class `ToricArithmeticMatroid` is implemented, for arithmetic matroids constructed from a fixed given representation.
+
+
+## Citing Arithmat
+
+To cite Arithmat, you can use (some variant of) the following BibTeX code:
+
+```latex
+@Misc{,
+  author = {Pagaria, Roberto and Paolini, Giovanni},
+  title = {{Arithmat}: {Sage} implementation of arithmetic matroids and toric arrangements},
+  year = {2019},
+  url = "https://github.com/giove91/arithmat",
+}
+```
 
 ## Documentation
 
