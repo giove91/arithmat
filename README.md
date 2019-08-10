@@ -62,7 +62,7 @@ An additional class `ToricArithmeticMatroid` is implemented, for arithmetic matr
 To cite Arithmat, you can use (some variant of) the following BibTeX code:
 
 ```latex
-@Misc{,
+@Misc{arithmat,
   author = {Pagaria, Roberto and Paolini, Giovanni},
   title = {{Arithmat}: {Sage} implementation of arithmetic matroids and toric arrangements},
   year = {2019},
