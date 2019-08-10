@@ -148,7 +148,7 @@ The classes which are already provided in `arithmat` are the following.
 
   P.show(label_elements=False)
   ```
-  <img src="https://github.com/giove91/arithmat/raw/master/figures/poset.png" height="240">
+  <img src="figures/poset.png" height="240">
 
   ```sage
   Q = matrix(ZZ, [[5], [1]])
