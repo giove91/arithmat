@@ -340,6 +340,8 @@ The following function is available outside of arithmetic matroid classes.
   # [  0   5 -10]
   ```
 
+More examples can be found in the [test file](https://github.com/giove91/arithmat/blob/master/arithmat/test.sage).
+
 
 ## Bibliography
 
