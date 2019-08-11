@@ -25,7 +25,7 @@ Authors: Giovanni Paolini and Roberto Pagaria
 
 ### From PyPI
 
-The easiest way to start using Arithmat is to install the latest release from PyPI.
+The easiest way to start using Arithmat is to install [the latest release from PyPI](https://pypi.org/project/arithmat/).
 Type the following command:
 
 ```bash
