@@ -957,7 +957,7 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
 
     def arithmetic_independence_poset(self):
         """
-        Poset of (arithmetic) independent sets of the central toric arrangement defined by the integer matrix A.
+        Compute the poset of (arithmetic) independent sets of the associated central toric arrangement.
         This is defined in [Len17c, Definition 5], [Mar18, Definitions 2.1 and 2.2], [DD18, Section 7].
         Notice that it is not the same as the independence poset of the underlying matroid.
         """
