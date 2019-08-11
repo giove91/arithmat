@@ -256,17 +256,17 @@ All subclasses of `ArithmeticMatroidMixin` also (re-)implement the following met
   Check if the matroid is surjective, i.e. the multiplicity of the groundset is equal to 1.
 
 * `is_gcd()`
-  Check if the matroid satisfies the gcd property.
+  Check if the matroid satisfies the gcd property, defined in [DM13, Section 3].
 
 * `is_strong_gcd()`
-  Check if the matroid satisfies the strong gcd property, as defined in [PP19].
+  Check if the matroid satisfies the strong gcd property, defined in [PP19, Section 3].
 
 * `is_isomorphic(other, morphism)`
   Check if the two arithmetic matroids are isomorphic.
   This method overwrites `Matroid.is_isomorphic`.
 
 * `is_isomorphism(other, morphism)`
-  Check if the given morphism of groundsets is an isomoprhism of arithmetic matroids.
+  Check if the given morphism of groundsets is an isomorphism of arithmetic matroids.
   It works also when comparing instances of different subclasses of `ArithmeticMatroid`.
   This method overwrites `Matroid.is_isomorphism`.
 
@@ -286,18 +286,18 @@ All subclasses of `ArithmeticMatroidMixin` also (re-)implement the following met
   Return the arithmetic Tutte polynomial of the matroid.
 
 * `reduction()`
-  Return the reduction of the matroid, as defined in [PP19].
+  Return the reduction of the matroid, defined in [PP19, Section 4].
 
 * `check_representation(A, ordered_groundset=None)`
   Check if the given integer matrix `A` is a representation of the matroid.
   The optional parameter `ordered_groundset` specifies the bijection between the columns of the matrix and the groundset.
 
 * `all_representations(ordered_groundset=None)`
-  Generator of all non-equivalent essential representations of the matroid, computed using the algorithm described in [PP19].
+  Generator of all non-equivalent essential representations of the matroid, computed using the algorithm of [PP19, Section 5].
 
 * `num_representations()`
   Return the number of non-equivalent essential representations of the matroid.
-  This is not faster than `all_representations`.
+  This calls `all_representations`.
 
 * `representation(ordered_groundset=None)`
   Return any essential representation of the matroid, or `None` if the matroid is not representable.
@@ -307,17 +307,31 @@ All subclasses of `ArithmeticMatroidMixin` also (re-)implement the following met
   This is not faster than `representation`.
 
 * `is_orientable()`
-  Check if the matroid is orientable as an arithmetic matroid, according to [Pag18].
+  Check if the matroid is orientable as an arithmetic matroid, as defined in [Pag18].
 
-In addition, `ToricArithmeticMatroid` has the following method.
+In addition, `ToricArithmeticMatroid` has the following methods.
 
 * `poset_of_layers()`
   Return the poset of layers of the toric arrangement, computed using Lenz's algorithm [Len17a].
 
+* `arithmetic_independence_poset()`
+  Return the arithmetic independence poset of the toric arrangement, defined in [Len17c, Definition 5], [Mar18, Definitions 2.1 and 2.2], [DD18, Section 7].
+  Notice that it is not the same as the independence poset of the underlying matroid.
+
+* `decomposition()`
+  Return the partition of the groundset corresponding to the decomposition of the matroid as a direct sum of indecomposable matroids.
+  Uses the algorithm of [PP19, Section 7].
+
+* `is_decomposable()`
+  Check if the matroid is decomposable.
+
+* `is_indecomposable()`
+  Check if the matroid is not decomposable.
+
 The following function is available outside of arithmetic matroid classes.
 
 * `signed_hermite_normal_form(A)`
-  Return the signed Hermite normal form of the integer matrix `A`, as defined in [PP19].
+  Return the signed Hermite normal form of the integer matrix `A`, defined in [PP19, Section 6].
   ```sage
   from arithmat import signed_hermite_normal_form
   
