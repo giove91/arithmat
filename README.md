@@ -122,7 +122,7 @@ The classes which are already provided in `arithmat` are the following.
   ```
 * `ToricArithmeticMatroid(arrangement_matrix, torus_matrix=None, ordered_groundset=None)`
 
-  Arithmetic matroid associated to a given toric arrangement. This class derives from `ArithmeticMatroidMixin` and `Matroid`.
+  Arithmetic matroid associated with a given toric arrangement. This class derives from `ArithmeticMatroidMixin` and `Matroid`.
 
   The constructor requires an integer matrix `arrangement_matrix` representing the toric arrangement. Otionally it accepts another integer matrix `torus_matrix` (whose cokernel describes the ambient torus, and defaults to `matrix(ZZ, arrangement_matrix.nrows(), 0)`) and/or an ordered copy `ordered_groundset` of the groundset (defaults to `range(matrix.ncols())`). The number of rows of `arrangement_matrix` must be equal to the numer of rows of `torus_matrix`.
 
