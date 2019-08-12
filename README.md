@@ -124,7 +124,7 @@ The classes which are already provided in `arithmat` are the following.
 
   Arithmetic matroid associated with a given toric arrangement. This class derives from `ArithmeticMatroidMixin` and `Matroid`.
 
-  The constructor requires an integer matrix `arrangement_matrix` representing the toric arrangement. Otionally it accepts another integer matrix `torus_matrix` (whose cokernel describes the ambient torus, and defaults to `matrix(ZZ, arrangement_matrix.nrows(), 0)`) and/or an ordered copy `ordered_groundset` of the groundset (defaults to `range(matrix.ncols())`). The number of rows of `arrangement_matrix` must be equal to the numer of rows of `torus_matrix`.
+  The constructor requires an integer matrix `arrangement_matrix` representing the toric arrangement. Optionally it accepts another integer matrix `torus_matrix` (whose cokernel describes the ambient torus, and defaults to `matrix(ZZ, arrangement_matrix.nrows(), 0)`) and/or an ordered copy `ordered_groundset` of the groundset (defaults to `range(matrix.ncols())`). The number of rows of `arrangement_matrix` must be equal to the numer of rows of `torus_matrix`.
 
   The two matrices are not guaranteed to remain unchanged: internally,`torus_matrix` is kept in Smith normal form (this also affects `arrangement_matrix`).
 
@@ -151,6 +151,7 @@ The classes which are already provided in `arithmat` are the following.
   <img src="https://github.com/giove91/arithmat/raw/master/figures/poset.png" height="240">
 
   ```sage
+  A = matrix(ZZ, [[-1, 1, 0, 2], [3, 1, -1, -2]])
   Q = matrix(ZZ, [[5], [1]])
   N = ToricArithmeticMatroid(A, Q)
 
