@@ -367,7 +367,7 @@ More examples can be found in the [test file](https://github.com/giove91/arithma
 
 [Pag19] R. Pagaria, *Two Examples of Toric Arrangements*, Journal of Combinatorial Theory, Series A **167** (2019), 389-402.
 
-[PP19] R. Pagaria and G. Paolini, *??*, ArXiv preprint ?? (2019).
+[PP19] R. Pagaria and G. Paolini, *Representations of torsion-free arithmetic matroids*, to appear (2019).
 
 
 ## License
