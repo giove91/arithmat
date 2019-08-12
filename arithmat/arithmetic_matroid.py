@@ -40,7 +40,7 @@ from sage.arith.misc import divisors, gcd
 
 
 
-from shnf import signed_hermite_normal_form as _signed_hermite_normal_form
+from shnf import signed_hermite_normal_form
 
 
 class ArithmeticMatroidMixin(SageObject):
@@ -227,14 +227,14 @@ class ArithmeticMatroidMixin(SageObject):
 
     def is_gcd(self):
         """
-        Check if the matroid satisfies the gcd property.
+        Check if the matroid satisfies the gcd property, defined in [DM13, Section 3].
         """
         return all(self.multiplicity(X) == reduce(gcd, (self.multiplicity(I) for I in powerset(X) if self.rank(X) == self.rank(I) and self.is_independent(I)), 0) for X in powerset(self.groundset()))
 
 
     def is_strong_gcd(self):
         """
-        Check if the matroid satisfies the gcd property, as defined in [PP18].
+        Check if the matroid satisfies the gcd property, defined in [PP19, Section 3].
         """
         return all(self.multiplicity(X) == reduce(gcd, (self.multiplicity(B) for B in self.bases() if len(B.intersection(X)) == self.rank(X)), 0) for X in powerset(self.groundset()))
 
@@ -280,7 +280,7 @@ class ArithmeticMatroidMixin(SageObject):
 
     def reduction(self):
         """
-        Return reduction of the matroid, as defined in [PP18].
+        Return reduction of the matroid, as defined in [PP19, Section 4].
         """
         d = reduce(gcd, [self.multiplicity(B) for B in self.bases()], 0)
 
@@ -444,6 +444,7 @@ class ArithmeticMatroidMixin(SageObject):
     def all_representations(self, ordered_groundset=None):
         """
         Generator of all non-equivalent essential representations.
+        Uses the algorithm of [PP19, Section 5].
         """
         if self.multiplicity([]) > 1:
             raise NotImplementedError
@@ -474,7 +475,7 @@ class ArithmeticMatroidMixin(SageObject):
         # try all left Hermite normal forms
         for H in _hermite_normal_forms(r, self.multiplicity(self.groundset())):
             if self.check_representation(H*A):
-                B = _signed_hermite_normal_form(H*A)
+                B = signed_hermite_normal_form(H*A)
                 if B not in found_representations:
                     found_representations.add(B)
                     yield B
