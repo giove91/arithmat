@@ -222,10 +222,7 @@ The multiplicity function needs to be passed as a keyword argument (and not as a
   ```
 
 Finally, `MinorArithmeticMatroid` and `DualArithmeticMatroid` are the analogs of `MinorMatroid` and `DualMatroid`.
-
-* `MinorArithmeticMatroid`
-* `DualArithmeticMatroid`
-
+They are used when calling `contract(X)`, `delete(X)`, `dual()` (see below).
 
 
 ### Available methods
@@ -298,14 +295,14 @@ All subclasses of `ArithmeticMatroidMixin` also (re-)implement the following met
 
 * `num_representations()`
   Return the number of non-equivalent essential representations of the matroid.
-  This calls `all_representations`.
+  This calls `all_representations()`.
 
 * `representation(ordered_groundset=None)`
   Return any essential representation of the matroid, or `None` if the matroid is not representable.
 
 * `is_representable()`
   Check if the matroid is representable.
-  This is not faster than `representation`.
+  This calls `representation()`.
 
 * `is_orientable()`
   Check if the matroid is orientable as an arithmetic matroid, as defined in [Pag18].
