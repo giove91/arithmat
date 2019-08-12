@@ -856,6 +856,44 @@ class TestToric(unittest.TestCase):
         self.assertEqual(set(S for (S, x) in P), set([(), ('a',), ('b',), ('c',), ('a', 'c'), ('a', 'b'), ('c', 'b')]))
 
 
+    def test_nonshellable_poset_of_layers(self):
+        # see [PP19, Section 8]
+        A = matrix(ZZ, [[1,1,1,-3], [0,5,0,-5], [0,0,5,-5]])
+        B = matrix(ZZ, [[1,1,1,-1], [0,5,0,5], [0,0,5,-5]])
+        C = matrix(ZZ, [[1,2,2,1], [0,5,0,5], [0,0,5,-5]])
+
+        for X in [A, B, C]:
+            M = ToricArithmeticMatroid(X)
+            P = M.poset_of_layers()
+            homology = P.subposet([a for a in P if a != P.bottom()]).order_complex(on_ints=True).homology()
+
+            from sage.homology.homology_group import HomologyGroup
+            self.assertEqual(homology, {
+                0: HomologyGroup(0, ZZ),    # trivial group
+                1: HomologyGroup(1, ZZ, [5]),   # Z/5Z
+                2: HomologyGroup(48, ZZ),   # Z^48
+                })
+
+
+    def test_nonshellable_arithmetic_independence_poset(self):
+        # see [PP19, Section 8]
+        A = matrix(ZZ, [[1,1,1,-3], [0,5,0,-5], [0,0,5,-5]])
+        B = matrix(ZZ, [[1,1,1,-1], [0,5,0,5], [0,0,5,-5]])
+        C = matrix(ZZ, [[1,2,2,1], [0,5,0,5], [0,0,5,-5]])
+
+        for X in [A, B, C]:
+            M = ToricArithmeticMatroid(X)
+            P = M.arithmetic_independence_poset()
+            homology = P.subposet([a for a in P if a != P.bottom()]).order_complex(on_ints=True).homology()
+
+            from sage.homology.homology_group import HomologyGroup
+            self.assertEqual(homology, {
+                0: HomologyGroup(0, ZZ),    # trivial group
+                1: HomologyGroup(1, ZZ, [5]),   # Z/5Z
+                2: HomologyGroup(73, ZZ),   # Z^73
+                })
+
+
 
 class TestReduction(unittest.TestCase):
 
