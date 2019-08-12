@@ -268,13 +268,17 @@ All subclasses of `ArithmeticMatroidMixin` also (re-)implement the following met
   It works also when comparing instances of different subclasses of `ArithmeticMatroid`.
   This method overwrites `Matroid.is_isomorphism`.
 
+* `contract(X)`
+  Contract elements.
+  This method overwrites `Matroid.contract`.
+
 * `delete(X)`
   Delete elements.
   This method overwrites `Matroid.delete`.
 
-* `contract(X)`
-  Contract elements.
-  This method overwrites `Matroid.contract`.
+* `minor(contractions=None, deletions=None)`
+  Contract some elements and delete some other elements.
+  This method overwrites `Matroid.minor`.
 
 * `dual()`
   Return the dual of the matroid.
@@ -309,6 +313,15 @@ All subclasses of `ArithmeticMatroidMixin` also (re-)implement the following met
 
 In addition, `ToricArithmeticMatroid` has the following methods.
 
+* `ordered_groundset()`
+  Return the groundset as a list, in the same order as the columns of the matrix of the defining toric arrangement.
+
+* `arrangement_matrix()`
+  Return the matrix of the defining toric arrangement.
+
+* `torus_matrix()`
+  Return the matrix describing the ambient torus.
+
 * `poset_of_layers()`
   Return the poset of layers of the toric arrangement, computed using Lenz's algorithm [Len17a].
 
@@ -325,6 +338,10 @@ In addition, `ToricArithmeticMatroid` has the following methods.
 
 * `is_indecomposable()`
   Check if the matroid is not decomposable.
+
+* `is_equivalent(other, morphism=None)`
+  Check if the two ToricArithmeticMatroids are equivalent (i.e. the defining representations are equivalent; see [PP19, Section 2]).
+  If the morphism is not given, the two ordered groundsets are assumed to be the same.
 
 The following function is available outside of arithmetic matroid classes.
 
