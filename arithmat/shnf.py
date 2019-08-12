@@ -23,8 +23,8 @@ from sage.matrix.special import diagonal_matrix, identity_matrix
 
 def signed_hermite_normal_form(A):
     """
-    Signed Hermite normal form of an integer matrix A, see [PP19].
-    This is a normal form up to left multiplication by an invertible matrix and change of sign of the columns.
+    Signed Hermite normal form of an integer matrix A, see [PP19, Section 6].
+    This is a normal form up to left-multiplication by invertible matrices and change of sign of the columns.
     A matrix in signed Hermite normal form is also in left Hermite normal form.
     """
     r = A.nrows()
@@ -33,10 +33,8 @@ def signed_hermite_normal_form(A):
     m = 0   # rank of A[:,:j]
 
     for j in xrange(n):
-        # print "Column:", j
         A = A.echelon_form()
         q = A[m,j] if m < r else 0  # pivot
-        # print "Pivot:", q
 
         phi = []
         for S in G_basis:
@@ -50,7 +48,6 @@ def signed_hermite_normal_form(A):
 
         for i in reversed(range(m)):
             # find possible values of A[i,j]
-            # print "Row", i
             x = A[i,j]
             if q > 0:
                 x %= q
