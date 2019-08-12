@@ -22,7 +22,7 @@ along with this program. If not, see http://www.gnu.org/licenses/.
 import unittest
 import itertools
 from arithmetic_matroid import *
-from shnf import signed_hermite_normal_form as normal_form
+from shnf import signed_hermite_normal_form as shnf
 
 
 def representation_to_matroid(A):
@@ -439,6 +439,7 @@ class TestDualAndMinor(unittest.TestCase):
         self.assertIsInstance(N3, DualArithmeticMatroid)
         self.assertNotEqual(M2, N3)
 
+
     def test_contract_delete(self):
         A = matrix(ZZ, [[2,0,4],[0,3,0]])
         M = ToricArithmeticMatroid(A)
@@ -656,6 +657,7 @@ class TestToric(unittest.TestCase):
         self.assertEqual(M2._Q, matrix(ZZ, [[]]))
         self.assertEqual(M2.multiplicity([0,2]), 1)
 
+
     def test_minor2(self):
         A = matrix(ZZ, [[2,1],[0,3]])
         M = ToricArithmeticMatroid(A).minor(contractions=[0], deletions=[])
@@ -663,6 +665,7 @@ class TestToric(unittest.TestCase):
         self.assertFalse(M.is_torsion_free())
         self.assertTrue(N.is_torsion_free())
         self.assertFalse(N.is_isomorphic(M))
+
 
     def test_ordered_groundset(self):
         A = matrix(ZZ, [[-1, 1, 0, -1, 2, 7], [6, 1, -1, -2, 2, 5]])
@@ -681,7 +684,6 @@ class TestToric(unittest.TestCase):
         # test failure if there are repetition in the ordered groundset
         with self.assertRaises(AssertionError):
             M = ToricArithmeticMatroid(A, ordered_groundset=['a', 'b', 'f', 'e', 'd', 'b'])
-
 
 
     def test_equivalence(self):
@@ -809,18 +811,25 @@ class TestToric(unittest.TestCase):
 
 
     def test_different_posets_of_layers(self):
-        # see [Pag19, Section 3] and [PP19]
+        # see [PP19, Section 8]
         A = matrix(ZZ, [[1,1,1,3], [0,5,0,5], [0,0,5,5]])
         B = matrix(ZZ, [[1,4,1,6], [0,5,0,5], [0,0,5,5]])
-        C = matrix(ZZ, [[1,2,2,1], [0,5,0,5], [0,0,5,-5]])  # new matrix
+        C = matrix(ZZ, [[1,2,2,1], [0,5,0,5], [0,0,5,-5]])
+
+        # check signed Hermite normal form
+        self.assertEqual(shnf(A), matrix(ZZ, [[1,1,1,-3], [0,5,0,-5], [0,0,5,-5]]))
+        self.assertEqual(shnf(B), matrix(ZZ, [[1,1,1,-1], [0,5,0,5], [0,0,5,-5]]))
+        self.assertEqual(shnf(C), matrix(ZZ, [[1,2,2,1], [0,5,0,5], [0,0,5,-5]]))
 
         MA = ToricArithmeticMatroid(A)
         MB = ToricArithmeticMatroid(B)
         MC = ToricArithmeticMatroid(C)
 
         self.assertTrue(MA.is_isomorphic(MB))
-        self.assertFalse(MA.poset_of_layers().is_isomorphic(MB.poset_of_layers()))
         self.assertTrue(MA.is_isomorphic(MC))
+        self.assertTrue(MB.is_isomorphic(MC))
+
+        self.assertFalse(MA.poset_of_layers().is_isomorphic(MB.poset_of_layers()))
         self.assertFalse(MA.poset_of_layers().is_isomorphic(MC.poset_of_layers()))
         self.assertFalse(MB.poset_of_layers().is_isomorphic(MC.poset_of_layers()))
 
@@ -845,6 +854,7 @@ class TestToric(unittest.TestCase):
         self.assertEqual(P.rank(), 2)
         self.assertTrue(P.has_bottom())
         self.assertEqual(set(S for (S, x) in P), set([(), ('a',), ('b',), ('c',), ('a', 'c'), ('a', 'b'), ('c', 'b')]))
+
 
 
 class TestReduction(unittest.TestCase):
@@ -908,17 +918,18 @@ class TestReduction(unittest.TestCase):
         self.assertTrue(M2.dual().reduction().is_isomorphic(M2.reduction().dual()))
 
 
-class TestNormalForm(unittest.TestCase):
+
+class TestSHNF(unittest.TestCase):
 
     def test_1x1(self):
         for x in xrange(-5, 5):
             A = matrix(ZZ, [[x]])
-            self.assertEqual(normal_form(A), matrix(ZZ, [[abs(x)]]))
+            self.assertEqual(shnf(A), matrix(ZZ, [[abs(x)]]))
 
 
     def test_2x2(self):
         A = matrix(ZZ, [[5, 8], [0, 3]])
-        self.assertEqual(normal_form(A), matrix(ZZ, [[5, 1], [0, 3]]))
+        self.assertEqual(shnf(A), matrix(ZZ, [[5, 1], [0, 3]]))
 
 
     def random_test(self, r, n, all=False):
@@ -928,11 +939,11 @@ class TestNormalForm(unittest.TestCase):
         if all:
             for diag in itertools.product([1, -1], repeat=n):
                 S = diagonal_matrix(diag)
-                self.assertEqual(normal_form(A), normal_form(U*A*S))
+                self.assertEqual(shnf(A), shnf(U*A*S))
 
         else:
             S = diagonal_matrix([sage.misc.prandom.choice([1, -1]) for i in xrange(n)])
-            self.assertEqual(normal_form(A), normal_form(U*A*S))
+            self.assertEqual(shnf(A), shnf(U*A*S))
 
 
     def test_random_1x2(self):
@@ -962,24 +973,29 @@ class TestNormalForm(unittest.TestCase):
 
     def test_cardinality_four_orbit(self):
         # in these examples, an orbit of cardinality 4 occurs
+        # see [PP19, Example 6.8]
         for A in [
             matrix(ZZ, [[1, 1, 1], [0, 2, 3], [0, 0, 6]]),
             matrix(ZZ, [[1, 1, 1], [0, 2, 4], [0, 0, 8]]),
         ]:
-            self.assertEqual(normal_form(A), A)
+            self.assertEqual(shnf(A), A)
 
             for i in xrange(3):
                 U = random_matrix(ZZ, 3, 3, algorithm='unimodular')
                 for diag in itertools.product([1, -1], repeat=3):
                     S = diagonal_matrix(diag)
-                    self.assertEqual(normal_form(U*A*S), A)
+                    self.assertEqual(shnf(U*A*S), A)
+
+        for u in [1,2,4,5]:
+            A = matrix(ZZ, [[1, 1, u], [0, 2, 3], [0, 0, 6]])
+            self.assertEqual(shnf(A), matrix(ZZ, [[1, 1, 1], [0, 2, 3], [0, 0, 6]]))
 
 
     def test_is_in_hermite_form(self):
-        # check that the output of normal_form is in Hermite normal form
+        # check that the output of shnf is in Hermite normal form
         for i in xrange(10):
             A = random_matrix(ZZ, 3, 4)
-            B = normal_form(A)
+            B = shnf(A)
             self.assertEqual(B, B.echelon_form())
 
 
@@ -989,15 +1005,16 @@ class TestNormalForm(unittest.TestCase):
         U = random_matrix(ZZ, 3, 3, algorithm='unimodular')
         for diag in itertools.product([1, -1], repeat=4):
             S = diagonal_matrix(diag)
-            self.assertEqual(normal_form(U*A*S), normal_form(A))
-            self.assertEqual(normal_form(U*A), normal_form(A))
+            self.assertEqual(shnf(U*A*S), shnf(A))
+            self.assertEqual(shnf(U*A), shnf(A))
+
 
     def test_not_reducible(self):
         # in this example, the matrix seems a block matrix but it isn't
         A = matrix(ZZ, [[2,2,0,0,0],[0,4,0,0,4],[0,0,4,4,0],[0,0,0,8,8]])
         for diag in itertools.product([1, -1], repeat=5):
             S = diagonal_matrix(diag)
-            self.assertEqual(normal_form(A*S), normal_form(A))
+            self.assertEqual(shnf(A*S), shnf(A))
 
 
 
