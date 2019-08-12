@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Module that imports all arithmetic matroids classes.
+Module that imports all arithmetic matroids classes and additional functions.
 
-Copyright (C) 2018 Giovanni Paolini
-Copyright (C) 2018 Roberto Pagaria
+Copyright (C) 2019 Roberto Pagaria
+Copyright (C) 2019 Giovanni Paolini
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

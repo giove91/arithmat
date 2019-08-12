@@ -10,13 +10,13 @@ def readfile(filename):
 setuptools.setup(
     name="arithmat",
     version=readfile("VERSION").strip(),
-    author='Giovanni Paolini, Roberto Pagaria',
-    author_email='giovanni.paolini@sns.it', # choose a main contact email
+    author='Roberto Pagaria, Giovanni Paolini',
+    author_email='giovanni.paolini@sns.it', # main contact email
     description='Sage implementation of arithmetic matroids and toric arrangements',
     long_description=readfile("README.md"),
     long_description_content_type="text/markdown",
     url='https://github.com/giove91/arithmat',
-    license='GPLv3', # This should be consistent with the LICENCE file
+    license='GPLv3',
     classifiers=[
       # How mature is this project? Common values are
       #   3 - Alpha
@@ -31,7 +31,6 @@ setuptools.setup(
     ], # classifiers list: https://pypi.python.org/pypi?%3Aaction=list_classifiers
     keywords="SageMath packaging",
     project_urls={
-        # 'Documentation': 'https://packaging.python.org/tutorials/distributing-packages/',
         'Source': 'https://github.com/giove91/arithmat',
         'Tracker': 'https://github.com/giove91/arithmat/issues',
     },

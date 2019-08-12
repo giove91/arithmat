@@ -1,7 +1,7 @@
 # Arithmat
 Sage implementation of arithmetic matroids and toric arrangements.
 
-Authors: Giovanni Paolini and Roberto Pagaria
+Authors: Roberto Pagaria and Giovanni Paolini
 
 * [Requirements](#requirements)
 * [Installation](#installation)
@@ -97,7 +97,7 @@ The classes which are already provided in `arithmat` are the following.
 * `ArithmeticMatroid(groundset, rank_function, multiplicity_function)`
 
   This is the simplest arithmetic matroid class, and derives from `ArithmeticMatroidMixin` and `RankMatroid`.
-  
+
   ```sage
   E = [1,2,3,4,5]
 
@@ -334,7 +334,7 @@ The following function is available outside of arithmetic matroid classes.
   Return the signed Hermite normal form of the integer matrix `A`, defined in [PP19, Section 6].
   ```sage
   from arithmat import signed_hermite_normal_form
-  
+
   print signed_hermite_normal_form(matrix([[3, 2, 1], [-1, 1, 3]]))
   # [  1   1  -3]
   # [  0   5 -10]

@@ -2,8 +2,8 @@
 """
 Signed Hermite normal form.
 
-Copyright (C) 2019 Giovanni Paolini
 Copyright (C) 2019 Roberto Pagaria
+Copyright (C) 2019 Giovanni Paolini
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
