@@ -507,7 +507,7 @@ class ArithmeticMatroidMixin(SageObject):
 
     def is_orientable(self):
         """
-        Determine if the matroid is an orientable arithmetic matroid according to [Pag18].
+        Determine if the matroid is an orientable arithmetic matroid, as defined in [Pag18].
         """
         M = self.reduction() # note that this might not be an arithmetic matroid
 
@@ -757,7 +757,7 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
 
     def is_orientable(self):
         """
-        Determine if the matroid is an orientable arithmetic matroid according to [Pag18].
+        Determine if the matroid is an orientable arithmetic matroid, as defined in [Pag18].
         """
         if self._Q.ncols() == 0:
             return True
@@ -768,7 +768,8 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
 
     def is_equivalent(self, other, morphism=None):
         """
-        Check if the representations are equivalent.
+        Check if the two ToricArithmeticMatroids are equivalent,
+        i.e. the defining representations are equivalent (see [PP19, Section 2]).
         If morphism is None, assume that the groundsets coincide.
         """
         if not isinstance(other, ToricArithmeticMatroid):
@@ -849,6 +850,7 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
         """
         Find the decomposition of the matroid as a direct sum of indecomposable matroids.
         Return a partition of the groundset.
+        Uses the algorithm of [PP19, Section 7].
         """
         B = self.basis()
         new_groundset = list(B) + list(self.groundset().difference(B))
