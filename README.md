@@ -326,7 +326,7 @@ In addition, `ToricArithmeticMatroid` has the following methods.
   Return the poset of layers of the toric arrangement, computed using Lenz's algorithm [Len17a].
 
 * `arithmetic_independence_poset()`
-  Return the arithmetic independence poset of the toric arrangement, defined in [Len17c, Definition 5], [Mar18, Definitions 2.1 and 2.2], [DD18, Section 7].
+  Return the arithmetic independence poset of the toric arrangement, defined in [Len17b, Definition 5], [Mar18, Definitions 2.1 and 2.2], [DD18, Section 7].
   Notice that it is not the same as the independence poset of the underlying matroid.
 
 * `decomposition()`
@@ -370,9 +370,9 @@ More examples can be found in the [test file](https://github.com/giove91/arithma
 
 [Len17a] M. Lenz, *Computing the poset of layers of a toric arrangement*, ArXiv preprint 1708.06646 (2017).
 
-[Len17b] M. Lenz, *Representations of weakly multiplicative arithmetic matroids are unique*, ArXiv preprint 1704.08607 (2017).
+[Len17b] M. Lenz, *Stanley-Reisner rings for quasi-arithmetic matroids*, ArXiv preprint 1709.03834 (2017).
 
-[Len17c] M. Lenz, *Stanley-Reisner rings for quasi-arithmetic matroids*, ArXiv preprint 1709.03834 (2017).
+[Len19] M. Lenz, *Representations of weakly multiplicative arithmetic matroids are unique*, Annals of Combinatorics **23** (2019), no. 2, 335-346.
 
 [Mar18] I. Martino, *Face module for realizable Z-matroids*, Contributions to Discrete Mathematics **13** (2018).
 
