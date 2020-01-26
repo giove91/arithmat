@@ -111,13 +111,13 @@ The classes which are already provided in `arithmat` are the following.
           return 1
 
   M = ArithmeticMatroid(E, rk, m)
-  print M
+  print(M)
   # Arithmetic matroid of rank 2 on 5 elements
 
-  print M.arithmetic_tutte_polynomial()
+  print(M.arithmetic_tutte_polynomial())
   # y^3 + x^2 + 2*y^2 + 3*x + 3*y + 3
 
-  print M.representation()
+  print(M.representation())
   # None (this arithmetic matroid is not representable)
   ```
 * `ToricArithmeticMatroid(arrangement_matrix, torus_matrix=None, ordered_groundset=None)`
@@ -132,18 +132,18 @@ The classes which are already provided in `arithmat` are the following.
   A = matrix(ZZ, [[-1, 1, 0, 2], [3, 1, -1, -2]])
   M = ToricArithmeticMatroid(A)
 
-  print M
+  print(M)
   # Toric arithmetic matroid of rank 2 on 4 elements
 
-  print M.arrangement_matrix()
+  print(M.arrangement_matrix())
   # [-1  1  0  2]
   # [ 3  1 -1 -2]
 
-  print M.torus_matrix()
+  print(M.torus_matrix())
   # []
 
   P = M.poset_of_layers()
-  print P
+  print(P)
   # Finite poset containing 11 elements
 
   P.show(label_elements=False)
@@ -155,13 +155,13 @@ The classes which are already provided in `arithmat` are the following.
   Q = matrix(ZZ, [[5], [1]])
   N = ToricArithmeticMatroid(A, Q)
 
-  print N
+  print(N)
   # Toric arithmetic matroid of rank 1 on 4 elements
 
-  print N.arrangement_matrix()
+  print(N.arrangement_matrix())
   # [-16  -4   5  12]
 
-  print N.torus_matrix()
+  print(N.torus_matrix())
   # []
 
   ```
@@ -181,10 +181,10 @@ The multiplicity function needs to be passed as a keyword argument (and not as a
 
    M = BasisArithmeticMatroid(groundset='abcd', bases=['ab', 'ac', 'ad', 'bc', 'bd', 'cd'], multiplicity_function=m)
 
-   print M
+   print(M)
    # Basis arithmetic matroid of rank 2 on 4 elements
 
-   print M.is_valid()
+   print(M.is_valid())
    # True
    ```
 
@@ -194,13 +194,13 @@ The multiplicity function needs to be passed as a keyword argument (and not as a
    M1 = ToricArithmeticMatroid(matrix(ZZ, [[-1, 1, 0, 7], [6, 1, -1, -2]]))
    M2 = BasisArithmeticMatroid(M1)
 
-   print M1
+   print(M1)
    # Toric arithmetic matroid of rank 2 on 4 elements
 
-   print M2
+   print(M2)
    # Basis arithmetic matroid of rank 2 on 4 elements
 
-   print M2.full_multiplicity() == M1.full_multiplicity()
+   print(M2.full_multiplicity() == M1.full_multiplicity())
    # True
    ```
 
@@ -214,10 +214,10 @@ The multiplicity function needs to be passed as a keyword argument (and not as a
 
   M = LinearArithmeticMatroid(A, multiplicity_function=m)
 
-  print M
+  print(M)
   # Linear arithmetic matroid of rank 3 on 5 elements
 
-  print M.is_valid()
+  print(M.is_valid())
   # True
   ```
 
@@ -231,7 +231,7 @@ All classes for arithmetic matroids must also derive from some subclass of Sage'
 In particular, `Matroid` methods are still available. For example:
 ```sage
 M = ToricArithmeticMatroid(matrix(ZZ, [[1,2,3], [0,1, 1]]))
-print list(M.bases())
+print(list(M.bases()))
 # [frozenset([0, 1]), frozenset([0, 2]), frozenset([1, 2])]
 ```
 
@@ -350,7 +350,7 @@ The following function is available outside of arithmetic matroid classes.
   ```sage
   from arithmat import signed_hermite_normal_form
 
-  print signed_hermite_normal_form(matrix([[3, 2, 1], [-1, 1, 3]]))
+  print(signed_hermite_normal_form(matrix([[3, 2, 1], [-1, 1, 3]])))
   # [  1   1  -3]
   # [  0   5 -10]
   ```
