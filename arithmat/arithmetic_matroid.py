@@ -169,13 +169,11 @@ class ArithmeticMatroidMixin(SageObject):
                     if self._is_dependent_from(v, X):
                         # check axiom 1
                         if self.multiplicity(X) % self.multiplicity(X.union([v])) != 0:
-                            # print >> sys.stderr, "Axiom 1 fails on", X, v
                             return False
 
                     else:
                         # check axiom 2
                         if self.multiplicity(X.union([v])) % self.multiplicity(X) != 0:
-                            # print >> sys.stderr, "Axiom 2 fails on", X, v
                             return False
 
         for Y in powerset(E):
@@ -313,7 +311,6 @@ class ArithmeticMatroidMixin(SageObject):
         for S in powerset(range(n)):
             T = frozenset(E[i] for i in S)   # corresponding subset of E
             if A[:,S].rank() != self.rank(T):
-                # print >> sys.stderr, "Not representable, rank of %r is incorrect" % T
                 return False
 
             if check_bases and len(T) != r and self.rank(T) < r:
@@ -321,7 +318,6 @@ class ArithmeticMatroidMixin(SageObject):
                 continue
 
             if reduce(operator.mul, [d for d in A[:,S].elementary_divisors() if d != 0], 1) != self.multiplicity(T):
-                # print >> sys.stderr, "Not representable, multiplicity of %r is incorrect" % T
                 return False
 
         return True
@@ -349,7 +345,6 @@ class ArithmeticMatroidMixin(SageObject):
             E = list(sorted(self.groundset()))
 
         B = self.basis()
-        # print "Basis:", B
 
         # find bipartite graph
         edges = [(x,y) for x in B for y in E if y not in B and self.is_basis(B.difference([x]).union([y]))]
@@ -362,9 +357,6 @@ class ArithmeticMatroidMixin(SageObject):
             if uf.find(x) != uf.find(y):
                 spanning_forest.add_edge(x,y)
                 uf.union(x,y)
-
-        # print "Graph:", edges
-        # print "Spanning forest:", spanning_forest.edges()
 
         # fix an order of B
         B_ordered = list(sorted(B))
@@ -384,17 +376,16 @@ class ArithmeticMatroidMixin(SageObject):
                 return 0
 
         A = matrix(ZZ, r, n, entry)
-        # print A
 
-        B_to_index = {B_ordered[i]: i for i in xrange(r)}
-        E_to_index = {E[j]: j for j in xrange(n)}
+        B_to_index = {B_ordered[i]: i for i in range(r)}
+        E_to_index = {E[j]: j for j in range(n)}
 
 
         graph = spanning_forest
         while graph.number_of_edges() < len(edges):
             # find all paths in the graph
             paths = dict(nx.all_pairs_dijkstra_path(graph))
-            for (x,y) in sorted(edges, key=lambda (x,y): len(paths[x][y])):
+            for (x,y) in sorted(edges, key=lambda edge: len(paths[edge[0]][edge[1]])):
                 if len(paths[x][y]) == 2:
                     # (x,y) is in the graph
                     assert (x,y) in graph.edges()
@@ -406,22 +397,13 @@ class ArithmeticMatroidMixin(SageObject):
                 rows = [B_to_index[z] for z in paths[x][y][::2]]
                 columns = [E_to_index[z] for z in paths[x][y][1::2]]
 
-                # print x, y
-                # print "rows:", rows
-                # print "columns:", columns
-
                 new_tuple = [z for z in B_ordered + paths[x][y] if z not in B or z not in paths[x][y]]
-                # print "new_tuple:", new_tuple
                 expected_mult = self.multiplicity(new_tuple) * self.multiplicity(B)**(len(rows)-1) if self.rank(new_tuple) == r else 0
                 if abs(A[rows,columns].determinant()) != expected_mult:
                     # change sign
-                    # print "change sign!"
-                    # print A[rows,columns].determinant()
                     A[i,j] = -A[i,j]
 
                     if abs(A[rows,columns].determinant()) != expected_mult:
-                        # print A
-                        # print A[rows,columns].determinant(), expected_mult
                         return None
 
                 graph.add_edge(x,y)
@@ -430,9 +412,6 @@ class ArithmeticMatroidMixin(SageObject):
         D, U, V = A.smith_form()
         res = V.inverse()[:r,:]
         res = matrix(ZZ, res)
-
-        # print >> sys.stderr, "Candidate representation:"
-        # print >> sys.stderr, res
 
         # check if this is indeed a representation
         if not self.check_representation(res, ordered_groundset=ordered_groundset, check_bases=check_bases):
@@ -451,7 +430,6 @@ class ArithmeticMatroidMixin(SageObject):
             # TODO implement m({}) > 1
 
         r = self.full_rank()
-        n = len(self.groundset())
 
         if self.full_multiplicity() == 1:
             res = self._representation_surjective(ordered_groundset=ordered_groundset)
@@ -519,7 +497,6 @@ class ArithmeticMatroidMixin(SageObject):
         """
         Return the arithmetic Tutte polynomial of the matroid.
         """
-        E = self.groundset()
         r = self.full_rank()
 
         a = x
@@ -724,7 +701,7 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
         I = identity_matrix(ZZ, T.nrows())
 
         # create temporary names for new groundset elements
-        temp_elements = [-i for i in xrange(self._Q.ncols())]
+        temp_elements = [-i for i in range(self._Q.ncols())]
         while len(frozenset(temp_elements).intersection(self.groundset())) > 0:
             temp_elements = [e-1 for e in temp_elements]
 
@@ -861,8 +838,8 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
 
         uf = DisjointSet(self.groundset())
 
-        for i in xrange(A.nrows()):
-            for j in xrange(i+1, A.ncols()):
+        for i in range(A.nrows()):
+            for j in range(i+1, A.ncols()):
                 if A[i,j] != 0:
                     uf.union(new_groundset[i], new_groundset[j])
 
@@ -900,22 +877,22 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
         # compute Smith normal forms of all submatrices
         for S in powerset(E):
             D, U, V = A[S,:].smith_form()   # D == U*A[S,:]*V
-            diagonal = [D[i,i] if i < D.ncols() else 0 for i in xrange(len(S))]
+            diagonal = [D[i,i] if i < D.ncols() else 0 for i in range(len(S))]
             data[tuple(S)] = (diagonal, U)
 
         # generate al possible elements of the poset of layers
-        elements = {tuple(S): list(vector(ZZ, x) for x in itertools.product(*(range(max(data[tuple(S)][0][i], 1)) for i in xrange(len(S))))) for S in powerset(E)}
+        elements = {tuple(S): list(vector(ZZ, x) for x in itertools.product(*(range(max(data[tuple(S)][0][i], 1)) for i in range(len(S))))) for S in powerset(E)}
 
-        for l in elements.itervalues():
+        for l in elements.values():
             for v in l:
                 v.set_immutable()
 
-        possible_layers = list((S, x) for (S, l) in elements.iteritems() for x in l)
+        possible_layers = list((S, x) for (S, l) in elements.items() for x in l)
         uf = DisjointSet(possible_layers)
 
         cover_relations = []
 
-        for (S, l) in elements.iteritems():
+        for (S, l) in elements.items():
             diagonal_S, U_S = data[S]
             rk_S = A[S,:].rank()
 
@@ -944,8 +921,8 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
 
         # find representatives for layers (we keep the representative (S,x) with maximal S)
         root_to_representative_dict = {}
-        for root, subset in uf.root_to_elements_dict().iteritems():
-            S, x = max(subset, key=lambda (S, x): len(S))
+        for root, subset in uf.root_to_elements_dict().items():
+            S, x = max(subset, key=lambda Sx: len(Sx[0]))
             S_labeled = tuple(self._E[i] for i in S)
             root_to_representative_dict[root] = (S_labeled, x)
 
@@ -975,22 +952,21 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
         for S_labeled in self.independent_sets():
             S = tuple(sorted(self._groundset_to_index[e] for e in S_labeled))
             D, U, V = A[S,:].smith_form()   # D == U*A[S,:]*V
-            diagonal = [D[i,i] if i < D.ncols() else 0 for i in xrange(len(S))]
+            diagonal = [D[i,i] if i < D.ncols() else 0 for i in range(len(S))]
             data[tuple(S)] = (diagonal, U)
 
         # generate all elements of the poset
-        elements = {S: list(vector(ZZ, x) for x in itertools.product(*(range(max(data[tuple(S)][0][i], 1)) for i in xrange(len(S))))) for S in data.iterkeys()}
+        elements = {S: list(vector(ZZ, x) for x in itertools.product(*(range(max(data[tuple(S)][0][i], 1)) for i in range(len(S))))) for S in data.keys()}
 
-        for l in elements.itervalues():
+        for l in elements.values():
             for v in l:
                 v.set_immutable()
 
-        all_elements = list((tuple(self._E[i] for i in S), x) for (S, l) in elements.iteritems() for x in l)
+        all_elements = list((tuple(self._E[i] for i in S), x) for (S, l) in elements.items() for x in l)
         cover_relations = []
 
-        for (S, l) in elements.iteritems():
+        for (S, l) in elements.items():
             diagonal_S, U_S = data[S]
-            rk_S = A[S,:].rank()
             S_labeled = tuple(self._E[i] for i in S)
 
             for s in S:
@@ -999,7 +975,6 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
                 T_labeled = tuple(self._E[i] for i in T)
 
                 diagonal_T, U_T = data[T]
-                rk_T = A[T,:].rank()
 
                 for x in l:
                     y = U_S**(-1) * x
@@ -1071,7 +1046,7 @@ def setprint_s(X, toplevel=False):
         return '{' + ', '.join(sorted(setprint_s(x) for x in X)) + '}'
     elif isinstance(X, dict):
         return '{' + ', '.join(sorted(setprint_s(key) + ': ' + setprint_s(val)
-                                      for key, val in iteritems(X))) + '}'
+                                      for key, val in X.items())) + '}'
     elif isinstance(X, str):
         if toplevel:
             return X

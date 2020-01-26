@@ -32,7 +32,7 @@ def signed_hermite_normal_form(A):
     G_basis = []    # Z_2-basis of G
     m = 0   # rank of A[:,:j]
 
-    for j in xrange(n):
+    for j in range(n):
         A = A.echelon_form()
         q = A[m,j] if m < r else 0  # pivot
 
@@ -42,8 +42,8 @@ def signed_hermite_normal_form(A):
             assert H == A[:,:j]
             phi.append(U)
 
-        G_basis.append(diagonal_matrix([-1 if i == j else 1 for i in xrange(n)]))
-        phi.append(diagonal_matrix([-1 if i < m else 1 for i in xrange(r)]))
+        G_basis.append(diagonal_matrix([-1 if i == j else 1 for i in range(n)]))
+        phi.append(diagonal_matrix([-1 if i < m else 1 for i in range(r)]))
         assert len(G_basis) == len(phi)
 
         for i in reversed(range(m)):

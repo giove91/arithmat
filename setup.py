@@ -27,7 +27,7 @@ setuptools.setup(
       'Topic :: Software Development :: Build Tools',
       'Topic :: Scientific/Engineering :: Mathematics',
       'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
-      'Programming Language :: Python :: 2.7',
+      'Programming Language :: Python',
     ], # classifiers list: https://pypi.python.org/pypi?%3Aaction=list_classifiers
     keywords="SageMath packaging",
     project_urls={
@@ -37,5 +37,5 @@ setuptools.setup(
     packages=['arithmat'],
     setup_requires=['sage-package'],
     install_requires=['sage-package', 'networkx~=2.2'],
-    python_requires='>=2.7, <3',
+    python_requires='>=2.7',
 )

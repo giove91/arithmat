@@ -140,8 +140,8 @@ class TestArithmeticMatroid(unittest.TestCase):
 
     def test_relizable(self):
         # representable with a 2x2 matrix
-        for a in xrange(6):
-            for b in xrange(1, 6):
+        for a in range(6):
+            for b in range(1, 6):
                 A = matrix(ZZ, [[1, a], [0, b]])
                 M = representation_to_matroid(A)
 
@@ -335,7 +335,7 @@ class TestArithmeticMatroid(unittest.TestCase):
     def test_num_representations(self):
         r = 3
 
-        for m in xrange(23, 26): # m(E)
+        for m in range(23, 26): # m(E)
             E = range(r)
             A = matrix(ZZ, r, r, lambda i, j: 1 if i == j and i < r-1 else 0 if j < r-1 else m if i == r-1 else 1)
 
@@ -766,7 +766,7 @@ class TestToric(unittest.TestCase):
         self.assertEqual(len(P), 11)
         self.assertEqual(len(P.cover_relations()), 18)
         homology = P.subposet([a for a in P if a != P.bottom()]).order_complex(on_ints=True).homology()
-        self.assertEqual([homology[i].ngens() for i in xrange(2)], [0,3])
+        self.assertEqual([homology[i].ngens() for i in range(2)], [0,3])
         self.assertEqual(homology[1].ngens(), M.arithmetic_tutte_polynomial()(x=0, y=0))
 
 
@@ -776,7 +776,7 @@ class TestToric(unittest.TestCase):
         M = ToricArithmeticMatroid(A)
         P = M.poset_of_layers()
         homology = P.subposet([a for a in P if a != P.bottom()]).order_complex(on_ints=True).homology()
-        self.assertEqual([homology[i].ngens() for i in xrange(3)], [0,0,15])
+        self.assertEqual([homology[i].ngens() for i in range(3)], [0,0,15])
         self.assertEqual(homology[2].ngens(), M.arithmetic_tutte_polynomial()(x=0, y=0))
 
 
@@ -786,7 +786,7 @@ class TestToric(unittest.TestCase):
         M = ToricArithmeticMatroid(A)
         P = M.poset_of_layers()
         homology = P.subposet([a for a in P if a != P.bottom()]).order_complex(on_ints=True).homology()
-        self.assertEqual([homology[i].ngens() for i in xrange(2)], [0,1])
+        self.assertEqual([homology[i].ngens() for i in range(2)], [0,1])
         self.assertEqual(homology[1].ngens(), M.arithmetic_tutte_polynomial()(x=0, y=0))
 
 
@@ -796,7 +796,7 @@ class TestToric(unittest.TestCase):
         M = ToricArithmeticMatroid(A)
         P = M.poset_of_layers()
         homology = P.subposet([a for a in P if a != P.bottom()]).order_complex(on_ints=True).homology()
-        self.assertEqual([homology[i].ngens() for i in xrange(3)], [0,0,6])
+        self.assertEqual([homology[i].ngens() for i in range(3)], [0,0,6])
         self.assertEqual(homology[2].ngens(), M.arithmetic_tutte_polynomial()(x=0, y=0))
 
 
@@ -806,7 +806,7 @@ class TestToric(unittest.TestCase):
         M = ToricArithmeticMatroid(A)
         P = M.poset_of_layers()
         homology = P.subposet([a for a in P if a != P.bottom()]).order_complex(on_ints=True).homology()
-        self.assertEqual([homology[i].ngens() for i in xrange(3)], [0,0,3])
+        self.assertEqual([homology[i].ngens() for i in range(3)], [0,0,3])
         self.assertEqual(homology[2].ngens(), M.arithmetic_tutte_polynomial()(x=0, y=0))
 
 
@@ -960,7 +960,7 @@ class TestReduction(unittest.TestCase):
 class TestSHNF(unittest.TestCase):
 
     def test_1x1(self):
-        for x in xrange(-5, 5):
+        for x in range(-5, 5):
             A = matrix(ZZ, [[x]])
             self.assertEqual(shnf(A), matrix(ZZ, [[abs(x)]]))
 
@@ -980,7 +980,7 @@ class TestSHNF(unittest.TestCase):
                 self.assertEqual(shnf(A), shnf(U*A*S))
 
         else:
-            S = diagonal_matrix([sage.misc.prandom.choice([1, -1]) for i in xrange(n)])
+            S = diagonal_matrix([sage.misc.prandom.choice([1, -1]) for i in range(n)])
             self.assertEqual(shnf(A), shnf(U*A*S))
 
 
@@ -1018,7 +1018,7 @@ class TestSHNF(unittest.TestCase):
         ]:
             self.assertEqual(shnf(A), A)
 
-            for i in xrange(3):
+            for i in range(3):
                 U = random_matrix(ZZ, 3, 3, algorithm='unimodular')
                 for diag in itertools.product([1, -1], repeat=3):
                     S = diagonal_matrix(diag)
@@ -1031,7 +1031,7 @@ class TestSHNF(unittest.TestCase):
 
     def test_is_in_hermite_form(self):
         # check that the output of shnf is in Hermite normal form
-        for i in xrange(10):
+        for i in range(10):
             A = random_matrix(ZZ, 3, 4)
             B = shnf(A)
             self.assertEqual(B, B.echelon_form())

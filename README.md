@@ -17,7 +17,7 @@ Authors: Roberto Pagaria and Giovanni Paolini
 
 ## Requirements
 
-* [Python](https://www.python.org/) 2.7
+* [Python](https://www.python.org/) 2.7 or 3.x
 * [Sage](http://www.sagemath.org/) >= 8
 
 
