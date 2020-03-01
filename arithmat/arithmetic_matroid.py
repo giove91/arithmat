@@ -23,6 +23,7 @@ import itertools
 import operator
 import copy
 import networkx as nx
+from functools import reduce
 
 from sage.structure.sage_object import SageObject
 from sage.matroids.matroid import Matroid
@@ -37,8 +38,6 @@ from sage.matrix.special import identity_matrix, block_matrix
 
 from sage.misc.misc import powerset
 from sage.arith.misc import divisors, gcd
-
-
 
 from shnf import signed_hermite_normal_form
 

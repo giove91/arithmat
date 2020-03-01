@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see http://www.gnu.org/licenses/.
 """
 
-from arithmetic_matroid import ArithmeticMatroidMixin, ArithmeticMatroid, LinearArithmeticMatroid, BasisArithmeticMatroid, MinorArithmeticMatroid, DualArithmeticMatroid, ToricArithmeticMatroid
+from __future__ import absolute_import
 
-from shnf import signed_hermite_normal_form
+from .arithmetic_matroid import ArithmeticMatroidMixin, ArithmeticMatroid, LinearArithmeticMatroid, BasisArithmeticMatroid, MinorArithmeticMatroid, DualArithmeticMatroid, ToricArithmeticMatroid
+from .shnf import signed_hermite_normal_form
