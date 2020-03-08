@@ -2,8 +2,8 @@
 """
 Arithmetic matroids classes.
 
-Copyright (C) 2019 Roberto Pagaria
-Copyright (C) 2019 Giovanni Paolini
+Copyright (C) 2020 Roberto Pagaria
+Copyright (C) 2020 Giovanni Paolini
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
