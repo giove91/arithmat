@@ -19,6 +19,8 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see http://www.gnu.org/licenses/.
 """
 
+from __future__ import absolute_import
+
 import itertools
 import operator
 import copy
@@ -39,7 +41,7 @@ from sage.matrix.special import identity_matrix, block_matrix
 from sage.misc.misc import powerset
 from sage.arith.misc import divisors, gcd
 
-from shnf import signed_hermite_normal_form
+from .shnf import signed_hermite_normal_form
 
 
 class ArithmeticMatroidMixin(SageObject):

@@ -21,8 +21,8 @@ along with this program. If not, see http://www.gnu.org/licenses/.
 
 import unittest
 import itertools
-from arithmetic_matroid import *
-from shnf import signed_hermite_normal_form as shnf
+from arithmat.arithmetic_matroid import *
+from arithmat.shnf import signed_hermite_normal_form as shnf
 
 
 def representation_to_matroid(A):
