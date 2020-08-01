@@ -21,6 +21,7 @@ along with this program. If not, see http://www.gnu.org/licenses/.
 
 from sage.matrix.special import diagonal_matrix, identity_matrix
 
+
 def signed_hermite_normal_form(A):
     """
     Signed Hermite normal form of an integer matrix A, see [PP19, Section 6].
@@ -29,17 +30,17 @@ def signed_hermite_normal_form(A):
     """
     r = A.nrows()
     n = A.ncols()
-    G_basis = []    # Z_2-basis of G
-    m = 0   # rank of A[:,:j]
+    G_basis = []  # Z_2-basis of G
+    m = 0  # rank of A[:,:j]
 
     for j in range(n):
         A = A.echelon_form()
-        q = A[m,j] if m < r else 0  # pivot
+        q = A[m, j] if m < r else 0  # pivot
 
         phi = []
         for S in G_basis:
-            H, U = (A[:,:j] * S[:j,:j]).echelon_form(transformation=True)
-            assert H == A[:,:j]
+            H, U = (A[:, :j] * S[:j, :j]).echelon_form(transformation=True)
+            assert H == A[:, :j]
             phi.append(U)
 
         G_basis.append(diagonal_matrix([-1 if i == j else 1 for i in range(n)]))
@@ -48,21 +49,21 @@ def signed_hermite_normal_form(A):
 
         for i in reversed(range(m)):
             # find possible values of A[i,j]
-            x = A[i,j]
+            x = A[i, j]
             if q > 0:
                 x %= q
 
             orbit = [x]
-            columns = [A[:,j]]
-            construction = [identity_matrix(n)] # which element of G gives a certain element of the orbit
+            columns = [A[:, j]]
+            construction = [identity_matrix(n)]  # which element of G gives a certain element of the orbit
 
             new_elements = True
             while new_elements:
                 new_elements = False
                 for h, U in enumerate(phi):
                     for k, v in enumerate(columns):
-                        w = U*v
-                        y = w[i,0]
+                        w = U * v
+                        y = w[i, 0]
                         if q > 0:
                             y %= q
                         if y not in orbit:
@@ -71,15 +72,15 @@ def signed_hermite_normal_form(A):
                             construction.append(G_basis[h] * construction[k])
                             new_elements = True
 
-            assert len(orbit) in [1,2,4]
+            assert len(orbit) in [1, 2, 4]
 
             # find action of G on the orbit
             action = []
             for h, U in enumerate(phi):
                 if q > 0:
-                    action.append({x: (U*columns[k])[i,0] % q for k, x in enumerate(orbit)})
+                    action.append({x: (U * columns[k])[i, 0] % q for k, x in enumerate(orbit)})
                 else:
-                    action.append({x: (U*columns[k])[i,0] for k, x in enumerate(orbit)})
+                    action.append({x: (U * columns[k])[i, 0] for k, x in enumerate(orbit)})
 
             # select the minimal possible value
             u = min(orbit)
@@ -87,13 +88,13 @@ def signed_hermite_normal_form(A):
             S = construction[k]
 
             # change A
-            A = (A*S).echelon_form()
-            assert A[i,j] == u
+            A = (A * S).echelon_form()
+            assert A[i, j] == u
 
             # update the stabilizer G
-            G_new_basis = []    # basis for the new stabilizer
-            new_phi = []    # value of phi on the new basis elements
-            complement_basis = {} # dictionary of the form {x: h}, where G_basis[h] sends u to x
+            G_new_basis = []  # basis for the new stabilizer
+            new_phi = []  # value of phi on the new basis elements
+            complement_basis = {}  # dictionary of the form {x: h}, where G_basis[h] sends u to x
             for h, S in enumerate(G_basis):
                 if action[h][u] == u:
                     # this basis element fixes u
