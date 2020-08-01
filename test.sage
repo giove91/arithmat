@@ -562,11 +562,14 @@ class TestToric(unittest.TestCase):
         # check representation
         self.assertTrue(M.check_representation(A))
         self.assertTrue(M.is_representable())
-        self.assertEqual(M.representation(), A)
-        self.assertEqual(M.representation(ordered_groundset=[5, 4, 3, 2, 1, 0]),
-                         matrix(ZZ, [[7, 2, -1, 0, 1, -1], [5, 2, -2, -1, 1, 6]]))
+        self.assertEqual(M.representation(shnf=False), A)
+        self.assertEqual(
+            M.representation(ordered_groundset=[5, 4, 3, 2, 1, 0], shnf=False),
+            matrix(ZZ, [[7, 2, -1, 0, 1, -1], [5, 2, -2, -1, 1, 6]])
+        )
+        self.assertEqual(M.representation(), signed_hermite_normal_form(A))
 
-        # orientability
+        # check orientability
         self.assertTrue(M.is_orientable())
 
     def test_with_Q(self):
@@ -682,14 +685,18 @@ class TestToric(unittest.TestCase):
             self.assertFalse(N.is_equivalent(O))
             self.assertTrue(N.is_isomorphic(O))
 
-    # def test_all_representations(self):
-    #     A = matrix(ZZ, [[1, 1, 4, 1, 0], [0, 2, 3, 1, 1], [0, 0, 6, 0, 1]])
-    #     M = ToricArithmeticMatroid(A)
-    #     representations = list(M.all_representations())
-    #
-    #     [B] = representations
-    #     self.assertEqual(signed_hermite_normal_form(B), B)
-    #     self.assertEqual(A, B)
+    def test_all_representations(self):
+        A = matrix(ZZ, [[1, 1, 4, 1, 0], [0, 2, 3, 1, 1], [0, 0, 6, 0, 1]])
+        M = ToricArithmeticMatroid(A)
+        representations = list(M.all_representations(shnf=False))
+        [B] = representations
+
+        shnf_representations = list(M.all_representations())
+        [C] = shnf_representations
+        self.assertEqual(C, M.representation())
+
+        self.assertEqual(signed_hermite_normal_form(B), C)
+        self.assertEqual(signed_hermite_normal_form(A), C)
 
     def test_decomposition(self):
         M = ToricArithmeticMatroid(matrix(ZZ, [[1, 5, -1, 5], [1, 7, 2, 6], [0, -2, -2, -1]]))

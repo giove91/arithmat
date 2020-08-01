@@ -421,10 +421,11 @@ class ArithmeticMatroidMixin(SageObject):
 
         return res
 
-    def all_representations(self, ordered_groundset=None):
+    def all_representations(self, ordered_groundset=None, shnf=True):
         """
         Generator of all non-equivalent essential representations.
         Uses the algorithm of [PP19, Section 5].
+        If shnf is True, then the output representations are guaranteed to be in signed Hermite normal form.
         """
         if self.multiplicity([]) > 1:
             raise NotImplementedError
@@ -435,6 +436,9 @@ class ArithmeticMatroidMixin(SageObject):
         if self.full_multiplicity() == 1:
             res = self._representation_surjective(ordered_groundset=ordered_groundset)
             if res is not None:
+                if shnf:
+                    # put result in signed Hermite normal form
+                    res = signed_hermite_normal_form(res)
                 yield res
             return
 
@@ -463,22 +467,24 @@ class ArithmeticMatroidMixin(SageObject):
         """
         Compute the number of non-equivalent essential representations.
         """
-        return sum(1 for _ in self.all_representations())
+        return sum(1 for _ in self.all_representations(shnf=False))
 
-    def representation(self, ordered_groundset=None):
+    def representation(self, ordered_groundset=None, shnf=True):
         """
         Compute any essential representation.
         Return None if the matroid is not representable.
+        If shnf is True, then the output representation is guaranteed to be in signed Hermite normal form.
         """
-        for A in self.all_representations(ordered_groundset=ordered_groundset):
+        for A in self.all_representations(ordered_groundset=ordered_groundset, shnf=shnf):
             return A
+
         return None
 
     def is_representable(self):
         """
         Determine if the matroid is a representable arithmetic matroid.
         """
-        return self.representation() is not None
+        return self.representation(shnf=False) is not None
 
     def is_orientable(self):
         """
@@ -704,10 +710,11 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
                                    ordered_groundset=list(self._E) + temp_elements)
         return M.minor(deletions=temp_elements)
 
-    def representation(self, ordered_groundset=None):
+    def representation(self, ordered_groundset=None, shnf=True):
         """
         Compute any essential representation.
         Return None if the matroid is not representable.
+        If shnf is True, then the output representation is guaranteed to be in signed Hermite normal form.
         """
         # first try to return self._A
         if self._Q.ncols() == 0:
@@ -721,10 +728,16 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
                 E = self._E
 
             # return self._A, with shuffled columns
-            return self._A[:, [self._groundset_to_index[e] for e in E]]
+            res = self._A[:, [self._groundset_to_index[e] for e in E]]
+            if shnf:
+                # put result in signed Hermite normal form
+                res = signed_hermite_normal_form(res)
+
+            return res
             # TODO should also return Q, when m({}) > 1?
 
-        return super(ToricArithmeticMatroid, self).representation(ordered_groundset=ordered_groundset)
+        else:
+            return super(ToricArithmeticMatroid, self).representation(ordered_groundset=ordered_groundset, shnf=shnf)
 
     def is_orientable(self):
         """
