@@ -18,15 +18,14 @@ Authors: Roberto Pagaria and Giovanni Paolini
 ## Requirements
 
 * [Python](https://www.python.org/) 2.7 or 3.x
-* [Sage](http://www.sagemath.org/) >= 8
+* [SageMath](http://www.sagemath.org/) >= 8
 
 
 ## Installation
 
 ### From PyPI
 
-The easiest way to start using Arithmat is to install [the latest release from PyPI](https://pypi.org/project/arithmat/).
-Type the following command:
+The easiest way to start using Arithmat is to install [the latest release from PyPI](https://pypi.org/project/arithmat/):
 
 ```bash
 sage -pip install --upgrade arithmat
@@ -34,7 +33,7 @@ sage -pip install --upgrade arithmat
 
 ### From source
 
-Download the source from the git repository:
+Download source code from the git repository:
 
 ```bash
 git clone https://github.com/giove91/arithmat.git
@@ -49,9 +48,9 @@ sage -pip install --upgrade --no-index -v .
 
 ## Overview
 
-Arithmat is a Sage package that implements arithmetic matroids and toric arrangements.
+Arithmat is a SageMath package that implements arithmetic matroids and toric arrangements.
 
-At its core there is the class `ArithmeticMatroidMixin`, which is intended to be used in combination with [any existing matroid class of Sage](http://doc.sagemath.org/html/en/reference/matroids/index.html) (e.g. `RankMatroid`, `BasisMatroid`, `LinearMatroid`) via multiple inheritance.
+At its core there is the class `ArithmeticMatroidMixin`, which is intended to be used in combination with [any existing matroid class of SageMath](http://doc.sagemath.org/html/en/reference/matroids/index.html) (e.g. `RankMatroid`, `BasisMatroid`, `LinearMatroid`) via multiple inheritance.
 The most common combinations are already defined: `ArithmeticMatroid` (deriving from `RankMatroid`), `BasisArithmeticMatroid` (deriving from `BasisMatroid`), and `LinearArithmeticMatroid` (deriving from `LinearMatroid`).
 
 An additional class `ToricArithmeticMatroid` is implemented, for arithmetic matroids constructed from a fixed given representation.
@@ -62,11 +61,13 @@ An additional class `ToricArithmeticMatroid` is implemented, for arithmetic matr
 To cite Arithmat, you can use (some variant of) the following BibTeX code:
 
 ```latex
-@Misc{arithmat,
+@misc{arithmat,
   author = {Pagaria, Roberto and Paolini, Giovanni},
-  title = {{Arithmat}: {Sage} implementation of arithmetic matroids and toric arrangements},
+  title = {{Arithmat}: {SageMath} implementation of arithmetic matroids and toric arrangements},
   year = {2019},
-  url = "https://github.com/giove91/arithmat",
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/giove91/arithmat"}},
 }
 ```
 
@@ -89,7 +90,7 @@ from arithmat import ArithmeticMatroid, ToricArithmeticMatroid
 
 ### Available classes for arithmetic matroids
 
-All classes for arithmetic matroids derive from `ArithmeticMatroidMixin` and from some subclass of Sage's `Matroid`.
+All classes for arithmetic matroids derive from `ArithmeticMatroidMixin` and from some subclass of SageMath's `Matroid`.
 The class `ArithmeticMatroidMixin` is not intended to be used by itself, but it is possible to subclass it in order to create new classes for arithmetic matroids.
 
 The classes which are already provided in `arithmat` are the following.
@@ -166,7 +167,7 @@ The classes which are already provided in `arithmat` are the following.
 
   ```
 
-The classes `BasisArithmeticMatroid` and `LinearArithmeticMatroid` derive from the Sage classes `BasisMatroid` and `LinearMatroid`, respectively.
+The classes `BasisArithmeticMatroid` and `LinearArithmeticMatroid` derive from the SageMath classes `BasisMatroid` and `LinearMatroid`, respectively.
 An instance of `XxxArithmeticMatroid` can be constructed with `XxxArithmeticMatroid(..., multiplicity_function=m)`, where `...` should be replaced by arguments to construct an instance of `XxxMatroid`, and `m` is the multiplicity function.
 The multiplicity function needs to be passed as a keyword argument (and not as a positional argument).
 
@@ -227,7 +228,7 @@ They are used when calling `contract(X)`, `delete(X)`, `dual()` (see below).
 
 ### Available methods
 
-All classes for arithmetic matroids must also derive from some subclass of Sage's `Matroid`.
+All classes for arithmetic matroids must also derive from some subclass of SageMath's `Matroid`.
 In particular, `Matroid` methods are still available. For example:
 ```sage
 M = ToricArithmeticMatroid(matrix(ZZ, [[1,2,3], [0,1, 1]]))
