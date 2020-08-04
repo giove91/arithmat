@@ -295,14 +295,15 @@ All subclasses of `ArithmeticMatroidMixin` also (re-)implement the following met
   Check if the given integer matrix `A` is a representation of the matroid.
   The optional parameter `ordered_groundset` specifies the bijection between the columns of the matrix and the groundset.
 
-* `all_representations(ordered_groundset=None)`
+* `all_representations(ordered_groundset=None, shnf=True)`
   Generator of all non-equivalent essential representations of the matroid, computed using the algorithm of [PP19, Section 5].
+  If `shnf=True`, the output matrices are guaranteed to be in signed Hermite normal form [PP19, Section 6]. 
 
 * `num_representations()`
   Return the number of non-equivalent essential representations of the matroid.
   This calls `all_representations()`.
 
-* `representation(ordered_groundset=None)`
+* `representation(ordered_groundset=None, shnf=True)`
   Return any essential representation of the matroid, or `None` if the matroid is not representable.
 
 * `is_representable()`
