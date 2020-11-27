@@ -67,7 +67,7 @@ To cite Arithmat, you can use (some variant of) the following BibTeX code:
   year = {2019},
   publisher = {GitHub},
   journal = {GitHub repository},
-  howpublished = {\url{https://github.com/giove91/arithmat"}},
+  howpublished = {\url{https://github.com/giove91/arithmat}},
 }
 ```
 
