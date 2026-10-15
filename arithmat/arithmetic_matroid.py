@@ -38,7 +38,7 @@ from sage.rings.integer_ring import ZZ
 from sage.matrix.constructor import matrix, vector
 from sage.matrix.special import identity_matrix, block_matrix
 
-from sage.misc.misc import powerset
+from sage.combinat.subset import powerset
 from sage.arith.misc import divisors, gcd
 
 from .shnf import signed_hermite_normal_form
