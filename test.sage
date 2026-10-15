@@ -21,6 +21,8 @@ along with this program. If not, see http://www.gnu.org/licenses/.
 
 import unittest
 import itertools
+import sys
+import os
 from arithmat.arithmetic_matroid import *
 from arithmat.shnf import signed_hermite_normal_form as shnf
 
@@ -1011,6 +1013,6 @@ class TestSHNF(unittest.TestCase):
             S = diagonal_matrix(diag)
             self.assertEqual(shnf(A * S), shnf(A))
 
-
-if __name__ == '__main__':
-    unittest.main()
+argv = sys.argv if os.path.basename(sys.argv[0]).startswith('test.sage') else sys.argv[:1]
+result = unittest.main(module=sys.modules[__name__], argv=argv, exit=False).result
+sys.exit(not result.wasSuccessful())
