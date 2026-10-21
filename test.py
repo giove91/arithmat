@@ -19,11 +19,11 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see http://www.gnu.org/licenses/.
 """
 
+from sage.all import *
 import unittest
 import itertools
 from arithmat.arithmetic_matroid import *
 from arithmat.shnf import signed_hermite_normal_form as shnf
-
 
 def representation_to_matroid(A):
     """
