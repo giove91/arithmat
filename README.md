@@ -3,6 +3,8 @@ SageMath implementation of arithmetic matroids and toric arrangements.
 
 Authors: Roberto Pagaria and Giovanni Paolini
 
+Maintainer: Hailey Jay Garcia
+
 * [Requirements](#requirements)
 * [Installation](#installation)
 * [Overview](#overview)
@@ -357,7 +359,7 @@ The following function is available outside of arithmetic matroid classes.
   # [  0   5 -10]
   ```
 
-More examples can be found in the [test file](https://github.com/giove91/arithmat/blob/master/arithmat/test.sage).
+More examples can be found in the [test file](https://github.com/giove91/arithmat/blob/master/arithmat/test.py).
 
 
 ## Bibliography
