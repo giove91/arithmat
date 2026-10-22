@@ -37,4 +37,12 @@ setuptools.setup(
     setup_requires=['sage-package'],
     install_requires=['sage-package', 'networkx>=2.2'],
     python_requires='>=2.7',
+    extras_require={
+        'passagemath': [
+            'passagemath-combinat',
+            'passagemath-graphs',
+            'passagemath-modules',
+            'passagemath-repl',
+        ],
+    },
 )
