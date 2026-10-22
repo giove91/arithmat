@@ -259,9 +259,10 @@ class ArithmeticMatroidMixin(SageObject):
         """
         Check if the matroid satisfies the gcd property, defined in [PP19, Section 3].
         """
+        bases = list(self.bases())
         return all(
             self.multiplicity(X) == reduce(gcd, (
-                self.multiplicity(B) for B in self.bases() if len(B.intersection(X)) == self.rank(X)
+                self.multiplicity(B) for B in bases if len(B.intersection(X)) == self.rank(X)
             ), 0)
             for X in powerset(self.groundset())
         )
@@ -308,10 +309,10 @@ class ArithmeticMatroidMixin(SageObject):
         Return reduction of the matroid, as defined in [PP19, Section 4].
         """
         d = reduce(gcd, [self.multiplicity(B) for B in self.bases()], 0)
-
+        bases = list(self.bases())
         def m_bar(X):
             return reduce(gcd,
-                          [self.multiplicity(B) for B in self.bases() if self.rank(X) == self.rank(X.intersection(B))],
+                          [self.multiplicity(B) for B in bases if self.rank(X) == self.rank(X.intersection(B))],
                           0) // d
 
         return ArithmeticMatroid(self.groundset(), self._rank, multiplicity_function=m_bar)
