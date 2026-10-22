@@ -42,6 +42,8 @@ from sage.matrix.special import identity_matrix, block_matrix
 
 from sage.arith.misc import divisors, gcd
 
+from sage.misc.cachefunc import cached_method
+
 from .shnf import signed_hermite_normal_form
 
 try:
@@ -650,6 +652,9 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
         self._E = tuple(ordered_groundset)  # ordered groundset
         self._groundset_to_index = {e: i for (i, e) in enumerate(ordered_groundset)}  # dictionary groundset -> columns
 
+        self._A.set_immutable()
+        self._Q.set_immutable()  # so the cache doesn't go stale
+
     def _normalize(self):
         """
         Put Q in Smith normal form (this also changes A).
@@ -676,12 +681,20 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
         return self._Q
 
     def _rank(self, X):
-        T = block_matrix(ZZ, [[self._A[:, [self._groundset_to_index[e] for e in X]], self._Q]])
-        return T.rank() - self._Q.ncols()
+        return self._rank_and_multiplicity(frozenset(X))[0]
 
     def _multiplicity(self, X):
-        T = block_matrix(ZZ, [[self._A[:, [self._groundset_to_index[e] for e in X]], self._Q]])
-        return reduce(operator.mul, [d for d in T.elementary_divisors() if d != 0], 1)
+        return self._rank_and_multiplicity(frozenset(X))[1]
+
+    @cached_method
+    def _rank_and_multiplicity(self, X):
+        cols = [self._groundset_to_index[e] for e in X]
+        A_X = self._A[:, cols]
+        T = A_X if self._Q.ncols() == 0 else block_matrix(ZZ, [[A_X, self._Q]])
+        nonzero = [d for d in T.elementary_divisors() if d != 0]
+        rank = len(nonzero) - self._Q.ncols()
+        multiplicity = reduce(operator.mul, nonzero, 1)
+        return (rank, multiplicity)
 
     def _repr_(self):
         return "Toric arithmetic matroid of rank %d on %d elements" % (self.full_rank(), len(self.groundset()))
