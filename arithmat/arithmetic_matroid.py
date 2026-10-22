@@ -26,6 +26,7 @@ import operator
 import copy
 import networkx as nx
 from functools import reduce
+from collections import Counter
 
 from sage.structure.sage_object import SageObject
 from sage.matroids.matroid import Matroid
@@ -121,6 +122,12 @@ class ArithmeticMatroidMixin(SageObject):
                 return False
         return True
 
+    def _subset_table(self):
+        """
+        Map each subset of the groundset to (rank, multiplicity).
+        """
+        return {frozenset(X): (self.rank(X), self.multiplicity(X)) for X in powerset(self.groundset())}
+
     def _is_isomorphic(self, other, certificate=False):
         """
         Test if self is isomorphic to other.
@@ -134,11 +141,24 @@ class ArithmeticMatroidMixin(SageObject):
                 or self.full_multiplicity() != other.full_multiplicity():
             return False
 
-        # TODO: try to make more efficient
+        # precompute rank and multiplicity
+        T1, T2 = self._subset_table(), other._subset_table()
+
+        def profile(T):
+            return Counter((len(X), v) for X, v in T.items())
+
+        # compare precomputed tables as multisets
+        if profile(T1) != profile(T2):
+            return False
+
+        # small subsets first so we fail early
+        subsets = sorted(T1, key=len)
+
+        # TODO do pruning so we don't have to do n! loops
         E = list(self.groundset())
         for perm in itertools.permutations(other.groundset()):
-            morphism = {e: perm[i] for i, e in enumerate(E)}
-            if self.is_isomorphism(other, morphism):
+            morphism = dict(zip(E, perm))
+            if all(T1[X] == T2[frozenset(morphism[e] for e in X)] for X in subsets):
                 return True
 
         return False
