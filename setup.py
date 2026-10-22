@@ -24,7 +24,6 @@ setuptools.setup(
       #   5 - Production/Stable
       'Development Status :: 3 - Alpha',
       'Intended Audience :: Science/Research',
-      'Topic :: Software Development :: Build Tools',
       'Topic :: Scientific/Engineering :: Mathematics',
       'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
       'Programming Language :: Python',
@@ -36,6 +35,6 @@ setuptools.setup(
     },
     packages=['arithmat'],
     setup_requires=['sage-package'],
-    install_requires=['sage-package', 'networkx~=2.2'],
+    install_requires=['sage-package', 'networkx>=2.2'],
     python_requires='>=2.7',
 )
