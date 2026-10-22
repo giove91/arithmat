@@ -918,7 +918,8 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
         for S in powerset(E):
             D, U, V = A[S, :].smith_form()  # D == U*A[S,:]*V
             diagonal = [D[i, i] if i < D.ncols() else 0 for i in range(len(S))]
-            data[tuple(S)] = (diagonal, U)
+            rank = sum(1 for d in diagonal if d != 0)  # rank = number of nonzero elementary divisors
+            data[tuple(S)] = (diagonal, U, U ** (-1), rank)
 
         # generate all possible elements of the poset of layers
         elements = {tuple(S): list(
@@ -935,20 +936,18 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
         cover_relations = []
 
         for (S, l) in elements.items():
-            diagonal_S, U_S = data[S]
-            rk_S = A[S, :].rank()
+            diagonal_S, U_S, U_S_inv, rk_S = data[S]
 
             for s in S:
                 i = S.index(s)  # index where the element s appears in S
                 T = tuple(t for t in S if t != s)
 
-                diagonal_T, U_T = data[T]
-                rk_T = A[T, :].rank()
+                diagonal_T, U_T, _, rk_T = data[T]
 
                 for x in l:
                     h = (S, x)
 
-                    y = U_S ** (-1) * x
+                    y = U_S_inv * x
                     z = U_T * vector(ZZ, y[:i].list() + y[i + 1:].list())
                     w = vector(ZZ, (a % diagonal_T[j] if diagonal_T[j] > 0 else 0 for j, a in enumerate(z)))
                     w.set_immutable()
