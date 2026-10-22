@@ -627,7 +627,7 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
             assert len(ordered_groundset) == arrangement_matrix.ncols()
 
         self._groundset = frozenset(ordered_groundset)  # non-ordered groundset
-        self._E = ordered_groundset  # ordered groundset
+        self._E = tuple(ordered_groundset)  # ordered groundset
         self._groundset_to_index = {e: i for (i, e) in enumerate(ordered_groundset)}  # dictionary groundset -> columns
 
     def _normalize(self):
@@ -666,9 +666,8 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
     def _repr_(self):
         return "Toric arithmetic matroid of rank %d on %d elements" % (self.full_rank(), len(self.groundset()))
 
-    def __hash__(self):
-        return hash((self._E, self._A, self._Q))
-
+    __hash__ = ArithmeticMatroidMixin.__hash__
+    
     def __eq__(self, other):
         if not isinstance(other, ToricArithmeticMatroid):
             return False
