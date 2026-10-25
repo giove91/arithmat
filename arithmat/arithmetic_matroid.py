@@ -27,11 +27,12 @@ import copy
 import networkx as nx
 from functools import reduce
 from collections import Counter
+from collections.abc import Iterable
 
 from sage.structure.sage_object import SageObject
 from sage.matroids.matroid import Matroid
 from sage.matroids.advanced import *
-from sage.matroids.utilities import setprint_s
+from sage.matroids.utilities import setprint_s, sanitize_contractions_deletions
 from sage.combinat.set_partition import SetPartition
 from sage.sets.disjoint_set import DisjointSet
 from sage.combinat.posets.posets import Poset
@@ -82,17 +83,14 @@ class ArithmeticMatroidMixin(SageObject):
     def __ne__(self, other):
         return not self == other
 
+    # for classes storing _multiplicity as a function; classes defining it as a method override these
     def __copy__(self):
         N = super(ArithmeticMatroidMixin, self).__copy__()
-        N._multiplicity = self._multiplicity
-        N.__class__ = type(self)
-        return N
+        return self._with_multiplicity(N, self._multiplicity)
 
     def __deepcopy__(self, *args, **kwargs):
         N = super(ArithmeticMatroidMixin, self).__deepcopy__(*args, **kwargs)
-        N._multiplicity = copy.deepcopy(self._multiplicity)
-        N.__class__ = type(self)
-        return N
+        return self._with_multiplicity(N, copy.deepcopy(self._multiplicity))
 
     def __reduce__(self):
         raise TypeError("functions cannot be saved reliably, so this class doesn't have load/save support.")
@@ -112,6 +110,30 @@ class ArithmeticMatroidMixin(SageObject):
         Return the multiplicity of the groundset.
         """
         return self._multiplicity(self.groundset())
+
+    def _with_multiplicity(self, matroid, multiplicity_function):
+        if not isinstance(matroid, type(self)):
+            matroid = self._arithmetic_copy(matroid)
+        matroid._multiplicity = multiplicity_function
+        return matroid
+
+    def _arithmetic_copy(self, matroid):
+        raise NotImplementedError
+
+    def _minor_subset(self, X):
+        """
+        Normalize a contraction or deletion argument to a frozenset.
+        A single element is accepted, as in Sage's Matroid.minor.
+        """
+        if X is None:
+            return frozenset()
+        try:
+            single = X in self.groundset()
+        except TypeError:  # unhashable, e.g. a list
+            single = False
+        if single or not isinstance(X, (str, Iterable)):
+            X = [X]
+        return self._subset(X)
 
     def _is_isomorphism(self, other, morphism):
         """
@@ -268,24 +290,19 @@ class ArithmeticMatroidMixin(SageObject):
         )
 
     def minor(self, contractions=None, deletions=None):
+        contractions = self._minor_subset(contractions)
+        deletions = self._minor_subset(deletions)
+
         # get minor as a (non-arithmetic) matroid
         matroid = super(ArithmeticMatroidMixin, self).minor(contractions, deletions)
-
-        contractions = list(contractions) if contractions else []
-        deletions = list(deletions) if deletions else []
 
         if isinstance(matroid, MinorMatroid):
             # return an instance of MinorArithmeticMatroid
             return MinorArithmeticMatroid(self, contractions, deletions)
 
         else:
-            # we use the same (arithmetic) class here
-            matroid.__class__ = type(self)
-
-            # add multiplicity function
-            matroid._multiplicity = lambda X: self._multiplicity(frozenset(contractions).union(X))
-
-            return matroid
+            # sage might contract a loop as a deletion, but we want to respect the change to multiplicity
+            return self._with_multiplicity(matroid, lambda X: self._multiplicity(contractions.union(X)))
 
     def dual(self):
         # get dual as a (non-arithmetic) matroid
@@ -296,13 +313,8 @@ class ArithmeticMatroidMixin(SageObject):
             return DualArithmeticMatroid(self)
 
         else:
-            # we use the same (arithmetic) class here
-            matroid.__class__ = type(self)
-
-            # add multiplicity function
-            matroid._multiplicity = lambda X: self._multiplicity(self.groundset().difference(X))
-
-            return matroid
+            E = self.groundset()
+            return self._with_multiplicity(matroid, lambda X: self._multiplicity(E.difference(X)))
 
     def reduction(self):
         """
@@ -545,8 +557,16 @@ class ArithmeticMatroid(ArithmeticMatroidMixin, RankMatroid):
         # take multiplicity function as third positional argument
         super(ArithmeticMatroid, self).__init__(groundset, rank_function, multiplicity_function=multiplicity_function)
 
+    def _arithmetic_copy(self, matroid):
+        return ArithmeticMatroid(matroid.groundset(), matroid.rank, None)
+
 
 class LinearArithmeticMatroid(ArithmeticMatroidMixin, LinearMatroid):
+    def _arithmetic_copy(self, matroid):
+        return LinearArithmeticMatroid(
+            matrix=matroid.representation(), groundset=matroid.groundset_list(), ring=matroid.base_ring()
+        )
+
     def _repr_(self):
         return "Linear arithmetic matroid of rank %d on %d elements" % (self.full_rank(), len(self.groundset()))
 
@@ -558,6 +578,9 @@ class BasisArithmeticMatroid(ArithmeticMatroidMixin, BasisMatroid):
             kwargs['multiplicity_function'] = M._multiplicity
         super(BasisArithmeticMatroid, self).__init__(M=M, *args, **kwargs)
 
+    def _arithmetic_copy(self, matroid):
+        return BasisArithmeticMatroid(matroid)
+
     def _repr_(self):
         return "Basis arithmetic matroid of rank %d on %d elements" % (self.full_rank(), len(self.groundset()))
 
@@ -567,36 +590,52 @@ class MinorArithmeticMatroid(ArithmeticMatroidMixin, MinorMatroid):
     Minor of an arithmetic matroid.
     """
 
-    def __init__(self, *args, **kwargs):
-        super(ArithmeticMatroidMixin, self).__init__(*args, **kwargs)
+    def __init__(self, matroid, contractions=None, deletions=None):
+        contractions = frozenset(contractions) if contractions else frozenset()
+        deletions = frozenset(deletions) if deletions else frozenset()
+
+        # MinorMatroid assumes independent contractions but multiplicity depends on the given ones
+        conset, delset = sanitize_contractions_deletions(matroid, contractions, deletions)
+        super(ArithmeticMatroidMixin, self).__init__(matroid, conset, delset)
+        self._arithmetic_contractions = contractions
+        self._arithmetic_deletions = deletions
 
     def _repr_(self):
         s = "M"
-        if self._contractions:
-            s += r" / " + setprint_s(self._contractions)
-        if self._deletions:
-            s += r" \ " + setprint_s(self._deletions)
+        if self._arithmetic_contractions:
+            s += r" / " + setprint_s(self._arithmetic_contractions)
+        if self._arithmetic_deletions:
+            s += r" \ " + setprint_s(self._arithmetic_deletions)
         s += ", where M is " + repr(self._matroid)
         return s
 
+    __hash__ = ArithmeticMatroidMixin.__hash__
+
     def __eq__(self, other):
-        return (self._contractions == other._contractions) and (self._deletions == other._deletions) \
+        return isinstance(other, MinorArithmeticMatroid) \
+               and (self._arithmetic_contractions == other._arithmetic_contractions) \
+               and (self._arithmetic_deletions == other._arithmetic_deletions) \
                and (self._matroid == other._matroid)
+
+    def __copy__(self):
+        return MinorArithmeticMatroid(self._matroid, self._arithmetic_contractions, self._arithmetic_deletions)
+
+    def __deepcopy__(self, memo=None):
+        return MinorArithmeticMatroid(
+            copy.deepcopy(self._matroid, memo), self._arithmetic_contractions, self._arithmetic_deletions
+        )
 
     def __reduce__(self):
         return super(ArithmeticMatroidMixin, self).__reduce__()
 
     def _multiplicity(self, X):
-        return self._matroid._multiplicity(self._contractions.union(X))
+        return self._matroid._multiplicity(self._arithmetic_contractions.union(X))
 
     def minor(self, contractions=None, deletions=None):
-        if contractions is None:
-            contractions = []
-        if deletions is None:
-            deletions = []
-
         return MinorArithmeticMatroid(
-            self._matroid, self._contractions.union(contractions), self._deletions.union(deletions)
+            self._matroid,
+            self._arithmetic_contractions.union(self._minor_subset(contractions)),
+            self._arithmetic_deletions.union(self._minor_subset(deletions))
         )
 
 
@@ -613,8 +652,16 @@ class DualArithmeticMatroid(ArithmeticMatroidMixin, DualMatroid):
     def _repr_(self):
         return "Dual of '" + repr(self._matroid) + "'"
 
+    __hash__ = ArithmeticMatroidMixin.__hash__
+
     def __eq__(self, other):
-        return self._matroid == other._matroid
+        return isinstance(other, DualArithmeticMatroid) and self._matroid == other._matroid
+
+    def __copy__(self):
+        return DualArithmeticMatroid(self._matroid)
+
+    def __deepcopy__(self, memo=None):
+        return DualArithmeticMatroid(copy.deepcopy(self._matroid, memo))
 
     def __reduce__(self):
         return super(ArithmeticMatroidMixin, self).__reduce__()
@@ -726,12 +773,15 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
         return True
 
     def minor(self, contractions=None, deletions=None):
-        contractions = list(contractions) if contractions else []
-        deletions = list(deletions) if deletions else []
+        contractions = self._minor_subset(contractions)
+        deletions = self._minor_subset(deletions)
+        if not contractions.isdisjoint(deletions):
+            raise ValueError("contraction and deletion sets are not disjoint.")
 
-        new_groundset = [e for e in self._E if e not in contractions + deletions]
+        new_groundset = [e for e in self._E if e not in contractions and e not in deletions]
+        contracted = [e for e in self._E if e in contractions]  # keep the column order deterministic
         A2 = copy.copy(self._A[:, [self._groundset_to_index[e] for e in new_groundset]])
-        Q2 = block_matrix(ZZ, [[self._A[:, [self._groundset_to_index[e] for e in contractions]], self._Q]])
+        Q2 = block_matrix(ZZ, [[self._A[:, [self._groundset_to_index[e] for e in contracted]], self._Q]])
         return ToricArithmeticMatroid(arrangement_matrix=A2, torus_matrix=Q2, ordered_groundset=new_groundset)
 
     def dual(self):
