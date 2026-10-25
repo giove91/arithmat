@@ -27,7 +27,16 @@ import copy
 import networkx as nx
 from functools import reduce
 from collections import Counter
-from collections.abc import Iterable
+
+try:
+    from collections.abc import Iterable
+except ImportError:  # Python 2.7
+    from collections import Iterable
+
+try:
+    string_types = (str, unicode)
+except NameError:  # Python 3
+    string_types = (str,)
 
 from sage.structure.sage_object import SageObject
 from sage.matroids.matroid import Matroid
@@ -131,9 +140,13 @@ class ArithmeticMatroidMixin(SageObject):
             single = X in self.groundset()
         except TypeError:  # unhashable, e.g. a list
             single = False
-        if single or not isinstance(X, (str, Iterable)):
+        if single or not isinstance(X, string_types + (Iterable,)):
             X = [X]
-        return self._subset(X)
+        # Matroid._subset is missing in Sage 8.0, so check by hand
+        S = frozenset(X)
+        if not S.issubset(self.groundset()):
+            raise ValueError("%s is not a subset of the groundset" % (X,))
+        return S
 
     def _is_isomorphism(self, other, morphism):
         """
