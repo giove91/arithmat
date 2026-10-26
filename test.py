@@ -42,6 +42,20 @@ def representation_to_matroid(A):
     return ArithmeticMatroid(E, rk, m)
 
 
+class _FreshCopyBasisMatroid(BasisMatroid):
+    # copy by returning a new plain BasisMatroid instead of self, as Sage may
+    def __copy__(self):
+        return BasisMatroid(groundset=self.groundset(), bases=self.bases())
+
+    def __deepcopy__(self, memo=None):
+        return BasisMatroid(groundset=self.groundset(), bases=self.bases())
+
+
+class FreshCopyBasisArithmeticMatroid(BasisArithmeticMatroid, _FreshCopyBasisMatroid):
+    def _arithmetic_copy(self, matroid):
+        return FreshCopyBasisArithmeticMatroid(matroid)
+
+
 class TestArithmeticMatroid(unittest.TestCase):
 
     def test_trivial(self):
@@ -497,6 +511,49 @@ class TestDualAndMinor(unittest.TestCase):
                         self.assertEqual(M2, M)
                         self.assertEqual(repr(M2), repr(M))
                         self.assertNotIn('_multiplicity', vars(M2))  # uses its own method, not M's
+
+    def test_copy_rank_matroid_equality(self):
+        # Regression: copies of rank-based matroids could compare unequal to the original.
+        # "rank" has a bound method as rank function, and a deep copy of it is a different method.
+        for name in ("rank", "U(2,5)"):
+            M = self.matroids()[name]
+            for how in (copy.copy, copy.deepcopy):
+                with self.subTest(matroid=name, copy=how.__name__):
+                    M2 = how(M)
+                    self.assertIsNot(M2, M)  # our copy ran, not Sage returning M itself
+                    self.assertIsInstance(M2, ArithmeticMatroid)
+                    self.assertEqual(M2, M)
+                    self.assertEqual(hash(M2), hash(M))
+                    self.assertIs(M2._rank_function, M._rank_function)
+                    self.assertIs(M2._multiplicity, M._multiplicity)
+            with self.subTest(matroid=name, copy="fresh plain copy"):
+                # when the parent's copy returns a plain RankMatroid with the same rank function
+                plain = RankMatroid(M.groundset(), M._rank_function)
+                self.assertEqual(M._with_multiplicity(plain, M._multiplicity), M)
+
+    def test_copy_keeps_multiplicity_function(self):
+        # Regression: deepcopy replaced the multiplicity function with a deep copy
+        def make():
+            return self.matroids()["basis"]
+        for how in (copy.copy, copy.deepcopy):
+            for wrap in ("plain", "minor", "dual"):
+                with self.subTest(copy=how.__name__, wrap=wrap):
+                    M, twin = make(), make()
+                    if wrap == "minor":
+                        M, twin = MinorArithmeticMatroid(M, [2]), MinorArithmeticMatroid(twin, [2])
+                    elif wrap == "dual":
+                        M, twin = DualArithmeticMatroid(M), DualArithmeticMatroid(twin)
+                    M2 = how(M)
+                    self.assertEqual(M2, M)
+                    self.assertEqual(M, twin)  # the original is unchanged
+                    self.assertSameArithmeticMatroid(M2, M)
+            with self.subTest(copy=how.__name__, wrap="fresh plain copy"):
+                N = make()
+                M = FreshCopyBasisArithmeticMatroid(N, multiplicity_function=N._multiplicity)
+                M2 = how(M)
+                self.assertIsNot(M2, M)
+                self.assertEqual(M2, M)
+                self.assertSameArithmeticMatroid(M2, M)
 
     def test_arithmetic_copy(self):
         # Sage currently returns arithmetic classes here, so call the fallback directly on plain matroids

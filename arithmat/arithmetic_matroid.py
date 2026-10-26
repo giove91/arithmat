@@ -77,14 +77,15 @@ class ArithmeticMatroidMixin(SageObject):
     def __ne__(self, other):
         return not self == other
 
-    # for classes storing _multiplicity as a function; classes defining it as a method override these
+    # for classes storing _multiplicity as a function; classes defining it as a method override these.
+    # Equality compares multiplicity functions by identity, so copies keep the same function.
     def __copy__(self):
         N = super().__copy__()
-        return self._with_multiplicity(N, self._multiplicity)
+        return self if N is self else self._with_multiplicity(N, self._multiplicity)
 
     def __deepcopy__(self, *args, **kwargs):
         N = super().__deepcopy__(*args, **kwargs)
-        return self._with_multiplicity(N, copy.deepcopy(self._multiplicity))
+        return self if N is self else self._with_multiplicity(N, self._multiplicity)
 
     def __reduce__(self):
         raise TypeError("functions cannot be saved reliably, so this class doesn't have load/save support.")
@@ -551,8 +552,16 @@ class ArithmeticMatroid(ArithmeticMatroidMixin, RankMatroid):
         # take multiplicity function as third positional argument
         super().__init__(groundset, rank_function, multiplicity_function=multiplicity_function)
 
+    # Equality compares the rank and multiplicity functions by identity, so copies must keep both
+    def __copy__(self):
+        return ArithmeticMatroid(self.groundset(), self._rank_function, self._multiplicity)
+
+    def __deepcopy__(self, memo=None):
+        return ArithmeticMatroid(copy.deepcopy(self.groundset(), memo), self._rank_function, self._multiplicity)
+
     def _arithmetic_copy(self, matroid):
-        return ArithmeticMatroid(matroid.groundset(), matroid.rank, None)
+        # prefer the underlying rank function, so the result compares equal to matroids built from it
+        return ArithmeticMatroid(matroid.groundset(), getattr(matroid, '_rank_function', matroid.rank), None)
 
 
 class LinearArithmeticMatroid(ArithmeticMatroidMixin, LinearMatroid):
