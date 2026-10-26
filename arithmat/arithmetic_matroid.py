@@ -92,14 +92,16 @@ class ArithmeticMatroidMixin(SageObject):
     def __ne__(self, other):
         return not self == other
 
-    # for classes storing _multiplicity as a function; classes defining it as a method override these
+    # for classes storing _multiplicity as a function; classes defining it as a method override these.
+    # Equality compares multiplicity functions by identity, so copies keep the same function, never a deep copy.
+    # Sage 10 returns self here; older Sage returns a new plain matroid.
     def __copy__(self):
         N = super(ArithmeticMatroidMixin, self).__copy__()
-        return self._with_multiplicity(N, self._multiplicity)
+        return self if N is self else self._with_multiplicity(N, self._multiplicity)
 
     def __deepcopy__(self, *args, **kwargs):
         N = super(ArithmeticMatroidMixin, self).__deepcopy__(*args, **kwargs)
-        return self._with_multiplicity(N, copy.deepcopy(self._multiplicity))
+        return self if N is self else self._with_multiplicity(N, self._multiplicity)
 
     def __reduce__(self):
         raise TypeError("functions cannot be saved reliably, so this class doesn't have load/save support.")
@@ -491,7 +493,7 @@ class ArithmeticMatroidMixin(SageObject):
                 if shnf:
                     # put result in signed Hermite normal form
                     res = signed_hermite_normal_form(res)
-                yield res
+                yield copy.copy(res)
             return
 
         M = self.reduction()
@@ -513,7 +515,7 @@ class ArithmeticMatroidMixin(SageObject):
                 B = signed_hermite_normal_form(H * A)
                 if B not in found_representations:
                     found_representations.add(B)
-                    yield B
+                    yield copy.copy(B)
 
     def num_representations(self):
         """
@@ -521,7 +523,7 @@ class ArithmeticMatroidMixin(SageObject):
         """
         return sum(1 for _ in self.all_representations(shnf=False))
 
-    def representation(self, ordered_groundset=None, shnf=True):
+    def arithmetic_representation(self, ordered_groundset=None, shnf=True):
         """
         Compute any essential representation.
         Return None if the matroid is not representable.
@@ -532,11 +534,17 @@ class ArithmeticMatroidMixin(SageObject):
 
         return None
 
+    def representation(self, ordered_groundset=None, shnf=True):
+        """
+        Same as arithmetic_representation(); LinearArithmeticMatroid uses Sage's representation() instead.
+        """
+        return self.arithmetic_representation(ordered_groundset=ordered_groundset, shnf=shnf)
+
     def is_representable(self):
         """
         Determine if the matroid is a representable arithmetic matroid.
         """
-        return self.representation(shnf=False) is not None
+        return self.arithmetic_representation(shnf=False) is not None
 
     def is_orientable(self):
         """
@@ -570,8 +578,18 @@ class ArithmeticMatroid(ArithmeticMatroidMixin, RankMatroid):
         # take multiplicity function as third positional argument
         super(ArithmeticMatroid, self).__init__(groundset, rank_function, multiplicity_function=multiplicity_function)
 
+    # Equality compares the rank and multiplicity functions by identity, so copies must keep both.
+    # Sage 10 returns self from copy and deepcopy; older Sage builds a new RankMatroid and deep-copies the
+    # rank function, which breaks equality when it is a bound method.
+    def __copy__(self):
+        return ArithmeticMatroid(self.groundset(), self._rank_function, self._multiplicity)
+
+    def __deepcopy__(self, memo=None):
+        return ArithmeticMatroid(copy.deepcopy(self.groundset(), memo), self._rank_function, self._multiplicity)
+
     def _arithmetic_copy(self, matroid):
-        return ArithmeticMatroid(matroid.groundset(), matroid.rank, None)
+        # prefer the underlying rank function, so the result compares equal to matroids built from it
+        return ArithmeticMatroid(matroid.groundset(), getattr(matroid, '_rank_function', matroid.rank), None)
 
 
 class LinearArithmeticMatroid(ArithmeticMatroidMixin, LinearMatroid):
@@ -579,6 +597,8 @@ class LinearArithmeticMatroid(ArithmeticMatroidMixin, LinearMatroid):
         return LinearArithmeticMatroid(
             matrix=matroid.representation(), groundset=matroid.groundset_list(), ring=matroid.base_ring()
         )
+
+    representation = LinearMatroid.representation
 
     def _repr_(self):
         return "Linear arithmetic matroid of rank %d on %d elements" % (self.full_rank(), len(self.groundset()))
@@ -733,13 +753,13 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
         return self._groundset
 
     def ordered_groundset(self):
-        return self._E
+        return list(self._E)
 
     def arrangement_matrix(self):
-        return self._A
+        return copy.copy(self._A)
 
     def torus_matrix(self):
-        return self._Q
+        return copy.copy(self._Q)
 
     def _rank(self, X):
         return self._rank_and_multiplicity(frozenset(X))[0]
@@ -810,7 +830,7 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
                                    ordered_groundset=list(self._E) + temp_elements)
         return M.minor(deletions=temp_elements)
 
-    def representation(self, ordered_groundset=None, shnf=True):
+    def arithmetic_representation(self, ordered_groundset=None, shnf=True):
         """
         Compute any essential representation.
         Return None if the matroid is not representable.
@@ -833,11 +853,11 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
                 # put result in signed Hermite normal form
                 res = signed_hermite_normal_form(res)
 
-            return res
+            return copy.copy(res)
             # TODO should also return Q, when m({}) > 1?
 
         else:
-            return super(ToricArithmeticMatroid, self).representation(ordered_groundset=ordered_groundset, shnf=shnf)
+            return super(ToricArithmeticMatroid, self).arithmetic_representation(ordered_groundset=ordered_groundset, shnf=shnf)
 
     def is_orientable(self):
         """

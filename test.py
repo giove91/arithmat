@@ -21,6 +21,7 @@ along with this program. If not, see http://www.gnu.org/licenses/.
 
 from sage.all import *
 import unittest
+import contextlib
 import itertools
 import copy
 import operator
@@ -43,7 +44,36 @@ def representation_to_matroid(A):
     return ArithmeticMatroid(E, rk, m)
 
 
-class TestArithmeticMatroid(unittest.TestCase):
+class TestCase(unittest.TestCase):
+    if not hasattr(unittest.TestCase, "subTest"):  # Python 2.7
+        @contextlib.contextmanager
+        def subTest(self, msg=None, **params):
+            # Unlike Python 3, a failure ends the whole test; the parameters are added to its message.
+            try:
+                yield
+            except self.failureException as e:
+                context = ", ".join(["%s=%r" % kv for kv in sorted(params.items())])
+                if msg is not None:
+                    context = "[%s] %s" % (msg, context)
+                e.args = ("%s (%s)" % (e.args[0] if e.args else "", context),) + e.args[1:]
+                raise
+
+
+class _FreshCopyBasisMatroid(BasisMatroid):
+    # copy like older Sage: return a new plain BasisMatroid instead of self
+    def __copy__(self):
+        return BasisMatroid(groundset=self.groundset(), bases=self.bases())
+
+    def __deepcopy__(self, memo=None):
+        return BasisMatroid(groundset=self.groundset(), bases=self.bases())
+
+
+class OlderSageBasisArithmeticMatroid(BasisArithmeticMatroid, _FreshCopyBasisMatroid):
+    def _arithmetic_copy(self, matroid):
+        return OlderSageBasisArithmeticMatroid(matroid)
+
+
+class TestArithmeticMatroid(TestCase):
 
     def test_trivial(self):
         E = range(1, 10)
@@ -346,8 +376,52 @@ class TestArithmeticMatroid(unittest.TestCase):
 
         self.assertTrue(M1.is_strong_gcd())
 
+    def test_linear_representation_is_sage(self):
+        # arithmetic representation() hid LinearMatroid.representation(), so Sage's own calls to it with its arguments (Matrix(M), representation_vectors()) raised TypeError
+        A = matrix(ZZ, [[1, 0, 1, 1], [0, 1, 1, 2]])
+        L = LinearArithmeticMatroid(A, multiplicity_function=lambda X: representation_to_matroid(A).multiplicity(X))
+        plain = LinearMatroid(A)
 
-class TestDualAndMinor(unittest.TestCase):
+        self.assertEqual(L.representation(), plain.representation())
+        self.assertEqual(L.representation(), A)
+        self.assertEqual(Matrix(L), A)
+        self.assertEqual(L.representation_vectors(), plain.representation_vectors())
+        B = L.basis()
+        self.assertEqual(L.representation(B), plain.representation(B))
+        self.assertEqual(L.representation(B, reduced=True), plain.representation(B, reduced=True))
+        self.assertEqual(L.representation(labels=True), plain.representation(labels=True))
+
+        # Sage returns a new mutable matrix each call, and changing it leaves L as it was
+        R = L.representation()
+        self.assertTrue(R.is_mutable())
+        self.assertIsNot(L.representation(), R)
+        R[0, 0] = 5
+        self.assertEqual(L.representation(), A)
+
+        # the arithmetic search keeps its own name
+        self.assertTrue(L.is_representable())
+        H = L.arithmetic_representation()
+        self.assertEqual(H, signed_hermite_normal_form(A))
+        self.assertTrue(L.check_representation(H))
+        self.assertEqual(L.arithmetic_representation(shnf=False).dimensions(), A.dimensions())
+
+    def test_linear_not_arithmetically_representable(self):
+        # the stored matrix has a 2x2 minor of determinant 2, but every multiplicity is 1
+        A = matrix(QQ, [[1, 0, 1, 1], [0, 1, 1, 2]])
+        L = LinearArithmeticMatroid(A, multiplicity_function=lambda X: 1)
+        self.assertEqual(L.representation(), A)  # Sage's representation() is still the stored matrix
+        self.assertIsNone(L.arithmetic_representation())
+        self.assertFalse(L.is_representable())
+
+    def test_representation_alias(self):
+        # outside LinearArithmeticMatroid, representation() is the arithmetic search
+        E = [1, 2, 3, 4, 5]
+        M = ArithmeticMatroid(E, lambda X: min(2, len(X)), lambda X: 1)
+        self.assertEqual(M.representation(), M.arithmetic_representation())
+        self.assertEqual(M.representation(shnf=False) is None, M.arithmetic_representation(shnf=False) is None)
+
+
+class TestDualAndMinor(TestCase):
 
     def setUp(self):
         # 0 and 2 are loops with torsion: m(empty) = 2, m({2}) = 1
@@ -499,6 +573,50 @@ class TestDualAndMinor(unittest.TestCase):
                         self.assertEqual(repr(M2), repr(M))
                         self.assertNotIn('_multiplicity', vars(M2))  # uses its own method, not M's
 
+    def test_copy_rank_matroid_equality(self):
+        # Regression: on older Sage, copies of rank-based matroids compared unequal to the original.
+        # "rank" has a bound method as rank function, which older Sage deep-copies.
+        for name in ("rank", "U(2,5)"):
+            M = self.matroids()[name]
+            for how in (copy.copy, copy.deepcopy):
+                with self.subTest(matroid=name, copy=how.__name__):
+                    M2 = how(M)
+                    self.assertIsNot(M2, M)  # our copy ran, not Sage returning M itself
+                    self.assertIsInstance(M2, ArithmeticMatroid)
+                    self.assertEqual(M2, M)
+                    self.assertEqual(hash(M2), hash(M))
+                    self.assertIs(M2._rank_function, M._rank_function)
+                    self.assertIs(M2._multiplicity, M._multiplicity)
+            with self.subTest(matroid=name, copy="older Sage fallback"):
+                # older Sage's RankMatroid.__copy__ returns a plain RankMatroid with the same rank function
+                plain = RankMatroid(M.groundset(), M._rank_function)
+                self.assertEqual(M._with_multiplicity(plain, M._multiplicity), M)
+
+    def test_copy_keeps_multiplicity_function(self):
+        # Regression: deepcopy replaced the multiplicity function with a deep copy. With a bound method
+        # (here T._multiplicity) that broke equality, and on Sage 10 it also modified the original.
+        def make():
+            return self.matroids()["basis"]
+        for how in (copy.copy, copy.deepcopy):
+            for wrap in ("plain", "minor", "dual"):
+                with self.subTest(copy=how.__name__, wrap=wrap):
+                    M, twin = make(), make()
+                    if wrap == "minor":
+                        M, twin = MinorArithmeticMatroid(M, [2]), MinorArithmeticMatroid(twin, [2])
+                    elif wrap == "dual":
+                        M, twin = DualArithmeticMatroid(M), DualArithmeticMatroid(twin)
+                    M2 = how(M)
+                    self.assertEqual(M2, M)
+                    self.assertEqual(M, twin)  # the original is unchanged
+                    self.assertSameArithmeticMatroid(M2, M)
+            with self.subTest(copy=how.__name__, wrap="older Sage"):
+                N = make()
+                M = OlderSageBasisArithmeticMatroid(N, multiplicity_function=N._multiplicity)
+                M2 = how(M)
+                self.assertIsNot(M2, M)
+                self.assertEqual(M2, M)
+                self.assertSameArithmeticMatroid(M2, M)
+
     def test_arithmetic_copy(self):
         # Sage currently returns arithmetic classes here, so call the fallback directly on plain matroids
         for name, N in self.matroids().items():
@@ -618,7 +736,7 @@ class TestDualAndMinor(unittest.TestCase):
         self.assertFalse(M2.equals(N3))
 
 
-class TestToric(unittest.TestCase):
+class TestToric(TestCase):
 
     def test_without_Q(self):
         A = matrix(ZZ, [[-1, 1, 0, -1, 2, 7], [6, 1, -1, -2, 2, 5]])
@@ -788,6 +906,76 @@ class TestToric(unittest.TestCase):
         self.assertEqual(signed_hermite_normal_form(B), C)
         self.assertEqual(signed_hermite_normal_form(A), C)
 
+    def assertMutableCopy(self, R, M):
+        """
+        Assert that R is a new mutable matrix, and that changing it leaves M as it was.
+        """
+        twin = copy.deepcopy(M)
+        self.assertTrue(R.is_mutable())
+        self.assertIsNot(R, M._A)
+        self.assertIsNot(R, M._Q)
+        if R.nrows() and R.ncols():
+            R[0, 0] += 100
+        self.assertFalse(M._A.is_mutable())
+        self.assertFalse(M._Q.is_mutable())
+        self.assertEqual(M, twin)
+        self.assertEqual(M.arrangement_matrix(), twin.arrangement_matrix())
+
+    def test_ordered_groundset_is_list_copy(self):
+        A = matrix(ZZ, [[-1, 1, 0, -1, 2, 7], [6, 1, -1, -2, 2, 5]])
+        E = ['a', 'b', 'f', 'e', 'd', 'c']
+        M = ToricArithmeticMatroid(A, ordered_groundset=E)
+        L = M.ordered_groundset()
+        self.assertIsInstance(L, list)
+        self.assertEqual(L, E)
+        self.assertIsNot(M.ordered_groundset(), L)  # new list on each call, like Sage's groundset_list()
+        L.reverse()
+        L.append('z')
+        self.assertEqual(M.ordered_groundset(), E)
+        self.assertEqual(M.representation(shnf=False), A)
+
+    def test_matrix_accessors_return_mutable_copies(self):
+        A = matrix(ZZ, [[-1, 1, 0, -1, 2, 7], [0, 1, -1, -2, 2, 5]])
+        Q = matrix(ZZ, [[3, 9, 6], [0, 0, 0]])
+        for name, M in (("without Q", ToricArithmeticMatroid(A)), ("with Q", ToricArithmeticMatroid(A, Q))):
+            with self.subTest(matroid=name):
+                rank_and_multiplicity = [(M.rank(X), M.multiplicity(X)) for X in powerset(M.groundset())]
+                for accessor, internal in (("arrangement_matrix", M._A), ("torus_matrix", M._Q)):
+                    with self.subTest(accessor=accessor):
+                        R = getattr(M, accessor)()
+                        self.assertEqual(R, internal)
+                        self.assertMutableCopy(R, M)
+                # the cache of rank and multiplicity is still valid
+                self.assertEqual([(M.rank(X), M.multiplicity(X)) for X in powerset(M.groundset())],
+                                 rank_and_multiplicity)
+
+    def test_representations_are_mutable_copies(self):
+        A = matrix(ZZ, [[1, 1, 4, 1, 0], [0, 2, 3, 1, 1], [0, 0, 6, 0, 1]])
+        M = ToricArithmeticMatroid(A, ordered_groundset=[5, 6, 7, 8, 9])
+        for shnf in (True, False):
+            for E in (None, [9, 8, 7, 6, 5]):
+                with self.subTest(shnf=shnf, ordered_groundset=E):
+                    R = M.representation(ordered_groundset=E, shnf=shnf)
+                    self.assertEqual(R, M.arithmetic_representation(ordered_groundset=E, shnf=shnf))
+                    self.assertMutableCopy(R, M)
+        # full multiplicity 1 and 2 take different branches of all_representations()
+        for N in (M, ToricArithmeticMatroid(matrix(ZZ, [[1, 1, 0], [0, 2, 2]]))):
+            for shnf in (True, False):
+                with self.subTest(shnf=shnf, method="all_representations", full_multiplicity=N.full_multiplicity()):
+                    expected = list(N.all_representations(shnf=shnf))
+                    self.assertTrue(expected)
+                    for R in N.all_representations(shnf=shnf):
+                        self.assertMutableCopy(R, N)
+                    self.assertEqual(list(N.all_representations(shnf=shnf)), expected)
+
+    def test_representation_uses_toric_override(self):
+        # representation() goes through arithmetic_representation(), so Toric's version (which keeps A) is used
+        A = matrix(ZZ, [[1, 1, 4, 1, 0], [0, 2, 3, 1, 1], [0, 0, 6, 0, 1]])
+        M = ToricArithmeticMatroid(A)
+        self.assertEqual(M.representation(shnf=False), A)
+        self.assertEqual(M.arithmetic_representation(shnf=False), A)
+        self.assertEqual(M.representation(), signed_hermite_normal_form(A))
+
     def test_decomposition(self):
         M = ToricArithmeticMatroid(matrix(ZZ, [[1, 5, -1, 5], [1, 7, 2, 6], [0, -2, -2, -1]]))
         self.assertEqual(M.decomposition(), SetPartition([[2], [0, 1, 3]]))
@@ -951,7 +1139,7 @@ class TestToric(unittest.TestCase):
             })
 
 
-class TestReduction(unittest.TestCase):
+class TestReduction(TestCase):
 
     def test_example(self):
         E = [1, 2, 3, 4, 5, 6]
@@ -1011,7 +1199,7 @@ class TestReduction(unittest.TestCase):
         self.assertTrue(M2.dual().reduction().is_isomorphic(M2.reduction().dual()))
 
 
-class TestSHNF(unittest.TestCase):
+class TestSHNF(TestCase):
 
     def test_1x1(self):
         for x in range(-5, 5):
@@ -1115,7 +1303,7 @@ def reference_rank_and_multiplicity(M, X):
     multiplicity = reduce(operator.mul, [d for d in T.elementary_divisors() if d != 0], 1)
     return rank, multiplicity
 
-class TestToricCache(unittest.TestCase):
+class TestToricCache(TestCase):
 
     def setUp(self):
         self.A = matrix(ZZ, [[1, 0, 0, 2, 1, 3], [0, 1, 0, 1, 4, -1], [0, 0, 2, 1, -1, 5]])
