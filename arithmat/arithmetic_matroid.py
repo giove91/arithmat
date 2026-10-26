@@ -472,7 +472,7 @@ class ArithmeticMatroidMixin(SageObject):
                 if shnf:
                     # put result in signed Hermite normal form
                     res = signed_hermite_normal_form(res)
-                yield res
+                yield copy.copy(res)
             return
 
         M = self.reduction()
@@ -494,7 +494,7 @@ class ArithmeticMatroidMixin(SageObject):
                 B = signed_hermite_normal_form(H * A)
                 if B not in found_representations:
                     found_representations.add(B)
-                    yield B
+                    yield copy.copy(B)
 
     def num_representations(self):
         """
@@ -714,13 +714,13 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
         return self._groundset
 
     def ordered_groundset(self):
-        return self._E
+        return list(self._E)
 
     def arrangement_matrix(self):
-        return self._A
+        return copy.copy(self._A)
 
     def torus_matrix(self):
-        return self._Q
+        return copy.copy(self._Q)
 
     def _rank(self, X):
         return self._rank_and_multiplicity(frozenset(X))[0]
@@ -814,7 +814,7 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
                 # put result in signed Hermite normal form
                 res = signed_hermite_normal_form(res)
 
-            return res
+            return copy.copy(res)
             # TODO should also return Q, when m({}) > 1?
 
         else:

@@ -787,6 +787,67 @@ class TestToric(unittest.TestCase):
         self.assertEqual(signed_hermite_normal_form(B), C)
         self.assertEqual(signed_hermite_normal_form(A), C)
 
+    def assertMutableCopy(self, R, M):
+        """
+        Assert that R is a new mutable matrix, and that changing it leaves M as it was.
+        """
+        twin = copy.deepcopy(M)
+        self.assertTrue(R.is_mutable())
+        self.assertIsNot(R, M._A)
+        self.assertIsNot(R, M._Q)
+        if R.nrows() and R.ncols():
+            R[0, 0] += 100
+        self.assertFalse(M._A.is_mutable())
+        self.assertFalse(M._Q.is_mutable())
+        self.assertEqual(M, twin)
+        self.assertEqual(M.arrangement_matrix(), twin.arrangement_matrix())
+
+    def test_ordered_groundset_is_list_copy(self):
+        A = matrix(ZZ, [[-1, 1, 0, -1, 2, 7], [6, 1, -1, -2, 2, 5]])
+        E = ['a', 'b', 'f', 'e', 'd', 'c']
+        M = ToricArithmeticMatroid(A, ordered_groundset=E)
+        L = M.ordered_groundset()
+        self.assertIsInstance(L, list)
+        self.assertEqual(L, E)
+        self.assertIsNot(M.ordered_groundset(), L)  # new list on each call, like Sage's groundset_list()
+        L.reverse()
+        L.append('z')
+        self.assertEqual(M.ordered_groundset(), E)
+        self.assertEqual(M.representation(shnf=False), A)
+
+    def test_matrix_accessors_return_mutable_copies(self):
+        A = matrix(ZZ, [[-1, 1, 0, -1, 2, 7], [0, 1, -1, -2, 2, 5]])
+        Q = matrix(ZZ, [[3, 9, 6], [0, 0, 0]])
+        for name, M in (("without Q", ToricArithmeticMatroid(A)), ("with Q", ToricArithmeticMatroid(A, Q))):
+            with self.subTest(matroid=name):
+                rank_and_multiplicity = [(M.rank(X), M.multiplicity(X)) for X in powerset(M.groundset())]
+                for accessor, internal in (("arrangement_matrix", M._A), ("torus_matrix", M._Q)):
+                    with self.subTest(accessor=accessor):
+                        R = getattr(M, accessor)()
+                        self.assertEqual(R, internal)
+                        self.assertMutableCopy(R, M)
+                # the cache of rank and multiplicity is still valid
+                self.assertEqual([(M.rank(X), M.multiplicity(X)) for X in powerset(M.groundset())],
+                                 rank_and_multiplicity)
+
+    def test_representations_are_mutable_copies(self):
+        A = matrix(ZZ, [[1, 1, 4, 1, 0], [0, 2, 3, 1, 1], [0, 0, 6, 0, 1]])
+        M = ToricArithmeticMatroid(A, ordered_groundset=[5, 6, 7, 8, 9])
+        for shnf in (True, False):
+            for E in (None, [9, 8, 7, 6, 5]):
+                with self.subTest(shnf=shnf, ordered_groundset=E):
+                    R = M.representation(ordered_groundset=E, shnf=shnf)
+                    self.assertMutableCopy(R, M)
+        # full multiplicity 1 and 2 take different branches of all_representations()
+        for N in (M, ToricArithmeticMatroid(matrix(ZZ, [[1, 1, 0], [0, 2, 2]]))):
+            for shnf in (True, False):
+                with self.subTest(shnf=shnf, method="all_representations", full_multiplicity=N.full_multiplicity()):
+                    expected = list(N.all_representations(shnf=shnf))
+                    self.assertTrue(expected)
+                    for R in N.all_representations(shnf=shnf):
+                        self.assertMutableCopy(R, N)
+                    self.assertEqual(list(N.all_representations(shnf=shnf)), expected)
+
     def test_decomposition(self):
         M = ToricArithmeticMatroid(matrix(ZZ, [[1, 5, -1, 5], [1, 7, 2, 6], [0, -2, -2, -1]]))
         self.assertEqual(M.decomposition(), SetPartition([[2], [0, 1, 3]]))
