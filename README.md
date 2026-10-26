@@ -19,8 +19,14 @@ Maintainer: Hailey Jay Garcia
 
 ## Requirements
 
-* [Python](https://www.python.org/) 2.7 or 3.x
-* [SageMath](http://www.sagemath.org/) >= 8
+* [Python](https://www.python.org/) >= 3.9
+* [SageMath](http://www.sagemath.org/) >= 10.1
+
+For older SageMath versions or Python 2.7, use Arithmat 1.1.3:
+
+```bash
+sage -pip install arithmat==1.1.3
+```
 
 
 ## Installation

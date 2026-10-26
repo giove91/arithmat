@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "arithmat"
+dynamic = ["version"]
+description = "Sage implementation of arithmetic matroids and toric arrangements"
+readme = "README.md"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE.md"]
+requires-python = ">=3.9"
+authors = [
+    { name = "Roberto Pagaria" },
+    { name = "Giovanni Paolini", email = "giovanni.paolini@sns.it" },
+]
+maintainers = [{ name = "Hailey Jay Garcia" }]
+keywords = ["SageMath", "matroids", "arithmetic matroids", "toric arrangements"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+]
+dependencies = ["networkx>=2.2"]
+
+[project.urls]
+Source = "https://github.com/giove91/arithmat"
+Tracker = "https://github.com/giove91/arithmat/issues"
+
+[tool.setuptools]
+packages = ["arithmat"]
+
+[tool.setuptools.dynamic]
+version = { file = "VERSION" }

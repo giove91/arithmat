@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Arithmetic matroids classes.
 
@@ -18,8 +17,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see http://www.gnu.org/licenses/.
 """
-
-from __future__ import absolute_import
 
 import itertools
 import operator
@@ -47,10 +44,7 @@ from sage.misc.cachefunc import cached_method
 
 from .shnf import signed_hermite_normal_form
 
-try:
-    from sage.combinat.subset import powerset
-except ImportError:
-    from sage.misc.misc import powerset
+from sage.combinat.subset import powerset
 
 class ArithmeticMatroidMixin(SageObject):
     """
@@ -64,7 +58,7 @@ class ArithmeticMatroidMixin(SageObject):
         except KeyError:
             multiplicity = None  # multiplicity function must be set later
 
-        super(ArithmeticMatroidMixin, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._multiplicity = multiplicity
 
     def _repr_(self):
@@ -78,18 +72,18 @@ class ArithmeticMatroidMixin(SageObject):
         if not isinstance(other, ArithmeticMatroidMixin):
             return False
 
-        return super(ArithmeticMatroidMixin, self).__eq__(other) and (self._multiplicity == other._multiplicity)
+        return super().__eq__(other) and (self._multiplicity == other._multiplicity)
 
     def __ne__(self, other):
         return not self == other
 
     # for classes storing _multiplicity as a function; classes defining it as a method override these
     def __copy__(self):
-        N = super(ArithmeticMatroidMixin, self).__copy__()
+        N = super().__copy__()
         return self._with_multiplicity(N, self._multiplicity)
 
     def __deepcopy__(self, *args, **kwargs):
-        N = super(ArithmeticMatroidMixin, self).__deepcopy__(*args, **kwargs)
+        N = super().__deepcopy__(*args, **kwargs)
         return self._with_multiplicity(N, copy.deepcopy(self._multiplicity))
 
     def __reduce__(self):
@@ -197,7 +191,7 @@ class ArithmeticMatroidMixin(SageObject):
         """
         Check if the arithmetic matroid axioms are satisfied.
         """
-        if not super(ArithmeticMatroidMixin, self).is_valid():
+        if not super().is_valid():
             # check validity of the underlying matroid
             return False
 
@@ -294,7 +288,7 @@ class ArithmeticMatroidMixin(SageObject):
         deletions = self._minor_subset(deletions)
 
         # get minor as a (non-arithmetic) matroid
-        matroid = super(ArithmeticMatroidMixin, self).minor(contractions, deletions)
+        matroid = super().minor(contractions, deletions)
 
         if isinstance(matroid, MinorMatroid):
             # return an instance of MinorArithmeticMatroid
@@ -306,7 +300,7 @@ class ArithmeticMatroidMixin(SageObject):
 
     def dual(self):
         # get dual as a (non-arithmetic) matroid
-        matroid = super(ArithmeticMatroidMixin, self).dual()
+        matroid = super().dual()
 
         if isinstance(matroid, DualMatroid):
             # return an instance of DualArithmeticMatroid
@@ -555,7 +549,7 @@ class ArithmeticMatroidMixin(SageObject):
 class ArithmeticMatroid(ArithmeticMatroidMixin, RankMatroid):
     def __init__(self, groundset, rank_function, multiplicity_function):
         # take multiplicity function as third positional argument
-        super(ArithmeticMatroid, self).__init__(groundset, rank_function, multiplicity_function=multiplicity_function)
+        super().__init__(groundset, rank_function, multiplicity_function=multiplicity_function)
 
     def _arithmetic_copy(self, matroid):
         return ArithmeticMatroid(matroid.groundset(), matroid.rank, None)
@@ -576,7 +570,7 @@ class BasisArithmeticMatroid(ArithmeticMatroidMixin, BasisMatroid):
         if isinstance(M, ArithmeticMatroidMixin):
             # extract multiplicity function from the given arithmetic matroid
             kwargs['multiplicity_function'] = M._multiplicity
-        super(BasisArithmeticMatroid, self).__init__(M=M, *args, **kwargs)
+        super().__init__(M=M, *args, **kwargs)
 
     def _arithmetic_copy(self, matroid):
         return BasisArithmeticMatroid(matroid)
@@ -824,7 +818,7 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
             # TODO should also return Q, when m({}) > 1?
 
         else:
-            return super(ToricArithmeticMatroid, self).representation(ordered_groundset=ordered_groundset, shnf=shnf)
+            return super().representation(ordered_groundset=ordered_groundset, shnf=shnf)
 
     def is_orientable(self):
         """
@@ -834,7 +828,7 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
             return True
 
         else:
-            return super(ToricArithmeticMatroid, self).is_orientable()
+            return super().is_orientable()
 
     def is_equivalent(self, other, morphism=None):
         """

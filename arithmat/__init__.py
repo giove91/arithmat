@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Module that imports all arithmetic matroids classes and additional functions.
 
@@ -18,8 +17,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see http://www.gnu.org/licenses/.
 """
-
-from __future__ import absolute_import
 
 from .arithmetic_matroid import ArithmeticMatroidMixin, ArithmeticMatroid, LinearArithmeticMatroid, BasisArithmeticMatroid, MinorArithmeticMatroid, DualArithmeticMatroid, ToricArithmeticMatroid
 from .shnf import signed_hermite_normal_form
