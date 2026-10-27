@@ -503,7 +503,7 @@ class ArithmeticMatroidMixin(SageObject):
         """
         return sum(1 for _ in self.all_representations(shnf=False))
 
-    def representation(self, ordered_groundset=None, shnf=True):
+    def arithmetic_representation(self, ordered_groundset=None, shnf=True):
         """
         Compute any essential representation.
         Return None if the matroid is not representable.
@@ -514,11 +514,17 @@ class ArithmeticMatroidMixin(SageObject):
 
         return None
 
+    def representation(self, ordered_groundset=None, shnf=True):
+        """
+        Same as arithmetic_representation(); LinearArithmeticMatroid uses Sage's representation() instead.
+        """
+        return self.arithmetic_representation(ordered_groundset=ordered_groundset, shnf=shnf)
+
     def is_representable(self):
         """
         Determine if the matroid is a representable arithmetic matroid.
         """
-        return self.representation(shnf=False) is not None
+        return self.arithmetic_representation(shnf=False) is not None
 
     def is_orientable(self):
         """
@@ -569,6 +575,8 @@ class LinearArithmeticMatroid(ArithmeticMatroidMixin, LinearMatroid):
         return LinearArithmeticMatroid(
             matrix=matroid.representation(), groundset=matroid.groundset_list(), ring=matroid.base_ring()
         )
+
+    representation = LinearMatroid.representation
 
     def _repr_(self):
         return "Linear arithmetic matroid of rank %d on %d elements" % (self.full_rank(), len(self.groundset()))
@@ -800,7 +808,7 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
                                    ordered_groundset=list(self._E) + temp_elements)
         return M.minor(deletions=temp_elements)
 
-    def representation(self, ordered_groundset=None, shnf=True):
+    def arithmetic_representation(self, ordered_groundset=None, shnf=True):
         """
         Compute any essential representation.
         Return None if the matroid is not representable.
@@ -827,7 +835,7 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
             # TODO should also return Q, when m({}) > 1?
 
         else:
-            return super().representation(ordered_groundset=ordered_groundset, shnf=shnf)
+            return super().arithmetic_representation(ordered_groundset=ordered_groundset, shnf=shnf)
 
     def is_orientable(self):
         """
