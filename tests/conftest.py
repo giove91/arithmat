@@ -18,5 +18,26 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see http://www.gnu.org/licenses/.
 """
 
+import hashlib
+import os
+import secrets
+
+import pytest
+
 # Initialize Sage once before any test module loads.
 import sage.all  # noqa: F401
+from sage.misc.randstate import set_random_seed
+
+# Random seed unless ARITHMAT_SEED is set for reproducability
+SEED = int(os.environ.get("ARITHMAT_SEED", secrets.randbelow(2**32)))
+
+
+def pytest_report_header(config):
+    return f"Reproduce with ARITHMAT_SEED={SEED}"
+
+
+@pytest.fixture(autouse=True)
+def seed_sage_random(request):
+    # Reseed deterministically before every test
+    digest = hashlib.sha256(f"{SEED}:{request.node.nodeid}".encode()).digest()
+    set_random_seed(int.from_bytes(digest[:8], "big"))
