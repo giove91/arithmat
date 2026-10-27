@@ -28,7 +28,7 @@ import pytest
 import sage.all  # noqa: F401
 from sage.misc.randstate import set_random_seed
 
-# Random seed unless ARITHMAT_SEED is set for reproducability
+# Random seed unless ARITHMAT_SEED is set for reproducibility
 SEED = int(os.environ.get("ARITHMAT_SEED", secrets.randbelow(2**32)))
 
 
