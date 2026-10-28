@@ -28,8 +28,9 @@ import pytest
 import sage.all  # noqa: F401
 from sage.misc.randstate import set_random_seed
 
-# Random seed unless ARITHMAT_SEED is set for reproducibility
-SEED = int(os.environ.get("ARITHMAT_SEED", secrets.randbelow(2**32)))
+# Random seed unless ARITHMAT_SEED is set for reproducibility.
+# Store it in the environment so pytest-xdist workers use the same seed.
+SEED = int(os.environ.setdefault("ARITHMAT_SEED", str(secrets.randbelow(2**32))))
 
 
 def pytest_report_header(config):

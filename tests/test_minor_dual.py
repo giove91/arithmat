@@ -20,9 +20,9 @@ along with this program. If not, see http://www.gnu.org/licenses/.
 
 import copy
 import operator
-import unittest
 from functools import reduce
 
+import pytest
 from sage.combinat.subset import powerset
 from sage.matrix.constructor import matrix
 from sage.matroids.basis_matroid import BasisMatroid
@@ -54,316 +54,316 @@ class FreshCopyBasisArithmeticMatroid(BasisArithmeticMatroid, _FreshCopyBasisMat
     def _arithmetic_copy(self, matroid):
         return FreshCopyBasisArithmeticMatroid(matroid)
 
+# 0 and 2 are loops with torsion: m(empty) = 2, m({2}) = 1
+T_A = matrix(ZZ, [[1, 0, 1, 1], [0, 1, 0, 1]], immutable=True)
+T_Q = matrix(ZZ, [[2], [0]], immutable=True)
+# 2 is a coloop with m({2}) = 2
+A_LIN = matrix(ZZ, [[1, 1, 0], [0, 0, 2]], immutable=True)
+def M_LIN(X):
+    return reduce(operator.mul, [d for d in T_A[:, sorted(X)].elementary_divisors() if d != 0], 1) if X else 1
+# U(2,5) on {1, ..., 5}, with m = 2 on pairs inside {3, 4, 5}
+def RK_U25(X):
+    return min(2, len(X))
 
-class TestDualAndMinor(unittest.TestCase):
+def M_U25(X):
+    return 2 if len(X) == 2 and all(x in [3, 4, 5] for x in X) else 1
 
-    def setUp(self):
-        # 0 and 2 are loops with torsion: m(empty) = 2, m({2}) = 1
-        self.T = ToricArithmeticMatroid(matrix(ZZ, [[1, 0, 1, 1], [0, 1, 0, 1]]), matrix(ZZ, [[2], [0]]))
-        # 2 is a coloop with m({2}) = 2
-        self.A_lin = matrix(ZZ, [[1, 1, 0], [0, 0, 2]])
+def make_matroid(name, T=None):
+    # matroids built from the same T share its rank and multiplicity functions
+    if T is None:
+        T = ToricArithmeticMatroid(T_A, T_Q)
+    return {
+        "rank": lambda: ArithmeticMatroid(T.groundset(), T._rank, T._multiplicity),
+        "toric": lambda: T,
+        "basis": lambda: BasisArithmeticMatroid(BasisMatroid(groundset=T.groundset(), bases=T.bases()),
+                                        multiplicity_function=T._multiplicity),
+        "U(2,5)": lambda: ArithmeticMatroid([1, 2, 3, 4, 5], RK_U25, M_U25),
+        "linear": lambda: LinearArithmeticMatroid(A_LIN, multiplicity_function=M_LIN)
+    }[name]()
 
-    def matroids(self):
-        T = self.T
-        A = self.A_lin
+MATROID_NAMES = ["rank", "U(2,5)", "basis", "linear", "toric"]
 
-        def m_lin(X):
-            return reduce(operator.mul, [d for d in A[:, sorted(X)].elementary_divisors() if d != 0], 1) if X else 1
+@pytest.fixture(params=MATROID_NAMES)
+def matroid(request):
+    return make_matroid(request.param)
 
-        # U(2,5) on {1, ..., 5}, with m = 2 on pairs inside {3, 4, 5}
-        def rk_u25(X):
-            return min(2, len(X))
+def assert_minor_of(M, N, C, D):
+    """
+    Assert that M is N / C \\ D.
+    """
+    assert M.groundset() == N.groundset() - C - D
+    for X in powerset(M.groundset()):
+        assert M.rank(X) == N.rank(C.union(X)) - N.rank(C), (sorted(C), sorted(D), X)
+        assert M.multiplicity(X) == N.multiplicity(C.union(X)), (sorted(C), sorted(D), X)
 
-        def m_u25(X):
-            return 2 if len(X) == 2 and all(x in [3, 4, 5] for x in X) else 1
+def assert_dual_of(M, N):
+    """
+    Assert that M is the dual of N.
+    """
+    E = N.groundset()
+    assert M.groundset() == E
+    for X in powerset(E):
+        assert M.rank(X) == len(X) + N.rank(E.difference(X)) - N.full_rank(), X
+        assert M.multiplicity(X) == N.multiplicity(E.difference(X)), X
 
-        return {
-            "rank": ArithmeticMatroid(T.groundset(), T._rank, T._multiplicity),
-            "U(2,5)": ArithmeticMatroid([1, 2, 3, 4, 5], rk_u25, m_u25),
-            "basis": BasisArithmeticMatroid(BasisMatroid(groundset=T.groundset(), bases=T.bases()),
-                                            multiplicity_function=T._multiplicity),
-            "linear": LinearArithmeticMatroid(A, multiplicity_function=m_lin),
-            "toric": T,
-        }
+def assert_same_arithmetic_matroid(M, N):
+    assert M.groundset() == N.groundset()
+    for X in powerset(N.groundset()):
+        assert M.rank(X) == N.rank(X), X
+        assert M.multiplicity(X) == N.multiplicity(X), X
 
-    def assertMinorOf(self, M, N, C, D):
-        """
-        Assert that M is N / C \\ D.
-        """
-        self.assertEqual(M.groundset(), N.groundset() - C - D)
-        for X in powerset(M.groundset()):
-            self.assertEqual(M.rank(X), N.rank(C.union(X)) - N.rank(C), (sorted(C), sorted(D), X))
-            self.assertEqual(M.multiplicity(X), N.multiplicity(C.union(X)), (sorted(C), sorted(D), X))
+def assert_valid(M):
+    # Skip rank-1 linear matroids over a non-field ring (e.g. ZZ)
+    if isinstance(M, LinearMatroid) and not M.base_ring().is_field() and M.full_rank() == 1:
+        return
+    assert M.is_valid()
 
-    def assertDualOf(self, M, N):
-        """
-        Assert that M is the dual of N.
-        """
-        E = N.groundset()
-        self.assertEqual(M.groundset(), E)
-        for X in powerset(E):
-            self.assertEqual(M.rank(X), len(X) + N.rank(E.difference(X)) - N.full_rank(), X)
-            self.assertEqual(M.multiplicity(X), N.multiplicity(E.difference(X)), X)
+def test_minor(matroid, subtests):
+    N = matroid
+    N_dual = N.dual()
+    for C in map(frozenset, powerset(sorted(N.groundset()))):
+        for D in map(frozenset, powerset(sorted(N.groundset() - C))):
+            with subtests.test(contractions=sorted(C), deletions=sorted(D)):
+                M = N.minor(C, D)
+                assert_minor_of(M, N, C, D)
+                assert_minor_of(N.minor(contractions=C).minor(deletions=D), N, C, D)
+                assert_minor_of(M.dual().dual(), N, C, D)
+                assert_valid(M)
+                assert_valid(M.dual())
+                assert_dual_of(M.dual(), M)
+                # (N / C \ D)* = N* / D \ C
+                assert_same_arithmetic_matroid(M.dual(), N_dual.minor(D, C))
 
-    def assertSameArithmeticMatroid(self, M, N):
-        self.assertEqual(M.groundset(), N.groundset())
-        for X in powerset(N.groundset()):
-            self.assertEqual(M.rank(X), N.rank(X), X)
-            self.assertEqual(M.multiplicity(X), N.multiplicity(X), X)
+# expected classes of (minor, dual, minor of dual)
+EXPECTED_CLASSES = {
+    "rank": (MinorArithmeticMatroid, DualArithmeticMatroid, DualArithmeticMatroid),
+    "U(2,5)": (MinorArithmeticMatroid, DualArithmeticMatroid, DualArithmeticMatroid),
+    "basis": (BasisArithmeticMatroid,) * 3,
+    "linear": (LinearArithmeticMatroid,) * 3,
+    "toric": (ToricArithmeticMatroid,) * 3,
+}
 
-    def assertValid(self, M):
-        # Skip rank-1 linear matroids over a non-field ring (e.g. ZZ). Sage's LinearMatroid.is_valid() checks
-        # these via cross_ratios(), which raises on rank 1 (min() of an empty set in _line_ratios, Sage 10.10),
-        # so is_valid() wrongly returns False. TODO: restore once fixed upstream.
-        if isinstance(M, LinearMatroid) and not M.base_ring().is_field() and M.full_rank() == 1:
-            return
-        self.assertTrue(M.is_valid())
+@pytest.mark.parametrize("name", MATROID_NAMES)
+def test_minor_and_dual_classes(name):
+    N = make_matroid(name)
+    minor_cls, dual_cls, dual_minor_cls = EXPECTED_CLASSES[name]
+    e = min(N.groundset())
+    assert isinstance(N.minor(contractions=[e]), minor_cls)
+    assert isinstance(N.dual(), dual_cls)
+    assert isinstance(N.dual().minor(contractions=[e]), dual_minor_cls)
 
-    def test_minor(self):
-        for name, N in self.matroids().items():
-            # if N.dual() fails, skip this matroid rather than failing every (C, D) below
-            with self.subTest(matroid=name):
-                N_dual = N.dual()
-                for C in map(frozenset, powerset(sorted(N.groundset()))):
-                    for D in map(frozenset, powerset(sorted(N.groundset() - C))):
-                        with self.subTest(contractions=sorted(C), deletions=sorted(D)):
-                            M = N.minor(C, D)
-                            self.assertMinorOf(M, N, C, D)
-                            self.assertMinorOf(N.minor(contractions=C).minor(deletions=D), N, C, D)
-                            self.assertMinorOf(M.dual().dual(), N, C, D)
-                            self.assertValid(M)
-                            self.assertValid(M.dual())
-                            self.assertDualOf(M.dual(), M)
-                            # (N / C \ D)* = N* / D \ C
-                            self.assertSameArithmeticMatroid(M.dual(), N_dual.minor(D, C))
+def test_dual(matroid):
+    assert_dual_of(matroid.dual(), matroid)
 
-    def test_minor_and_dual_classes(self):
-        Minor, Dual = MinorArithmeticMatroid, DualArithmeticMatroid
-        # (minor, dual, minor of dual)
-        expected = {
-            "rank": (Minor, Dual, Dual),
-            "U(2,5)": (Minor, Dual, Dual),
-            "basis": (BasisArithmeticMatroid,) * 3,
-            "linear": (LinearArithmeticMatroid,) * 3,
-            "toric": (ToricArithmeticMatroid,) * 3,
-        }
-        for name, N in self.matroids().items():
-            e = min(N.groundset())
-            minor_cls, dual_cls, dual_minor_cls = expected[name]
-            with self.subTest(matroid=name):
-                self.assertIsInstance(N.minor(contractions=[e]), minor_cls)
-                self.assertIsInstance(N.dual(), dual_cls)
-                self.assertIsInstance(N.dual().minor(contractions=[e]), dual_minor_cls)
+@pytest.mark.parametrize("form", [
+    pytest.param(lambda e: e, id="element"),
+    pytest.param(lambda e: [e], id="list"),
+    pytest.param(lambda e: (e,), id="tuple"),
+    pytest.param(lambda e: frozenset([e]), id="frozenset"),
+    pytest.param(lambda e: (x for x in [e]), id="generator")
+])
+def test_minor_argument_forms(matroid, form):
+    e = max(matroid.groundset())
+    assert_minor_of(matroid.minor(contractions=form(e)), matroid, frozenset([e]), frozenset())
+    assert_minor_of(matroid.minor(deletions=form(e)), matroid, frozenset(), frozenset([e]))
 
-    def test_dual(self):
-        for name, N in self.matroids().items():
-            with self.subTest(matroid=name):
-                self.assertDualOf(N.dual(), N)
+def test_minor_zero_element(matroid):
+    # 0 is falsey but is an element
+    if 0 not in matroid.groundset():
+        pytest.skip("0 is not in the ground set")
+    assert_minor_of(matroid.minor(contractions=0), matroid, frozenset([0]), frozenset())
 
-    def test_minor_argument_forms(self):
-        for name, N in self.matroids().items():
-            e = max(N.groundset())
-            forms = {"element": lambda: e, "list": lambda: [e], "tuple": lambda: (e,),
-                     "frozenset": lambda: frozenset([e]), "generator": lambda: (x for x in [e])}
-            for form, arg in forms.items():
-                with self.subTest(matroid=name, arg=form):
-                    self.assertMinorOf(N.minor(contractions=arg()), N, frozenset([e]), frozenset())
-                    self.assertMinorOf(N.minor(deletions=arg()), N, frozenset(), frozenset([e]))
-            if 0 in N.groundset():
-                with self.subTest(matroid=name, arg=0):
-                    # 0 is falsy but is an element
-                    self.assertMinorOf(N.minor(contractions=0), N, frozenset([0]), frozenset())
+def test_minor_not_in_groundset(matroid):
+    e = max(matroid.groundset())
+    with pytest.raises(ValueError):
+        matroid.minor(contractions=[9])
 
-    def test_minor_invalid_arguments(self):
-        for name, N in self.matroids().items():
-            e = max(N.groundset())
-            with self.subTest(matroid=name, arg="not in groundset"):
-                self.assertRaises(ValueError, N.minor, contractions=[9])
-            with self.subTest(matroid=name, arg="not disjoint"):
-                self.assertRaises(ValueError, N.minor, contractions=[e], deletions=[e])
+def test_minor_not_disjoint(matroid):
+    e = max(matroid.groundset())
+    with pytest.raises(ValueError):
+        matroid.minor(contractions=[e], deletions=[e])
 
-    def test_minor_repr_and_equality(self):
-        N = self.matroids()["rank"]
-        M1 = N.minor(contractions=[2]).minor(deletions=[3])
-        M2 = N.minor(contractions=[2], deletions=[3])
-        self.assertEqual(M1, M2)
-        self.assertNotEqual(N.minor(contractions=[2]), N.minor(deletions=[2]))  # same matroid, not the same arithmetic matroid
-        self.assertIn("/ {2}", repr(M1))
-        self.assertIn("\\ {3}", repr(M1))
+def test_minor_repr_and_equality():
+    N = make_matroid("rank")
+    M1 = N.minor(contractions=[2]).minor(deletions=[3])
+    M2 = N.minor(contractions=[2], deletions=[3])
+    assert M1 == M2
+    assert N.minor(contractions=[2]) != N.minor(deletions=[2])  # same matroid, not the same arithmetic matroid
+    assert "/ {2}" in repr(M1)
+    assert "\\ {3}" in repr(M1)
 
-    def test_copy(self):
-        N = self.matroids()["rank"]
-        cases = dict(self.matroids())
-        cases["minor"] = N.minor(contractions=[2], deletions=[3])
-        cases["dual"] = N.dual()
-        for name, M in cases.items():
-            for how in (copy.copy, copy.deepcopy):
-                with self.subTest(matroid=name, copy=how.__name__):
-                    # Sage matroids are immutable, so Sage's copy may return M itself
-                    M2 = how(M)
-                    self.assertSameArithmeticMatroid(M2, M)
-                    if name in ("minor", "dual"):
-                        self.assertEqual(M2, M)
-                        self.assertEqual(repr(M2), repr(M))
-                        self.assertNotIn('_multiplicity', vars(M2))  # uses its own method, not M's
+@pytest.mark.parametrize("how", [copy.copy, copy.deepcopy])
+@pytest.mark.parametrize("name", MATROID_NAMES + ["minor", "dual"])
+def test_copy(name, how):
+    if name == "minor":
+        M = make_matroid("rank").minor(contractions=[2], deletions=[3])
+    elif name == "dual":
+        M = make_matroid("rank").dual()
+    else:
+        M = make_matroid(name)
+    M2 = how(M)
+    assert_same_arithmetic_matroid(M2, M)
+    if name in ("minor", "dual"):
+        assert M2 == M
+        assert repr(M2) == repr(M)
+        assert '_multiplicity' not in vars(M2)  # uses its own method, not M's
 
-    def test_copy_rank_matroid_equality(self):
-        # Regression: copies of rank-based matroids could compare unequal to the original.
-        # "rank" has a bound method as rank function, and a deep copy of it is a different method.
-        for name in ("rank", "U(2,5)"):
-            M = self.matroids()[name]
-            for how in (copy.copy, copy.deepcopy):
-                with self.subTest(matroid=name, copy=how.__name__):
-                    M2 = how(M)
-                    self.assertIsNot(M2, M)  # our copy ran, not Sage returning M itself
-                    self.assertIsInstance(M2, ArithmeticMatroid)
-                    self.assertEqual(M2, M)
-                    self.assertEqual(hash(M2), hash(M))
-                    self.assertIs(M2._rank_function, M._rank_function)
-                    self.assertIs(M2._multiplicity, M._multiplicity)
-            with self.subTest(matroid=name, copy="fresh plain copy"):
-                # when the parent's copy returns a plain RankMatroid with the same rank function
-                plain = RankMatroid(M.groundset(), M._rank_function)
-                self.assertEqual(M._with_multiplicity(plain, M._multiplicity), M)
+@pytest.mark.parametrize("name", ["rank", "U(2,5)"])
+@pytest.mark.parametrize("how", [copy.copy, copy.deepcopy])
+def test_copy_rank_matroid_equality(name, how):
+    # Regression: copies of rank-based matroids could compare unequal to the original.
+    # "rank" has a bound method as rank function, and a deep copy of it is a different method.
+    M = make_matroid(name)
+    M2 = how(M)
+    assert M2 is not M  # our copy ran, not Sage returning M itself
+    assert isinstance(M2, ArithmeticMatroid)
+    assert M2 == M
+    assert hash(M2) == hash(M)
+    assert M2._rank_function is M._rank_function
+    assert M2._multiplicity is M._multiplicity
 
-    def test_copy_keeps_multiplicity_function(self):
-        # Regression: deepcopy replaced the multiplicity function with a deep copy
-        def make():
-            return self.matroids()["basis"]
-        for how in (copy.copy, copy.deepcopy):
-            for wrap in ("plain", "minor", "dual"):
-                with self.subTest(copy=how.__name__, wrap=wrap):
-                    M, twin = make(), make()
-                    if wrap == "minor":
-                        M, twin = MinorArithmeticMatroid(M, [2]), MinorArithmeticMatroid(twin, [2])
-                    elif wrap == "dual":
-                        M, twin = DualArithmeticMatroid(M), DualArithmeticMatroid(twin)
-                    M2 = how(M)
-                    self.assertEqual(M2, M)
-                    self.assertEqual(M, twin)  # the original is unchanged
-                    self.assertSameArithmeticMatroid(M2, M)
-            with self.subTest(copy=how.__name__, wrap="fresh plain copy"):
-                N = make()
-                M = FreshCopyBasisArithmeticMatroid(N, multiplicity_function=N._multiplicity)
-                M2 = how(M)
-                self.assertIsNot(M2, M)
-                self.assertEqual(M2, M)
-                self.assertSameArithmeticMatroid(M2, M)
+@pytest.mark.parametrize("name", ["rank", "U(2,5)"])
+def test_with_multiplicity_of_plain_rank_matroid(name):
+    # when the parent's copy returns a plain RankMatroid with the same rank function
+    M = make_matroid(name)
+    plain = RankMatroid(M.groundset(), M._rank_function)
+    assert M._with_multiplicity(plain, M._multiplicity) == M
 
-    def test_arithmetic_copy(self):
-        # Sage currently returns arithmetic classes here, so call the fallback directly on plain matroids
-        for name, N in self.matroids().items():
-            if name == "toric":
-                continue
-            with self.subTest(matroid=name):
-                plain = {
-                    "rank": lambda: RankMatroid(N.groundset(), N.rank),
-                    "U(2,5)": lambda: RankMatroid(N.groundset(), N.rank),
-                    "basis": lambda: BasisMatroid(groundset=N.groundset(), bases=N.bases()),
-                    "linear": lambda: LinearMatroid(matrix=N.representation(), groundset=N.groundset_list()),
-                }[name]()
-                M = N._with_multiplicity(plain, N._multiplicity)
-                self.assertIsInstance(M, type(N))
-                self.assertSameArithmeticMatroid(M, N)
+@pytest.mark.parametrize("how", [copy.copy, copy.deepcopy])
+@pytest.mark.parametrize("wrap", ["plain", "minor", "dual"])
+def test_copy_keeps_multiplicity_function(how, wrap):
+    # Regression: deepcopy replaced the multiplicity function with a deep copy
+    T = ToricArithmeticMatroid(T_A, T_Q)
+    M, twin = make_matroid("basis", T), make_matroid("basis", T)
+    if wrap == "minor":
+        M, twin = MinorArithmeticMatroid(M, [2]), MinorArithmeticMatroid(twin, [2])
+    elif wrap == "dual":
+        M, twin = DualArithmeticMatroid(M), DualArithmeticMatroid(twin)
+    M2 = how(M)
+    assert M2 == M
+    assert M == twin  # the original is unchanged
+    assert_same_arithmetic_matroid(M2, M)
 
-    def test_dual_arithmetic_matroid(self):
-        # test of DualArithmeticMatroid
+@pytest.mark.parametrize("how", [copy.copy, copy.deepcopy])
+def test_fresh_copy_multiplicity(how):
+    N = make_matroid("basis")
+    M = FreshCopyBasisArithmeticMatroid(N, multiplicity_function=N._multiplicity)
+    M2 = how(M)
+    assert M2 is not M
+    assert M2 == M
+    assert_same_arithmetic_matroid(M2, M)
 
-        E = [1, 2, 3, 4, 5]
+@pytest.mark.parametrize("name", [x for x in MATROID_NAMES if x!="toric"])
+def test_arithmetic_copy(name):
+    # Sage currently returns arithmetic classes here, so call the fallback directly on plain matroids
+    N = make_matroid(name)
+    plain = {"rank": lambda: RankMatroid(N.groundset(), N.rank),
+             "U(2,5)": lambda: RankMatroid(N.groundset(), N.rank),
+             "basis": lambda: BasisMatroid(groundset=N.groundset(), bases=N.bases()),
+             "linear": lambda: LinearMatroid(matrix=N.representation(), groundset=N.groundset_list()),
+             }[name]()
+    M = N._with_multiplicity(plain, N._multiplicity)
+    assert isinstance(M, type(N))
+    assert_same_arithmetic_matroid(M, N)
 
-        def rk(X):
-            return min(2, len(X))
+def test_dual_arithmetic_matroid():
+    # test of DualArithmeticMatroid
 
-        def m(X):
-            if len(X) == 2 and all(x in [3, 4, 5] for x in X):
-                return 2
-            else:
-                return 1
+    E = [1, 2, 3, 4, 5]
 
-        M = ArithmeticMatroid(E, rk, m)
-        self.assertTrue(M.is_valid())
+    def rk(X):
+        return min(2, len(X))
 
-        M1 = M.dual()
-        self.assertIsInstance(M1, DualArithmeticMatroid)
-        self.assertTrue(M1.is_valid())
-        self.assertNotEqual(M1, M)
-
-        M2 = M1.dual()
-        self.assertIsInstance(M2, ArithmeticMatroid)
-        self.assertNotIsInstance(M2, DualArithmeticMatroid)
-        self.assertEqual(M, M2)
-
-        M3 = M1.minor()
-        self.assertIsInstance(M3, DualArithmeticMatroid)
-        # self.assertEqual(M1, M3) # this is not an equality for (non-arithmetic) matroids
-        self.assertTrue(M3.is_valid())
-
-    def test_contract_delete(self):
-        A = matrix(ZZ, [[2, 0, 4], [0, 3, 0]])
-        M = ToricArithmeticMatroid(A)
-        D = M.delete([1, 2])
-        C = M.contract([1, 2])
-        self.assertEqual(C.full_multiplicity(), 6)
-        self.assertEqual(D.full_multiplicity(), 2)
-        self.assertEqual(C.multiplicity([]), 12)
-        self.assertEqual(D.multiplicity([]), 1)
-        self.assertEqual(C, M.minor(contractions=[1, 2], deletions=[]))
-        self.assertEqual(D, M.minor(contractions=[], deletions=[1, 2]))
-
-    def test_dual_linear_matroid(self):
-        A = matrix(QQ, [[-1, 1, 0, -1, 2, 7], [6, 1, -1, -2, 2, 5]])
-
-        def m(X):
+    def m(X):
+        if len(X) == 2 and all(x in [3, 4, 5] for x in X):
+            return 2
+        else:
             return 1
 
-        M = LinearArithmeticMatroid(A, multiplicity_function=m)
-        self.assertTrue(M.is_valid())
+    M = ArithmeticMatroid(E, rk, m)
+    assert M.is_valid()
 
-        M1 = M.dual()
-        self.assertTrue(M1.is_valid())
+    M1 = M.dual()
+    assert isinstance(M1, DualArithmeticMatroid)
+    assert M1.is_valid()
+    assert M1 != M
 
-        M2 = M1.dual()
-        self.assertTrue(M2.is_valid())
-        self.assertNotEqual(M, M2)  # multiplicity functions are not equal in the sense of ==
-        self.assertTrue(M.equals(M2))
-        self.assertNotEqual(M, M1)
-        self.assertNotEqual(M1, M2)
+    M2 = M1.dual()
+    assert isinstance(M2, ArithmeticMatroid)
+    assert not isinstance(M2, DualArithmeticMatroid)
+    assert M == M2
 
-    def test_minor_linear_matroid(self):
-        A = matrix(QQ, [[-1, 1, 0, -1, 2, 7], [6, 1, -1, -2, 2, 5]])
+    M3 = M1.minor()
+    assert isinstance(M3, DualArithmeticMatroid)
+    # assert M1 == M3 # this is not an equality for (non-arithmetic) matroids
+    assert M3.is_valid()
 
-        def m(X):
-            return 1
+def test_contract_delete():
+    A = matrix(ZZ, [[2, 0, 4], [0, 3, 0]])
+    M = ToricArithmeticMatroid(A)
+    D = M.delete([1, 2])
+    C = M.contract([1, 2])
+    assert C.full_multiplicity() == 6
+    assert D.full_multiplicity() == 2
+    assert C.multiplicity([]) == 12
+    assert D.multiplicity([]) == 1
+    assert C == M.minor(contractions=[1, 2], deletions=[])
+    assert D == M.minor(contractions=[], deletions=[1, 2])
 
-        M = LinearArithmeticMatroid(A, multiplicity_function=m)
-        self.assertTrue(M.is_valid())
+def test_dual_linear_matroid():
+    A = matrix(QQ, [[-1, 1, 0, -1, 2, 7], [6, 1, -1, -2, 2, 5]])
 
-        M1 = M.minor(contractions=frozenset([1]), deletions=frozenset([2]))
-        self.assertIsInstance(M1, LinearArithmeticMatroid)
-        self.assertTrue(M1.is_valid())
+    def m(X):
+        return 1
 
-        M1a = M.contract([1]).delete([2])
-        self.assertNotEqual(M1, M1a)  # multiplicity functions are not equal in the sense of ==
-        self.assertTrue(M1.equals(M1a))
+    M = LinearArithmeticMatroid(A, multiplicity_function=m)
+    assert M.is_valid()
 
-        M2 = M1.dual()
-        self.assertTrue(M2.is_valid())
-        self.assertIsInstance(M2, LinearArithmeticMatroid)
-        self.assertNotEqual(M, M2)
-        self.assertFalse(M.equals(M2))
+    M1 = M.dual()
+    assert M1.is_valid()
 
-        N1 = M.dual()
-        self.assertIsInstance(N1, LinearArithmeticMatroid)
-        self.assertTrue(N1.is_valid())
+    M2 = M1.dual()
+    assert M2.is_valid()
+    assert M != M2  # multiplicity functions are not equal in the sense of ==
+    assert M.equals(M2)
+    assert M != M1
+    assert M1 != M2
 
-        N2 = N1.minor(contractions=frozenset([2]), deletions=frozenset([1]))
-        self.assertTrue(N2.is_valid())
-        self.assertIsInstance(N2, LinearArithmeticMatroid)
-        self.assertNotEqual(M2, N2)  # multiplicity functions are not equal in the sense of ==
-        self.assertTrue(M2.equals(N2))
+def test_minor_linear_matroid():
+    A = matrix(QQ, [[-1, 1, 0, -1, 2, 7], [6, 1, -1, -2, 2, 5]])
 
-        N3 = N1.minor(contractions=frozenset([1]), deletions=frozenset([2]))
-        self.assertTrue(N3.is_valid())
-        self.assertIsInstance(N3, LinearArithmeticMatroid)
-        self.assertNotEqual(M2, N3)
-        self.assertFalse(M2.equals(N3))
+    def m(X):
+        return 1
+
+    M = LinearArithmeticMatroid(A, multiplicity_function=m)
+    assert M.is_valid()
+
+    M1 = M.minor(contractions=frozenset([1]), deletions=frozenset([2]))
+    assert isinstance(M1, LinearArithmeticMatroid)
+    assert M1.is_valid()
+
+    M1a = M.contract([1]).delete([2])
+    assert M1 != M1a  # multiplicity functions are not equal in the sense of ==
+    assert M1.equals(M1a)
+
+    M2 = M1.dual()
+    assert M2.is_valid()
+    assert isinstance(M2, LinearArithmeticMatroid)
+    assert M != M2
+    assert not M.equals(M2)
+
+    N1 = M.dual()
+    assert isinstance(N1, LinearArithmeticMatroid)
+    assert N1.is_valid()
+
+    N2 = N1.minor(contractions=frozenset([2]), deletions=frozenset([1]))
+    assert N2.is_valid()
+    assert isinstance(N2, LinearArithmeticMatroid)
+    assert M2 != N2  # multiplicity functions are not equal in the sense of ==
+    assert M2.equals(N2)
+
+    N3 = N1.minor(contractions=frozenset([1]), deletions=frozenset([2]))
+    assert N3.is_valid()
+    assert isinstance(N3, LinearArithmeticMatroid)
+    assert M2 != N3
+    assert not M2.equals(N3)

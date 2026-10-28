@@ -365,7 +365,7 @@ The following function is available outside of arithmetic matroid classes.
   # [  0   5 -10]
   ```
 
-More examples can be found in the [test files](https://github.com/giove91/arithmat/blob/master/arithmat/tests/).
+More examples can be found in the [test files](https://github.com/giove91/arithmat/blob/master/tests/).
 
 
 ## Bibliography
