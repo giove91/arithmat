@@ -19,11 +19,13 @@ along with this program. If not, see http://www.gnu.org/licenses/.
 """
 
 import copy
+import pytest
 
 from sage.arith.misc import euler_phi, gcd
 from sage.matrix.constructor import Matrix, matrix
 from sage.matrix.special import random_matrix
 from sage.matroids.linear_matroid import LinearMatroid
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 
@@ -35,6 +37,8 @@ from arithmat.arithmetic_matroid import (
 from arithmat.shnf import signed_hermite_normal_form
 from helpers import representation_to_matroid
 
+R = PolynomialRing(ZZ, 'x, y')
+x, y = R.gens()
 
 def test_trivial():
     E = range(1, 10)
@@ -381,3 +385,26 @@ def test_representation_alias():
     M = ArithmeticMatroid(E, lambda X: min(2, len(X)), lambda X: 1)
     assert M.representation() == M.arithmetic_representation()
     assert (M.representation(shnf=False) is None) == (M.arithmetic_representation(shnf=False) is None)
+
+def test_tutte_polynomial_dual(matroid):
+    assert matroid.arithmetic_tutte_polynomial()(x, y) == matroid.dual().arithmetic_tutte_polynomial()(y, x)
+
+def test_tutte_polynomial_elt(matroid, subtests):
+    # deletion-contraction: T(M) = a T(M \ e) + b T(M / e), with (a, b) depending on e
+    #   loop:    [DM13, Lemma 5.9]
+    #   coloop:  [DM13, Lemma 5.7]
+    #   neither: [DM13, Lemma 5.4], first proved in Moci, "A Tutte polynomial for toric arrangements"
+    # Lemmas 5.7, 5.9 assume "no proper vectors", but this hypothesis isn't used
+    # [BM14, Lemma 3.2] + [BM14, 2.2] gives the result in multivariate form
+    M = matroid
+    T = M.arithmetic_tutte_polynomial()
+    for e in sorted(M.groundset()):
+        with subtests.test(e=e):
+            T_del = M.delete(e).arithmetic_tutte_polynomial()
+            T_con = M.contract(e).arithmetic_tutte_polynomial()
+            if M.rank([e]) == 0:  # loop
+                assert T == T_del + (y-1)*T_con
+            elif M.rank(M.groundset() - {e}) < M.full_rank():  # coloop
+                assert T == (x-1)*T_del + T_con
+            else:
+                assert T == T_del + T_con

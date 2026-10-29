@@ -19,8 +19,6 @@ along with this program. If not, see http://www.gnu.org/licenses/.
 """
 
 import copy
-import operator
-from functools import reduce
 
 import pytest
 from sage.combinat.subset import powerset
@@ -40,6 +38,8 @@ from arithmat.arithmetic_matroid import (
     ToricArithmeticMatroid,
 )
 
+from helpers import make_matroid, MATROID_NAMES, TORIC_NAMES, T_A, T_Q
+
 
 class _FreshCopyBasisMatroid(BasisMatroid):
     # copy by returning a new plain BasisMatroid instead of self, as Sage may
@@ -53,39 +53,6 @@ class _FreshCopyBasisMatroid(BasisMatroid):
 class FreshCopyBasisArithmeticMatroid(BasisArithmeticMatroid, _FreshCopyBasisMatroid):
     def _arithmetic_copy(self, matroid):
         return FreshCopyBasisArithmeticMatroid(matroid)
-
-# 0 and 2 are loops with torsion: m(empty) = 2, m({2}) = 1
-T_A = matrix(ZZ, [[1, 0, 1, 1], [0, 1, 0, 1]], immutable=True)
-T_Q = matrix(ZZ, [[2], [0]], immutable=True)
-# 2 is a coloop with m({2}) = 2
-A_LIN = matrix(ZZ, [[1, 1, 0], [0, 0, 2]], immutable=True)
-def M_LIN(X):
-    return reduce(operator.mul, [d for d in T_A[:, sorted(X)].elementary_divisors() if d != 0], 1) if X else 1
-# U(2,5) on {1, ..., 5}, with m = 2 on pairs inside {3, 4, 5}
-def RK_U25(X):
-    return min(2, len(X))
-
-def M_U25(X):
-    return 2 if len(X) == 2 and all(x in [3, 4, 5] for x in X) else 1
-
-def make_matroid(name, T=None):
-    # matroids built from the same T share its rank and multiplicity functions
-    if T is None:
-        T = ToricArithmeticMatroid(T_A, T_Q)
-    return {
-        "rank": lambda: ArithmeticMatroid(T.groundset(), T._rank, T._multiplicity),
-        "toric": lambda: T,
-        "basis": lambda: BasisArithmeticMatroid(BasisMatroid(groundset=T.groundset(), bases=T.bases()),
-                                        multiplicity_function=T._multiplicity),
-        "U(2,5)": lambda: ArithmeticMatroid([1, 2, 3, 4, 5], RK_U25, M_U25),
-        "linear": lambda: LinearArithmeticMatroid(A_LIN, multiplicity_function=M_LIN)
-    }[name]()
-
-MATROID_NAMES = ["rank", "U(2,5)", "basis", "linear", "toric"]
-
-@pytest.fixture(params=MATROID_NAMES)
-def matroid(request):
-    return make_matroid(request.param)
 
 def assert_minor_of(M, N, C, D):
     """
@@ -141,6 +108,8 @@ EXPECTED_CLASSES = {
     "basis": (BasisArithmeticMatroid,) * 3,
     "linear": (LinearArithmeticMatroid,) * 3,
     "toric": (ToricArithmeticMatroid,) * 3,
+    "free-loop": (ToricArithmeticMatroid,) * 3,
+    "plain-coloop": (ToricArithmeticMatroid,) * 3,
 }
 
 @pytest.mark.parametrize("name", MATROID_NAMES)
@@ -253,7 +222,7 @@ def test_fresh_copy_multiplicity(how):
     assert M2 == M
     assert_same_arithmetic_matroid(M2, M)
 
-@pytest.mark.parametrize("name", [x for x in MATROID_NAMES if x!="toric"])
+@pytest.mark.parametrize("name", [x for x in MATROID_NAMES if x not in TORIC_NAMES])
 def test_arithmetic_copy(name):
     # Sage currently returns arithmetic classes here, so call the fallback directly on plain matroids
     N = make_matroid(name)

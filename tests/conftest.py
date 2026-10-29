@@ -28,6 +28,8 @@ import pytest
 import sage.all  # noqa: F401
 from sage.misc.randstate import set_random_seed
 
+from helpers import MATROID_NAMES, make_matroid
+
 # Random seed unless ARITHMAT_SEED is set for reproducibility.
 # Store it in the environment so pytest-xdist workers use the same seed.
 SEED = int(os.environ.setdefault("ARITHMAT_SEED", str(secrets.randbelow(2**32))))
@@ -42,3 +44,8 @@ def seed_sage_random(request):
     # Reseed deterministically before every test
     digest = hashlib.sha256(f"{SEED}:{request.node.nodeid}".encode()).digest()
     set_random_seed(int.from_bytes(digest[:8], "big"))
+
+
+@pytest.fixture(params=MATROID_NAMES)
+def matroid(request):
+    return make_matroid(request.param)
