@@ -901,32 +901,50 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
         B_indices = list(sorted(self._groundset_to_index[e] for e in B))
 
         M1 = M[:, B_indices].inverse() * M
-        N1 = N[:, B_indices].inverse() * N
+
+        col = self._groundset_to_index
+        row = {e: B_indices.index(col[e]) for e in B}
 
         def change_signs(A, A1):
             for (i, j) in nx.edge_dfs(spanning_forest):
                 (x, y) = (i, j) if i in B else (j, i)
-                if A1[x, y] < 0:
+                if A1[row[x], col[y]] < 0:
                     if j in B:
                         # change sign of row j and column j
-                        A1[j, :] *= -1
-                        A1[:, j] *= -1
-
-                        A[j, :] *= -1
-                        A[:, j] *= -1
+                        A1[row[j], :] *= -1
+                        A1[:, col[j]] *= -1
+                        A[row[j], :] *= -1
+                        A[:, col[j]] *= -1
 
                         assert A1 == A[:, B_indices].inverse() * A
 
                     else:
                         # change sign of column j
-                        A1[:, j] *= -1
-
-                        A[:, j] *= -1
+                        A1[:, col[j]] *= -1
+                        A[:, col[j]] *= -1
 
         change_signs(M, M1)
-        change_signs(N, N1)
+        target = M.echelon_form()
 
-        return M.echelon_form() == N.echelon_form()
+        # try flipping the signs on components
+        components = {}
+        for e in E:
+            components.setdefault(uf.find(e), []).append(col[e])
+        components = list(components.values())
+
+        for signs in itertools.product([1, -1], repeat=len(components) - 1):
+            N2 = copy.copy(N)
+            for (s, C) in zip(signs, components[1:]):
+                if s == -1:
+                    for c in C:
+                        N2[:, c] *= -1
+
+            N21 = N2[:, B_indices].inverse() * N2
+            change_signs(N2, N21)
+            if N2.echelon_form() == target:
+                return True
+
+        return False
 
     def decomposition(self):
         """
