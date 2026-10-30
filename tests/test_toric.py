@@ -27,6 +27,7 @@ from sage.combinat.set_partition import SetPartition
 from sage.combinat.subset import powerset
 from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
+from sage.homology.homology_group import HomologyGroup
 
 from arithmat.arithmetic_matroid import ToricArithmeticMatroid
 from arithmat.shnf import signed_hermite_normal_form
@@ -87,51 +88,28 @@ def test_without_Q():
     # check orientability
     assert M.is_orientable()
 
-def test_with_Q():
-    A = matrix(ZZ, [[-1, 1, 0, -1, 2, 7], [6, 1, -1, -2, 2, 5]])
-    Q = matrix(ZZ, [[5, 9, 1], [-3, -2, -1]])
+@pytest.mark.parametrize("A,Q,ncols,mult_checks,rank_checks",[
+pytest.param(matrix(ZZ, [[-1, 1, 0, -1, 2, 7], [6, 1, -1, -2, 2, 5]], immutable=True),
+            matrix(ZZ, [[5, 9, 1], [-3, -2, -1]], immutable=True), 0, (([0], 1),), ()),
+pytest.param(matrix(ZZ, [[-1, 1, 0, -1, 2, 7], [0, 1, -1, -2, 2, 5]], immutable=True),
+            matrix(ZZ, [[3, 9, 6], [0, 0, 0]]), 1, (([0], 1), ([1], 3), ([1,2], 1)),
+            (([0], 0), ([1, 2], 1))),
+pytest.param(matrix(ZZ, [[-1, 1, 0, 7], [6, 1, -1, -2]]),
+            matrix(ZZ, [[5], [1]]), 0, (), ())
+])
+def test_with_Q(A, Q, ncols, mult_checks, rank_checks):
     M = ToricArithmeticMatroid(A, torus_matrix=Q)
-
     assert M.full_rank() == M.rank(M.groundset())
-
-    assert M._Q.ncols() == 0
-    assert M._multiplicity([0]) == 1
-
-def test_with_Q_2():
-    A = matrix(ZZ, [[-1, 1, 0, -1, 2, 7], [0, 1, -1, -2, 2, 5]])
-    Q = matrix(ZZ, [[3, 9, 6], [0, 0, 0]])
-    M = ToricArithmeticMatroid(A, torus_matrix=Q)
-
-    assert M.full_rank() == M.rank(M.groundset())
-
-    assert M._Q == matrix(ZZ, [[3], [0]])
-    assert M.rank([0]) == 0
-    assert M.rank([1, 2]) == 1
-
-    assert M._multiplicity([0]) == 1
-    assert M._multiplicity([1]) == 3
-    assert M._multiplicity([1, 2]) == 1
-
-def test_with_Q_3():
-    A = matrix(ZZ, [[-1, 1, 0, 7], [6, 1, -1, -2]])
-    Q = matrix(ZZ, [[5], [1]])
-    M = ToricArithmeticMatroid(A, Q)
-
-    assert M.full_rank() == M.rank(M.groundset())
-    assert M._Q.ncols() == 0
+    assert M.full_multiplicity() == M.multiplicity()
+    assert M._Q.ncols() == ncols
+    for (ls, mult) in mult_checks:
+        assert M._multiplicity(ls) == mult
+    for (ls, rk) in rank_checks:
+        assert M.rank(ls) == rk
 
 def test_minor():
     A = matrix(ZZ, [[-1, 1, 0, -1, 2, 7], [6, 1, -1, -2, 2, 5]])
     M = ToricArithmeticMatroid(A)
-
-    assert M.full_rank() == M.rank(M.groundset())
-
-    assert M._Q == matrix(ZZ, 2, 0)
-    assert M.rank([0]) == 1
-    assert M.rank([0, 1]) == 2
-    assert M.rank([0, 1, 2]) == 2
-
-    assert M.multiplicity([1, 2]) == 1
 
     # minor
     M2 = M.minor(contractions=[], deletions=[1])
@@ -169,27 +147,27 @@ def test_ordered_groundset():
     with pytest.raises(AssertionError):
         M = ToricArithmeticMatroid(A, ordered_groundset=['a', 'b', 'f', 'e', 'd', 'b'])
 
-def test_equivalence():
+@pytest.mark.parametrize("A, expect_equiv", [
+    (matrix(ZZ, [[1, 1, 2], [0, 7, 7]], immutable=True), True),
+    (matrix(ZZ, [[1, 2, 3], [0, 7, 7]], immutable=True), False)
+])
+@pytest.mark.parametrize("ordered_groundset, morphism", [
+    pytest.param(None, None, id="same-groundset"),
+    pytest.param(["a", "b", "c"], {0:"a", 1:"b", 2:"c"}, id="with-morphism")
+])
+def test_equivalence(A, expect_equiv, ordered_groundset, morphism):
     # without Q
-    A = matrix(ZZ, [[1, 1, 2], [0, 7, 7]])
-    B = matrix(ZZ, [[-1, -1, 2], [-1, 6, -5]])
+
+    # invert
+    msihprom = None if morphism is None else {val:key for key,val in morphism.items()}
 
     M = ToricArithmeticMatroid(A)
-    N = ToricArithmeticMatroid(B)
+    N = ToricArithmeticMatroid(matrix(ZZ, [[-1, -1, 2], [-1, 6, -5]]), ordered_groundset=ordered_groundset)
 
-    assert M.is_equivalent(N)
-    assert N.is_equivalent(M)
+    assert M.is_equivalent(N, morphism) == expect_equiv
+    assert N.is_equivalent(M, msihprom) == expect_equiv
 
     assert M.is_isomorphic(N)
-
-    C = matrix(ZZ, [[1, 2, 3], [0, 7, 7]])
-    O = ToricArithmeticMatroid(C)
-    assert not M.is_equivalent(O)
-    assert not N.is_equivalent(O)
-    assert not O.is_equivalent(M)
-    assert not O.is_equivalent(N)
-
-    assert M.is_isomorphic(O)
 
 def test_non_equivalent_representations():
     M = ToricArithmeticMatroid(matrix(ZZ, [[6, 3, -2, 2], [3, 21, 0, -9], [-1, -4, 3, -2]]))
@@ -289,9 +267,12 @@ def test_decomposition(rows, blocks, decomposable):
     assert M.decomposition() == SetPartition(blocks)
     assert M.is_decomposable() == decomposable
 
-
-def test_poset_of_layers():
-    M = ToricArithmeticMatroid(matrix(ZZ, [[1, 0, 1], [0, 1, 3]]))
+@pytest.mark.parametrize("ordered_groundset,expected_labels", [
+    pytest.param(None, None, id="no-groundset"),
+    pytest.param(['a', 'c', 'b'], {(), ('a',), ('b',), ('c',), ('a', 'c', 'b'), ('a', 'b')}, id="alpha-groundset")
+])
+def test_poset_of_layers(ordered_groundset, expected_labels):
+    M = ToricArithmeticMatroid(matrix(ZZ, [[1, 0, 1], [0, 1, 3]]), ordered_groundset=ordered_groundset)
     P = M.poset_of_layers()
     assert len(P) == 7
     assert P.has_bottom()
@@ -299,17 +280,8 @@ def test_poset_of_layers():
     assert len(P.cover_relations()) == 10
     assert P.is_isomorphic(
         Poset(data=(range(7), [(0, 1), (0, 2), (0, 3), (1, 4), (2, 4), (2, 5), (2, 6), (3, 4), (3, 5), (3, 6)])))
-
-def test_poset_of_layers_relabeled():
-    M = ToricArithmeticMatroid(matrix(ZZ, [[1, 0, 1], [0, 1, 3]]), ordered_groundset=['a', 'c', 'b'])
-    P = M.poset_of_layers()
-    assert len(P) == 7
-    assert P.has_bottom()
-    assert not P.has_top()
-    assert len(P.cover_relations()) == 10
-    assert P.is_isomorphic(
-        Poset(data=(range(7), [(0, 1), (0, 2), (0, 3), (1, 4), (2, 4), (2, 5), (2, 6), (3, 4), (3, 5), (3, 6)])))
-    assert set(S for (S, x) in P) == {(), ('a',), ('b',), ('c',), ('a', 'c', 'b'), ('a', 'b')}
+    if expected_labels is not None:
+        assert set(S for (S, x) in P) == expected_labels
 
 # see [DGP17]
 @pytest.mark.parametrize("rows, betti", [
@@ -359,45 +331,36 @@ def test_different_posets_of_layers():
     assert not MA.poset_of_layers().is_isomorphic(MC.poset_of_layers())
     assert not MB.poset_of_layers().is_isomorphic(MC.poset_of_layers())
 
-def test_independence_poset():
+@pytest.mark.parametrize("ordered_groundset,expected_labels", [
+    pytest.param(None, None, id="no-groundset"),
+    pytest.param(['a', 'c', 'b'], {(), ('a',), ('b',), ('c',), ('a', 'c'), ('a', 'b'), ('c', 'b')}, id="alpha-groundset")
+])
+def test_independence_poset(ordered_groundset, expected_labels):
     A = matrix(ZZ, [[1, 0, 1], [0, 1, 3]])
-    M = ToricArithmeticMatroid(A)
+    M = ToricArithmeticMatroid(A, ordered_groundset=ordered_groundset)
     P = M.arithmetic_independence_poset()
 
     assert len(P) == 9
     assert len(P.cover_relations()) == 13
     assert P.rank() == 2
     assert P.has_bottom()
+    if expected_labels is not None:
+        assert set(S for (S, x) in P) == expected_labels
 
-def test_independence_poset_relabeled():
-    M = ToricArithmeticMatroid(matrix(ZZ, [[1, 0, 1], [0, 1, 3]]), ordered_groundset=['a', 'c', 'b'])
-    P = M.arithmetic_independence_poset()
-
-    assert len(P) == 9
-    assert len(P.cover_relations()) == 13
-    assert P.rank() == 2
-    assert P.has_bottom()
-    assert set(S for (S, x) in P) == {(), ('a',), ('b',), ('c',), ('a', 'c'), ('a', 'b'), ('c', 'b')}
-
-def test_nonshellable_poset_of_layers():
-    # see [PP19, Section 8]
-    A = matrix(ZZ, [[1, 1, 1, -3], [0, 5, 0, -5], [0, 0, 5, -5]])
-    B = matrix(ZZ, [[1, 1, 1, -1], [0, 5, 0, 5], [0, 0, 5, -5]])
-    C = matrix(ZZ, [[1, 2, 2, 1], [0, 5, 0, 5], [0, 0, 5, -5]])
-
-    for X in [A, B, C]:
-        M = ToricArithmeticMatroid(X)
-        P = M.poset_of_layers()
-        homology = P.subposet([a for a in P if a != P.bottom()]).order_complex(on_ints=True).homology()
-
-        from sage.homology.homology_group import HomologyGroup
-        assert homology == {
+@pytest.mark.parametrize("poset, expected_homology", [
+    pytest.param
+    ("poset_of_layers", {
             0: HomologyGroup(0, ZZ),  # trivial group
             1: HomologyGroup(1, ZZ, [5]),  # Z/5Z
             2: HomologyGroup(48, ZZ),  # Z^48
-        }
-
-def test_nonshellable_arithmetic_independence_poset():
+        }, id="poset_of_layers"),
+    pytest.param("arithmetic_independence_poset", {
+            0: HomologyGroup(0, ZZ),  # trivial group
+            1: HomologyGroup(1, ZZ, [5]),  # Z/5Z
+            2: HomologyGroup(73, ZZ),  # Z^73
+        }, id="arithmetic_independence_poset")
+])
+def test_nonshellable_posets(poset, expected_homology):
     # see [PP19, Section 8]
     A = matrix(ZZ, [[1, 1, 1, -3], [0, 5, 0, -5], [0, 0, 5, -5]])
     B = matrix(ZZ, [[1, 1, 1, -1], [0, 5, 0, 5], [0, 0, 5, -5]])
@@ -405,12 +368,25 @@ def test_nonshellable_arithmetic_independence_poset():
 
     for X in [A, B, C]:
         M = ToricArithmeticMatroid(X)
-        P = M.arithmetic_independence_poset()
+        P = getattr(M, poset)()
         homology = P.subposet([a for a in P if a != P.bottom()]).order_complex(on_ints=True).homology()
 
-        from sage.homology.homology_group import HomologyGroup
-        assert homology == {
-            0: HomologyGroup(0, ZZ),  # trivial group
-            1: HomologyGroup(1, ZZ, [5]),  # Z/5Z
-            2: HomologyGroup(73, ZZ),  # Z^73
-        }
+        assert homology == expected_homology
+
+# Disconnected matroids: signs of whole components must also be considered
+@pytest.mark.parametrize("A, B, expect_equiv", [
+    pytest.param(matrix(ZZ, [[-2, 2, 2, 2], [1, -1, -1, 3]]),
+                 matrix(ZZ, [[3, -3, -3, -65], [2, -2, -2, -46]]), True, id="with-coloop"),
+    pytest.param(matrix(ZZ, [[1, -1, -1, 3, 1], [-1, 2, -2, -3, -1], [2, -2, -2, -3, -1]]),
+                 matrix(ZZ, [[5, 5, -5, 3, 1], [15, 18, -6, 0, 0], [-9, -14, -6, 9, 3]]), True, id="two-components"),
+    pytest.param(matrix(ZZ, [[1, -1, 1], [0, 0, 5]]),
+                 matrix(ZZ, [[1, -1, 2], [0, 0, 5]]), False, id="not-equivalent"),
+])
+def test_equivalence_disconnected(A, B, expect_equiv):
+    M = ToricArithmeticMatroid(A)
+    N = ToricArithmeticMatroid(B)
+
+    assert len(M.components()) > 1
+    assert M.is_isomorphic(N)
+    assert M.is_equivalent(N) == expect_equiv
+    assert N.is_equivalent(M) == expect_equiv

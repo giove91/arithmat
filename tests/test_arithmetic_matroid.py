@@ -35,7 +35,7 @@ from arithmat.arithmetic_matroid import (
     ToricArithmeticMatroid,
 )
 from arithmat.shnf import signed_hermite_normal_form
-from helpers import representation_to_matroid
+from helpers import M_U25, RK_U25, representation_to_matroid
 
 R = PolynomialRing(ZZ, 'x, y')
 x, y = R.gens()
@@ -127,8 +127,8 @@ def test_valid2():
     M = ArithmeticMatroid(E, rk, m)
     assert M.is_valid()
     assert not M.is_representable()
-    assert not M.is_orientable()
     assert M.representation() == None
+    assert not M.is_orientable()
     assert M.full_multiplicity() == 1
 
 def test_realizable():
@@ -195,17 +195,11 @@ def test_pseudo():
     assert not M.is_representable()
     assert M.is_orientable()
 
-def test_non_representable():
-    A = matrix(ZZ, [[-1, 1, 0, -1], [6, 1, -1, -2]])
-    M = representation_to_matroid(A)
-    M2 = ArithmeticMatroid(M.groundset(), M.rank, lambda X: M._multiplicity(X) ** 2)
-
-    assert M2.is_valid()
-    assert M.is_representable()
-    assert not M2.is_representable()
-
-def test_non_representable2():
-    A = matrix(ZZ, [[-1, 1, 0, -1, 2, 7], [6, 1, -1, -2, 2, 5]])
+@pytest.mark.parametrize("A",[
+    matrix(ZZ, [[-1, 1, 0, -1], [6, 1, -1, -2]]), 
+    matrix(ZZ, [[-1, 1, 0, -1, 2, 7], [6, 1, -1, -2, 2, 5]])
+])
+def test_non_representable(A):
     M = representation_to_matroid(A)
     M2 = ArithmeticMatroid(M.groundset(), M.rank, lambda X: M._multiplicity(X) ** 2)
 
@@ -305,13 +299,14 @@ def test_isomorphism():
     assert M2.equals(M)
 
 def test_isomorphic():
-    A = matrix(ZZ, [[1]])
-    B = matrix(ZZ, [[3, 1], [0, 1]])
-    M = ToricArithmeticMatroid(A)
-    DN = ToricArithmeticMatroid(B).minor(deletions=[0])
-    CN = ToricArithmeticMatroid(B).minor(contractions=[0])
-    assert DN.is_isomorphic(M)
-    assert not CN.is_isomorphic(M)
+    MA = ToricArithmeticMatroid(matrix(ZZ, [[1]], immutable=True))
+    MB = ToricArithmeticMatroid(matrix(ZZ, [[3, 1], [0, 1]], immutable=True))
+    MC = ToricArithmeticMatroid(matrix(ZZ, [[1, 1], [0, 1]], immutable=True))
+    DN = MB.minor(deletions=[0])
+    CN = MB.minor(contractions=[0])
+    assert DN.is_isomorphic(MA)
+    assert not CN.is_isomorphic(MA)
+    assert not MB.is_isomorphic(MC)
 
 def test_num_representations():
     r = 3
@@ -322,6 +317,30 @@ def test_num_representations():
 
         M = representation_to_matroid(A)
         assert M.num_representations() == (euler_phi(m) // 2) ** (r - 1)
+
+def squared(rows):
+    M = representation_to_matroid(matrix(ZZ, rows))
+    return ArithmeticMatroid(M.groundset(), M.rank, lambda X: M._multiplicity(X) ** 2)
+
+# full multiplicity 1 (surjective) and > 1 take different branches of all_representations()
+@pytest.mark.parametrize("make, full_mult, num", [
+    pytest.param(lambda: representation_to_matroid(matrix(ZZ, [[-1, 1, 0, 0, -1], [6, 1, 1, -1, -1]])), 1, 1,
+                 id="surjective-representable"),
+    pytest.param(lambda: ArithmeticMatroid([1, 2, 3, 4, 5], RK_U25, M_U25), 1, 0,
+                 id="surjective-not-representable"),
+    pytest.param(lambda: representation_to_matroid(matrix(ZZ, [[1, 1, 0], [0, 2, 2]])), 2, 1,
+                 id="not-surjective-representable"),
+    pytest.param(lambda: squared([[-2, 2, 0, -2], [6, 1, -1, -2]]), 4, 0,
+                 id="not-surjective-not-representable"),
+])
+def test_all_representations_cases(make, full_mult, num):
+    M = make()
+    assert M.is_valid()
+    assert M.full_multiplicity() == full_mult
+    representations = list(M.all_representations())
+    assert len(representations) == num
+    assert all(M.check_representation(A) for A in representations)
+    assert M.is_representable() == (num > 0)
 
 def test_gcd():
     M = ToricArithmeticMatroid(matrix(ZZ, [[6, 3, -2, 2], [3, 21, 0, -9], [-1, -4, 3, -2]]))
@@ -338,8 +357,15 @@ def test_gcd():
     assert M1.is_surjective()
     assert M1.is_representable()
     assert M1.is_gcd()
-
     assert M1.is_strong_gcd()
+
+def test_not_gcd():
+    M = ToricArithmeticMatroid(matrix(ZZ, [[1, 1], [0, 1]]), torus_matrix=matrix(ZZ, [[0], [2]]))
+    assert not M.is_torsion_free()
+    assert M.is_surjective()
+    # assert not M.is_representable() # not implemented yet...
+    assert not M.is_gcd()
+    assert not M.is_strong_gcd()
 
 
 def test_linear_representation_is_sage():
