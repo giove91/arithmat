@@ -40,3 +40,4 @@ test = ["pytest"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "-p no:asyncio"  # stops a warning on my machine. no async tests here anyway

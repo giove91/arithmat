@@ -266,6 +266,7 @@ def test_decomposition(rows, blocks, decomposable):
     M = ToricArithmeticMatroid(matrix(ZZ, rows))
     assert M.decomposition() == SetPartition(blocks)
     assert M.is_decomposable() == decomposable
+    assert M.is_indecomposable() != decomposable
 
 @pytest.mark.parametrize("ordered_groundset,expected_labels", [
     pytest.param(None, None, id="no-groundset"),

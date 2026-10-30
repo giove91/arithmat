@@ -143,9 +143,9 @@ def test_minor_zero_element(matroid):
     assert_minor_of(matroid.minor(contractions=0), matroid, frozenset([0]), frozenset())
 
 def test_minor_not_in_groundset(matroid):
-    e = max(matroid.groundset())
+    e = max(matroid.groundset()) + 1
     with pytest.raises(ValueError):
-        matroid.minor(contractions=[9])
+        matroid.minor(contractions=[e])
 
 def test_minor_not_disjoint(matroid):
     e = max(matroid.groundset())
