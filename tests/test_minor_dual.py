@@ -51,8 +51,7 @@ class _FreshCopyBasisMatroid(BasisMatroid):
 
 
 class FreshCopyBasisArithmeticMatroid(BasisArithmeticMatroid, _FreshCopyBasisMatroid):
-    def _arithmetic_copy(self, matroid):
-        return FreshCopyBasisArithmeticMatroid(matroid)
+    pass
 
 def assert_minor_of(M, N, C, D):
     """
@@ -223,7 +222,7 @@ def test_fresh_copy_multiplicity(how):
     assert_same_arithmetic_matroid(M2, M)
 
 @pytest.mark.parametrize("name", [x for x in MATROID_NAMES if x not in TORIC_NAMES])
-def test_arithmetic_copy(name):
+def test_with_multiplicity_of_plain_matroid(name):
     # Sage currently returns arithmetic classes here, so call the fallback directly on plain matroids
     N = make_matroid(name)
     plain = {"rank": lambda: RankMatroid(N.groundset(), N.rank),

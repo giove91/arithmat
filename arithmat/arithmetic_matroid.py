@@ -46,17 +46,15 @@ from .shnf import signed_hermite_normal_form
 
 from sage.combinat.subset import powerset
 
+
 class ArithmeticMatroidMixin(SageObject):
     """
     A general mixin for arithmetic matroids, that can be added to any Matroid subclass of Sage.
     """
 
     def __init__(self, *args, **kwargs):
-        # get multiplicity function
-        try:
-            multiplicity = kwargs.pop('multiplicity_function')
-        except KeyError:
-            multiplicity = None  # multiplicity function must be set later
+        # get multiplicity function; if missing, it must be set later
+        multiplicity = kwargs.pop('multiplicity_function', None)
 
         super().__init__(*args, **kwargs)
         self._multiplicity = multiplicity
@@ -107,13 +105,26 @@ class ArithmeticMatroidMixin(SageObject):
         return self._multiplicity(self.groundset())
 
     def _with_multiplicity(self, matroid, multiplicity_function):
-        if not isinstance(matroid, type(self)):
-            matroid = self._arithmetic_copy(matroid)
-        matroid._multiplicity = multiplicity_function
-        return matroid
+        return type(self).from_matroid(matroid, multiplicity_function)
 
-    def _arithmetic_copy(self, matroid):
+    @classmethod
+    def from_matroid(cls, matroid, multiplicity_function=None):
+        """
+        Return an arithmetic matroid of this class with the same underlying matroid as ``matroid``.
+        An explicit ``multiplicity_function`` takes precedence over the multiplicity of ``matroid``.
+        """
         raise NotImplementedError
+
+    @staticmethod
+    def _resolve_multiplicity(matroid, multiplicity_function, default=None):
+        """
+        Return the explicit multiplicity function if given, else the one of ``matroid``, else ``default``.
+        """
+        if multiplicity_function is not None:
+            return multiplicity_function
+        if isinstance(matroid, ArithmeticMatroidMixin):
+            return matroid._multiplicity
+        return default
 
     def _minor_subset(self, X):
         """
@@ -560,21 +571,27 @@ class ArithmeticMatroid(ArithmeticMatroidMixin, RankMatroid):
 
     # Equality compares the rank and multiplicity functions by identity, so copies must keep both
     def __copy__(self):
-        return ArithmeticMatroid(self.groundset(), self._rank_function, self._multiplicity)
+        return type(self)(self.groundset(), self._rank_function, self._multiplicity)
 
     def __deepcopy__(self, memo=None):
-        return ArithmeticMatroid(copy.deepcopy(self.groundset(), memo), self._rank_function, self._multiplicity)
+        return type(self)(copy.deepcopy(self.groundset(), memo), self._rank_function, self._multiplicity)
 
-    def _arithmetic_copy(self, matroid):
+    @classmethod
+    def from_matroid(cls, matroid, multiplicity_function=None):
         # prefer the underlying rank function, so the result compares equal to matroids built from it
-        return ArithmeticMatroid(matroid.groundset(), getattr(matroid, '_rank_function', matroid.rank), None)
+        return cls(matroid.groundset(), getattr(matroid, '_rank_function', matroid.rank),
+                   cls._resolve_multiplicity(matroid, multiplicity_function))
 
 
 class LinearArithmeticMatroid(ArithmeticMatroidMixin, LinearMatroid):
-    def _arithmetic_copy(self, matroid):
-        return LinearArithmeticMatroid(
-            matrix=matroid.representation(), groundset=matroid.groundset_list(), ring=matroid.base_ring()
-        )
+    @classmethod
+    def from_matroid(cls, matroid, multiplicity_function=None):
+        """
+        ``matroid`` must have a representation. Without an explicit or inherited
+        multiplicity function, the multiplicity is None and must be set later.
+        """
+        return cls(matrix=matroid.representation(), groundset=matroid.groundset_list(), ring=matroid.base_ring(),
+                   multiplicity_function=cls._resolve_multiplicity(matroid, multiplicity_function))
 
     representation = LinearMatroid.representation
 
@@ -584,13 +601,14 @@ class LinearArithmeticMatroid(ArithmeticMatroidMixin, LinearMatroid):
 
 class BasisArithmeticMatroid(ArithmeticMatroidMixin, BasisMatroid):
     def __init__(self, M=None, *args, **kwargs):
-        if isinstance(M, ArithmeticMatroidMixin):
-            # extract multiplicity function from the given arithmetic matroid
-            kwargs['multiplicity_function'] = M._multiplicity
+        # an explicit multiplicity function wins, else take the one of M if it is arithmetic
+        kwargs['multiplicity_function'] = self._resolve_multiplicity(M, kwargs.get('multiplicity_function'))
         super().__init__(M=M, *args, **kwargs)
 
-    def _arithmetic_copy(self, matroid):
-        return BasisArithmeticMatroid(matroid)
+    @classmethod
+    def from_matroid(cls, matroid, multiplicity_function=None):
+        # the constructor resolves the multiplicity function
+        return cls(matroid, multiplicity_function=multiplicity_function)
 
     def _repr_(self):
         return "Basis arithmetic matroid of rank %d on %d elements" % (self.full_rank(), len(self.groundset()))
@@ -629,10 +647,10 @@ class MinorArithmeticMatroid(ArithmeticMatroidMixin, MinorMatroid):
                and (self._matroid == other._matroid)
 
     def __copy__(self):
-        return MinorArithmeticMatroid(self._matroid, self._arithmetic_contractions, self._arithmetic_deletions)
+        return type(self)(self._matroid, self._arithmetic_contractions, self._arithmetic_deletions)
 
     def __deepcopy__(self, memo=None):
-        return MinorArithmeticMatroid(
+        return type(self)(
             copy.deepcopy(self._matroid, memo), self._arithmetic_contractions, self._arithmetic_deletions
         )
 
@@ -669,10 +687,10 @@ class DualArithmeticMatroid(ArithmeticMatroidMixin, DualMatroid):
         return isinstance(other, DualArithmeticMatroid) and self._matroid == other._matroid
 
     def __copy__(self):
-        return DualArithmeticMatroid(self._matroid)
+        return type(self)(self._matroid)
 
     def __deepcopy__(self, memo=None):
-        return DualArithmeticMatroid(copy.deepcopy(self._matroid, memo))
+        return type(self)(copy.deepcopy(self._matroid, memo))
 
     def __reduce__(self):
         return super(ArithmeticMatroidMixin, self).__reduce__()
@@ -755,6 +773,18 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
         multiplicity = reduce(operator.mul, nonzero, 1)
         return (rank, multiplicity)
 
+    @classmethod
+    def from_matroid(cls, matroid, multiplicity_function=None):
+        """
+        The multiplicity always comes from the matrices: from those of ``matroid`` if it is toric,
+        otherwise from its representation, which must be integral.
+        """
+        if multiplicity_function is not None:
+            raise ValueError("the multiplicity of a toric arithmetic matroid is determined by its matrices")
+        if isinstance(matroid, ToricArithmeticMatroid):
+            return cls(matroid.arrangement_matrix(), matroid.torus_matrix(), matroid.ordered_groundset())
+        return cls(matrix(ZZ, matroid.representation()), ordered_groundset=matroid.groundset_list())
+
     def _repr_(self):
         return "Toric arithmetic matroid of rank %d on %d elements" % (self.full_rank(), len(self.groundset()))
 
@@ -767,10 +797,10 @@ class ToricArithmeticMatroid(ArithmeticMatroidMixin, Matroid):
         return self._E == other._E and self._A == other._A and self._Q == other._Q
 
     def __copy__(self):
-        return ToricArithmeticMatroid(arrangement_matrix=self._A, torus_matrix=self._Q, ordered_groundset=self._E)
+        return type(self).from_matroid(self)
 
     def __deepcopy__(self, *args, **kwargs):
-        return ToricArithmeticMatroid(
+        return type(self)(
             arrangement_matrix=copy.deepcopy(self._A),
             torus_matrix=copy.deepcopy(self._Q),
             ordered_groundset=copy.deepcopy(self._E)

@@ -230,6 +230,33 @@ The multiplicity function needs to be passed as a keyword argument (and not as a
   # True
   ```
 
+The classes `ArithmeticMatroid`, `BasisArithmeticMatroid`, `LinearArithmeticMatroid`, and `ToricArithmeticMatroid` have a class method `from_matroid(matroid, multiplicity_function=None)`, which builds an arithmetic matroid of that class with the same underlying matroid as `matroid`.
+An explicit `multiplicity_function` takes precedence; otherwise the multiplicity function of `matroid` is used if it is an arithmetic matroid.
+
+* `ArithmeticMatroid` and `BasisArithmeticMatroid` accept any matroid; without a multiplicity function, it must be set later.
+* `LinearArithmeticMatroid` needs `matroid.representation()`.
+* `ToricArithmeticMatroid` always computes the multiplicity from its matrices, so passing `multiplicity_function` raises `ValueError`.
+  It copies the matrices of a toric `matroid`, and otherwise uses `matroid.representation()`, which must be integral.
+
+  ```sage
+  M1 = ToricArithmeticMatroid(matrix(ZZ, [[-1, 1, 0, 7], [6, 1, -1, -2]]))
+  M2 = BasisArithmeticMatroid.from_matroid(M1)
+
+  print(M2)
+  # Basis arithmetic matroid of rank 2 on 4 elements
+
+  print(M2.full_multiplicity() == M1.full_multiplicity())
+  # True
+
+  L = LinearMatroid(matrix(QQ, [[1, 1, 0], [0, 0, 2]]))
+
+  print(LinearArithmeticMatroid.from_matroid(L).full_multiplicity())
+  # 1
+
+  print(ToricArithmeticMatroid.from_matroid(L).full_multiplicity())
+  # 2
+  ```
+
 Finally, `MinorArithmeticMatroid` and `DualArithmeticMatroid` are the analogs of `MinorMatroid` and `DualMatroid`.
 They are used when calling `contract(X)`, `delete(X)`, `dual()` (see below).
 
